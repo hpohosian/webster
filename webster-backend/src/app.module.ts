@@ -10,6 +10,7 @@ import { EmailVerificationsModule } from './email-verifications/email-verificati
 import { MailService } from './mail/mail.service';
 import { MailModule } from './mail/mail.module';
 import { PasswordResetsModule } from './password-resets/password-resets.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PasswordResetsModule } from './password-resets/password-resets.module';
     EmailVerificationsModule,
     MailModule,
     PasswordResetsModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],
