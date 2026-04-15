@@ -1,4 +1,4 @@
-import { ToolCategory } from "./ToolsPanel";
+import { type ToolCategory } from "./ToolsPanel";
 import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
 import * as Slider from "@radix-ui/react-slider";
 
