@@ -6,10 +6,11 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { EmailVerification } from '../../email-verifications/entities/email-verification.entity';
 import { PasswordReset } from '../../password-resets/entities/password-reset.entity';
+import { Project } from '../../projects/entities/project.entity';
 
 @Entity()
 export class User {
@@ -29,10 +30,10 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'https://cdn.yourapp.com/avatars/user_1.jpg',
-    nullable: true, 
-    description: 'URL to the profile picture' 
+    nullable: true,
+    description: 'URL to the profile picture',
   })
   @Column({ nullable: true })
   profilePicture: string;
@@ -62,4 +63,8 @@ export class User {
   @ApiProperty({ type: () => [PasswordReset], description: 'History of password reset requests' })
   @OneToMany(() => PasswordReset, (reset) => reset.user)
   passwordResets: PasswordReset[];
+
+  @ApiHideProperty()
+  @OneToMany(() => Project, (project) => project.user)
+  projects: Project[];
 }
