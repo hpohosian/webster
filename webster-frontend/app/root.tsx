@@ -10,8 +10,7 @@ import {
 import "@radix-ui/themes/styles.css";
 
 import type { Route } from "./+types/root";
-import './tailwind.css';
-import './theme.css';
+import './index.css';
 
 
 export const links: Route.LinksFunction = () => [
