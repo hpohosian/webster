@@ -11,6 +11,9 @@ import { MailService } from './mail/mail.service';
 import { MailModule } from './mail/mail.module';
 import { PasswordResetsModule } from './password-resets/password-resets.module';
 import { ProjectsModule } from './projects/projects.module';
+import { FilesService } from './files/files.service';
+import { FilesController } from './files/files.controller';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -33,8 +36,9 @@ import { ProjectsModule } from './projects/projects.module';
     MailModule,
     PasswordResetsModule,
     ProjectsModule,
+    FilesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MailService],
+  providers: [AppService],
 })
 export class AppModule {}

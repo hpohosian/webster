@@ -5,10 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiHideProperty } from '@nestjs/swagger';
+import { FileEntity } from '../../files/entities/file.entity';
 
 @Entity()
 export class Project {
@@ -49,4 +52,11 @@ export class Project {
   })
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => FileEntity, (file) => file.project)
+  files: FileEntity[];
+
+  @ManyToOne(() => FileEntity, { nullable: true })
+  @JoinColumn()
+  coverImage: FileEntity;
 }

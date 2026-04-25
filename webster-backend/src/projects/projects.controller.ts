@@ -90,4 +90,12 @@ export class ProjectsController {
   remove(@Param('id') id: string, @Req() req) {
     return this.projectsService.remove(id, req.session.user.id);
   }
+
+  @Post(':id/files')
+  async attachFile(
+    @Param('id') projectId: string,
+    @Body('fileId') fileId: string,
+  ) {
+    return this.projectsService.attachFile(projectId, fileId);
+  }
 }
