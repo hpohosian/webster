@@ -1,10 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsObject } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateProjectDto {
-  @ApiProperty({
-    description: 'Full project canvas state',
-  })
-  @IsObject()
-  projectData: any;
+  @IsOptional()
+  @IsString()
+  title?: string;
 }

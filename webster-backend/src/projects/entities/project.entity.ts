@@ -12,6 +12,7 @@ import { User } from '../../users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { FileEntity } from '../../files/entities/file.entity';
+import { ProjectVersion } from './project-version.entity';
 
 @Entity()
 export class Project {
@@ -59,4 +60,10 @@ export class Project {
   @ManyToOne(() => FileEntity, { nullable: true })
   @JoinColumn()
   coverImage: FileEntity;
+
+  @OneToMany(() => ProjectVersion, (version) => version.project)
+  versions: ProjectVersion[];
+
+  @Column({ nullable: true })
+  currentVersionId: string;
 }
