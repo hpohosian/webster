@@ -1,7 +1,8 @@
 import { useState } from "react";
-import "./Login.css";
 import { useNavigate, Link } from 'react-router';
-import { Header } from '../EditorPage/Header'
+import { AuthHeader } from '../AuthHeader'
+
+import "./Login.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API = import.meta.env.VITE_API;
@@ -99,7 +100,7 @@ export default function LoginPage() {
   return (
     <div className="login-page">
 
-      <Header/>
+      <AuthHeader/>
       <main className="main">
 
         {/* Background SIDE */}

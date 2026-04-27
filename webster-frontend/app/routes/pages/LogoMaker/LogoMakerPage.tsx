@@ -1,16 +1,16 @@
-import { useState } from "react";
 import { Header } from "./../Page/Header";
 import { ToolsPanel, type ToolCategory } from "./ToolsPanel";
 import { FeaturesPanel } from "./FeaturesPanel";
-import { Canvas } from "./../Page/Canvas";
 import { RightPanel } from "../Page/RightPanel";
+import { Canvas } from "../Page/Canvas";
+import {useState} from "react"
 
 export default function EditorPage() {
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory>(null);
 
   return (
     <div className="size-full flex flex-col dark">
-      <Header />
+      <Header/>
 
       <div className="flex-1 flex overflow-hidden">
         <ToolsPanel

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from 'react-router'
-import {Header} from '../EditorPage/Header'
+import { AuthHeader} from '../AuthHeader'
 import styles from "./PasswordReset.module.css";
 import { useParams } from "react-router";
 
@@ -85,7 +85,7 @@ export default function PasswordReset() {
 
   return (
     <div className={styles.page}>
-      <Header/>
+      <AuthHeader/>
       
       <main className={styles.main}>
 

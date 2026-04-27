@@ -1,11 +1,17 @@
-import { File, Settings, Keyboard, Sparkles, User, LogOut, HelpCircle } from "lucide-react";
+import { Link, useLocation } from "react-router"
+import { File, Settings, Keyboard, Sparkles, User, LogOut, HelpCircle, PenLine, Wand2 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
 export function Header() {
+  const { pathname } = useLocation();
+
+  const isLogoMaker = pathname === "/logo-maker";
+  const isEditor = pathname === "/edit-page" || pathname === "/";
+
   return (
     <header className="h-12 bg-[#0f0f14] border-b border-border flex items-center justify-between px-4">
       <div className="flex items-center gap-6">
-        <h1 className="text-lg font-semibold text-foreground">PhotoPalette</h1>
+        <Link to="/" className="text-lg font-semibold text-foreground">Amethist studio</Link>
 
         <div className="flex items-center gap-4">
           <button className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors">
@@ -20,13 +26,25 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        <a
-          href="/logo-maker"
-          className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-        >
-          <Sparkles className="w-4 h-4" />
-          Logo Maker
-        </a>
+        {!isLogoMaker && (
+          <Link
+            to="/logo-maker"
+            className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
+            <Wand2 className="w-4 h-4" />
+            Logo Maker
+          </Link>
+        )}
+
+        {!isEditor && (
+          <Link
+            to="/edit-page"
+            className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
+            <PenLine className="w-4 h-4" />
+            Editor
+          </Link>
+        )}
 
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
