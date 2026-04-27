@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from 'react-router';
-import { Header } from '../EditorPage/Header'
+import { AuthHeader } from '../AuthHeader'
 import "./Register.css";
 import "./Login.css";
 
@@ -70,7 +70,7 @@ const handleSubmit = async (e: React.SubmitEvent) => {
   return (
 
   <div className="register-page">
-    <Header/>
+    <AuthHeader/>
 
     <main className="main">
       <div className="left-panel">

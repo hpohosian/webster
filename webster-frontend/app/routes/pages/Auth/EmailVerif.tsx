@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 import { useState } from 'react';
-import Header from '../EditorPage/Header';
+import AuthHeader from '../AuthHeader';
 // import Footer from '../Footer';
 // import './EmailVerif.css';
 
@@ -103,7 +103,7 @@ export default function VerifyEmail() {
 
   return (
     <>
-      <Header />
+      <AuthHeader />
 
       <div className="centerContainer page">
         <div className="card">
