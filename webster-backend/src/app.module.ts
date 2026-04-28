@@ -14,6 +14,9 @@ import { ProjectsModule } from './projects/projects.module';
 import { FilesService } from './files/files.service';
 import { FilesController } from './files/files.controller';
 import { FilesModule } from './files/files.module';
+import { ElementsService } from './elements/elements.service';
+import { ElementsController } from './elements/elements.controller';
+import { ElementsModule } from './elements/elements.module';
 
 @Module({
   imports: [
@@ -37,6 +40,7 @@ import { FilesModule } from './files/files.module';
     PasswordResetsModule,
     ProjectsModule,
     FilesModule,
+    ElementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -97,5 +98,49 @@ export class ProjectsController {
     @Body('fileId') fileId: string,
   ) {
     return this.projectsService.attachFile(projectId, fileId);
+  }
+
+  @UseGuards(SessionAuthGuard)
+  @Put(':id/save')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Save project (manual + autosave)' })
+  saveProject(
+    @Param('id') id: string,
+    @Body() body: { projectState: any; isAutoSave: boolean },
+    @Req() req,
+  ) {
+    return this.projectsService.saveProject(
+      id,
+      body.projectState,
+      body.isAutoSave,
+      req.session.user.id,
+    );
+  }
+
+  @UseGuards(SessionAuthGuard)
+  @Post(':id/restore/:versionId')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Restore project to previous version' })
+  restoreVersion(
+    @Param('id') projectId: string,
+    @Param('versionId') versionId: string,
+    @Req() req,
+  ) {
+    return this.projectsService.restoreVersion(
+      projectId,
+      versionId,
+      req.session.user.id,
+    );
+  }
+
+  @UseGuards(SessionAuthGuard)
+  @Get(':id/version-history')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Get project version history' })
+  getVersionHistory(@Param('id') projectId: string, @Req() req) {
+    return this.projectsService.getVersionHistory(
+      projectId,
+      req.session.user.id,
+    );
   }
 }

@@ -1,16 +1,34 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { User } from '../users/entities/user.entity';
 import { FileEntity } from '../files/entities/file.entity';
+import { ProjectVersion } from './entities/project-version.entity';
+
+type VersionGroup = {
+  type: 'autosave' | 'manual';
+  versions: {
+    id: string;
+    versionNumber?: number;
+    createdAt?: Date;
+  }[];
+};
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepo: Repository<Project>,
+
+    @InjectRepository(ProjectVersion)
+    private readonly versionRepo: Repository<ProjectVersion>,
 
     @InjectRepository(FileEntity)
     private readonly fileRepo: Repository<FileEntity>,
@@ -48,13 +66,16 @@ export class ProjectsService {
     return project;
   }
 
-  async update(projectId: string, dto: any, userId: string) {
+  async update(projectId: string, dto: UpdateProjectDto, userId: string) {
     const project = await this.projectRepo.findOne({
       where: { id: projectId, user: { id: userId } },
     });
 
     if (!project) throw new NotFoundException('Project not found');
-    project.projectData = dto.projectData;
+
+    if (dto.title !== undefined) {
+      project.title = dto.title;
+    }
 
     return await this.projectRepo.save(project);
   }
@@ -84,5 +105,151 @@ export class ProjectsService {
 
     file.project = project;
     return this.fileRepo.save(file);
+  }
+
+  async saveProject(
+    projectId: string,
+    projectState: any,
+    isAutoSave: boolean,
+    userId: string,
+  ) {
+    const project = await this.projectRepo.findOne({
+      where: { id: projectId, user: { id: userId } },
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    const lastVersion = await this.versionRepo.findOne({
+      where: { projectId },
+      order: { versionNumber: 'DESC' },
+    });
+
+    const nextVersionNumber = lastVersion ? lastVersion.versionNumber + 1 : 1;
+
+    const version = this.versionRepo.create({
+      projectId,
+      data: projectState,
+      versionNumber: nextVersionNumber,
+      isAutoSave,
+    });
+
+    const savedVersion = await this.versionRepo.save(version);
+
+    project.currentVersionId = savedVersion.id;
+    project.projectData = projectState;
+
+    await this.projectRepo.save(project);
+
+    return {
+      version: savedVersion,
+      versionNumber: nextVersionNumber,
+    };
+  }
+
+  async restoreVersion(projectId: string, versionId: string, userId: string) {
+    const project = await this.projectRepo.findOne({
+      where: { id: projectId, user: { id: userId } },
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    const versionToRestore = await this.versionRepo.findOne({
+      where: { id: versionId, projectId },
+    });
+
+    if (!versionToRestore) {
+      throw new NotFoundException('Version not found');
+    }
+
+    const lastVersion = await this.versionRepo.findOne({
+      where: { projectId },
+      order: { versionNumber: 'DESC' },
+    });
+
+    const nextVersionNumber = lastVersion ? lastVersion.versionNumber + 1 : 1;
+
+    const newVersion = this.versionRepo.create({
+      projectId,
+      data: versionToRestore.data,
+      versionNumber: nextVersionNumber,
+      isAutoSave: false,
+    });
+
+    const savedVersion = await this.versionRepo.save(newVersion);
+
+    project.projectData = versionToRestore.data;
+    project.currentVersionId = savedVersion.id;
+
+    await this.projectRepo.save(project);
+
+    return {
+      restoredFrom: versionId,
+      newVersion: savedVersion,
+    };
+  }
+
+  private groupVersions(versions: any[]) {
+    const result: any[] = [];
+
+    let currentGroup: VersionGroup | null = null;
+
+    for (const v of versions) {
+      const type = v.isAutoSave ? 'autosave' : 'manual';
+
+      if (currentGroup && currentGroup.type === type) {
+        currentGroup.versions.push(this.mapVersion(v));
+      } else {
+        currentGroup = {
+          type,
+          versions: [this.mapVersion(v)],
+        };
+
+        result.push(currentGroup);
+      }
+    }
+
+    return result;
+  }
+
+  private mapVersion(v: any) {
+    return {
+      id: v.id,
+      versionNumber: v.versionNumber,
+      createdAt: v.createdAt,
+    };
+  }
+
+  async getVersionHistory(
+    projectId: string,
+    userId: string,
+    page = 1,
+    limit = 20,
+  ) {
+    const project = await this.projectRepo.findOne({
+      where: { id: projectId, user: { id: userId } },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const [versions, total] = await this.versionRepo.findAndCount({
+      where: { projectId },
+      order: { versionNumber: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const grouped = this.groupVersions(versions);
+
+    return {
+      data: grouped,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
   }
 }
