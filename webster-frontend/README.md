@@ -85,3 +85,34 @@ This template comes with [Tailwind CSS](https://tailwindcss.com/) already config
 ---
 
 Built with ❤️ using React Router.
+
+## Demo API integrations
+
+This frontend can run with a small local API proxy for demo-only external integrations:
+
+- Unsplash image search in the Upload panel
+- Google Fonts in the Text panel font selector
+- The Color API palettes in the Draw panel color controls
+
+First copy the example env file:
+
+```bash
+cp .env.example .env.local
+```
+
+Add real keys to `.env.local` when available. The Color API does not require a key.
+
+Run both the mock API proxy and the React Router frontend:
+
+```bash
+npm run dev:full
+```
+
+Open:
+
+```text
+http://localhost:5173/
+```
+
+The browser calls `/api`; Vite proxies those requests to the mock API server on `MOCK_API_PORT`, defaulting to `8787`.
+

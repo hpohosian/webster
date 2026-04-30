@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 /**
  * FeaturesPanel.tsx
  * ─────────────────
@@ -12,6 +13,8 @@
 import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
 import type { Adjustments } from "../store/editorStore";
+import { getPalette, listFonts, searchImages } from "../lib/demoApi";
+import type { DemoColor, DemoFont, DemoImage } from "../lib/demoApi";
 
 // Keine Props mehr! (außer onClose falls du das brauchst)
 export function FeaturesPanel() {
@@ -122,13 +125,35 @@ function AdjustmentsContent() {
  * Canvas liest brushColor beim nächsten Strich aus dem Store → richtige Farbe!
  */
 function DrawContent() {
-  // Jedes Feld einzeln abonnieren = minimale Re-renders
   const brushColor    = useEditorStore((s) => s.brushColor);
   const brushSize     = useEditorStore((s) => s.brushSize);
   const brushOpacity  = useEditorStore((s) => s.brushOpacity);
   const setBrushColor   = useEditorStore((s) => s.setBrushColor);
   const setBrushSize    = useEditorStore((s) => s.setBrushSize);
   const setBrushOpacity = useEditorStore((s) => s.setBrushOpacity);
+
+  const [palette, setPalette] = useState<DemoColor[]>([]);
+  const [isLoadingPalette, setIsLoadingPalette] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+    setIsLoadingPalette(true);
+
+    getPalette(brushColor)
+      .then((colors) => {
+        if (isActive) setPalette(colors);
+      })
+      .catch(() => {
+        if (isActive) setPalette([]);
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingPalette(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [brushColor]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -140,6 +165,30 @@ function DrawContent() {
           style={{ width: "100%", height: 36, borderRadius: 6, cursor: "pointer", border: "1px solid #2a2a3a" }}
         />
       </div>
+
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ fontSize: 12, color: "#888" }}>Palette</span>
+          <span style={{ fontSize: 11, color: "#555" }}>{isLoadingPalette ? "Loading" : "The Color API"}</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
+          {palette.map((item) => (
+            <button
+              key={item.hex + item.name}
+              title={item.name || item.hex}
+              onClick={() => setBrushColor(item.hex)}
+              style={{
+                height: 28,
+                borderRadius: 6,
+                border: item.hex.toLowerCase() === brushColor.toLowerCase() ? "2px solid #fff" : "1px solid #2a2a3a",
+                background: item.hex,
+                cursor: "pointer",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
       <SliderField
         label="Brush Size" value={brushSize} min={1} max={100}
         onChange={setBrushSize}
@@ -169,13 +218,42 @@ function FilterContent() {
 
 // ─── Text ─────────────────────────────────────────────────────────────────────
 function TextContent() {
+  const [fonts, setFonts] = useState<DemoFont[]>([]);
+  const [isLoadingFonts, setIsLoadingFonts] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+    setIsLoadingFonts(true);
+
+    listFonts()
+      .then((loadedFonts) => {
+        if (isActive) setFonts(loadedFonts);
+      })
+      .catch(() => {
+        if (isActive) setFonts([]);
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingFonts(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const fontOptions = fonts.length > 0
+    ? fonts
+    : ["Arial", "Georgia", "Courier New", "Impact", "Trebuchet MS"].map((family) => ({ family }));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div>
-        <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Font</label>
+        <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>
+          Font {isLoadingFonts && <span style={{ color: "#555" }}>· loading Google Fonts</span>}
+        </label>
         <select style={selectStyle}>
-          {["Arial", "Georgia", "Courier New", "Impact", "Trebuchet MS"].map((f) => (
-            <option key={f}>{f}</option>
+          {fontOptions.map((font) => (
+            <option key={font.family} value={font.family}>{font.family}</option>
           ))}
         </select>
       </div>
@@ -244,15 +322,79 @@ function ResizeContent() {
 // ─── Upload ───────────────────────────────────────────────────────────────────
 function UploadContent() {
   const pushHistory = useEditorStore((s) => s.pushHistory);
+  const [query, setQuery] = useState("social media");
+  const [images, setImages] = useState<DemoImage[]>([]);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadImages = async () => {
+    setIsLoadingImages(true);
+    setError("");
+
+    try {
+      const results = await searchImages(query);
+      setImages(results);
+      pushHistory("Search images: " + query);
+    } catch {
+      setError("Image search is unavailable");
+    } finally {
+      setIsLoadingImages(false);
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{
-        border: "2px dashed #2a2a3a", borderRadius: 8, padding: "24px 12px",
-        textAlign: "center", cursor: "pointer", color: "#555", fontSize: 12,
-      }}
+      <button
+        onClick={loadImages}
+        style={{
+          border: "2px dashed #2a2a3a", borderRadius: 8, padding: "24px 12px",
+          textAlign: "center", cursor: "pointer", color: "#555", fontSize: 12,
+          background: "transparent",
+        }}
         onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#454fda")}
         onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#2a2a3a")}
-      >Drop image here<br />or click to browse</div>
+      >
+        {isLoadingImages ? "Searching Unsplash..." : <>Drop image here<br />or click to browse</>}
+      </button>
+
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") loadImages();
+        }}
+        placeholder="Search Unsplash"
+        style={inputStyle}
+      />
+
+      {error && <div style={{ color: "#f87171", fontSize: 12 }}>{error}</div>}
+
+      {images.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+          {images.slice(0, 6).map((image) => (
+            <button
+              key={image.id}
+              title={image.alt}
+              onClick={() => pushHistory("Add image: " + image.alt)}
+              style={{
+                overflow: "hidden",
+                borderRadius: 8,
+                border: "1px solid #2a2a3a",
+                background: "#1a1a2a",
+                padding: 0,
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <img src={image.thumb} alt={image.alt} style={{ width: "100%", height: 68, objectFit: "cover", display: "block" }} />
+              <span style={{ display: "block", padding: "5px 6px", color: "#777", fontSize: 10, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {image.author || "Unsplash"}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <button onClick={() => pushHistory("Create Empty Canvas")} style={panelBtnStyle}>
         Create Empty Canvas
       </button>
