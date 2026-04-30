@@ -1,74 +1,80 @@
+/**
+ * ToolsPanel.tsx + EditorPage.tsx
+ * ────────────────────────────────
+ * ToolsPanel: Keine Props mehr, kein selectedCategory callback
+ * EditorPage: Kein useState mehr, kein State-Drilling durch Props
+ */
+
+// ─── ToolsPanel.tsx ───────────────────────────────────────────────────────────
+
+import { useEditorStore } from "../store/editorStore";
 import {
-  Upload,
-  Maximize,
-  Sliders,
-  Wand2,
-  Type,
-  Pencil,
-  Shapes,
-  ChevronRight,
-  LayoutTemplate
+  MousePointer2, Hand, Upload, Maximize, SlidersHorizontal,
+  Wand2, Type, Pencil, Square, LayoutTemplate,
 } from "lucide-react";
 
-export type ToolCategory =
-  | "upload"
-  | "resize"
-  | "adjustments"
-  | "filter"
-  | "text"
-  | "draw"
-  | "shapes"
-  | "templates"
-  | null;
+const TOOL_CATEGORIES = [
+  { id: "upload",      Icon: Upload,            label: "Upload" },
+  { id: "resize",      Icon: Maximize,          label: "Resize" },
+  { id: "adjustments", Icon: SlidersHorizontal, label: "Adjustments" },
+  { id: "filter",      Icon: Wand2,             label: "Filters" },
+  { id: "text",        Icon: Type,              label: "Text" },
+  { id: "draw",        Icon: Pencil,            label: "Draw" },
+  { id: "shapes",      Icon: Square,            label: "Shapes" },
+  { id: "templates",   Icon: LayoutTemplate,    label: "Templates" },
+] as const;
 
-interface ToolsPanelProps {
-  selectedCategory: ToolCategory;
-  onCategorySelect: (category: ToolCategory) => void;
-}
-
-export function ToolsPanel({ selectedCategory, onCategorySelect }: ToolsPanelProps) {
-  const tools = [
-    { id: "upload" as const, icon: Upload, label: "Upload Picture" },
-    { id: "resize" as const, icon: Maximize, label: "Resize Canvas" },
-    { id: "adjustments" as const, icon: Sliders, label: "Adjustments" },
-    { id: "filter" as const, icon: Wand2, label: "Filters" },
-    { id: "text" as const, icon: Type, label: "Text" },
-    { id: "draw" as const, icon: Pencil, label: "Draw & Fill" },
-    { id: "shapes" as const, icon: Shapes, label: "Shapes" },
-    { id: "templates" as const, icon: LayoutTemplate, label: "Templates" },
-  ];
+// Kein Prop nötig!
+export function ToolsPanel() {
+  const activeTool   = useEditorStore((s) => s.activeTool);
+  const activePanel  = useEditorStore((s) => s.activePanel);
+  const setActiveTool = useEditorStore((s) => s.setActiveTool);
+  const setActivePanel = useEditorStore((s) => s.setActivePanel);
 
   return (
-    <div className="w-16 bg-[#0f0f14] border-r border-border flex flex-col items-center py-4 gap-2">
-      {tools.map((tool) => {
-        const Icon = tool.icon;
-        const isSelected = selectedCategory === tool.id;
+    <div style={{
+      width: 52, background: "#0d0d12", borderRight: "1px solid #1e1e2a",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      padding: "8px 0", gap: 2, flexShrink: 0,
+    }}>
+      {/* Canvas-Tools (pointer / hand) */}
+      {([
+        { id: "pointer" as const, Icon: MousePointer2, label: "Select (V)" },
+        { id: "hand"    as const, Icon: Hand,          label: "Pan (Space)" },
+      ]).map(({ id, Icon, label }) => (
+        <button
+          key={id}
+          title={label}
+          onClick={() => setActiveTool(id)}
+          style={{
+            width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
+            background: activeTool === id ? "#454fda" : "transparent",
+            color:      activeTool === id ? "#fff"    : "#666",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Icon size={16} />
+        </button>
+      ))}
 
-        return (
-          <button
-            key={tool.id}
-            onClick={() => onCategorySelect(tool.id)}
-            className={`
-              w-12 h-12 rounded-lg flex items-center justify-center
-              transition-all relative group
-              ${isSelected
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-              }
-            `}
-            title={tool.label}
-          >
-            <Icon className="w-5 h-5" />
-            {isSelected && (
-              <ChevronRight className="absolute -right-1 w-3 h-3 text-primary" />
-            )}
+      <div style={{ width: 28, height: 1, background: "#1e1e2a", margin: "4px 0" }} />
 
-            <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-              {tool.label}
-            </div>
-          </button>
-        );
-      })}
+      {/* Panel-Buttons */}
+      {TOOL_CATEGORIES.map(({ id, Icon, label }) => (
+        <button
+          key={id}
+          title={label}
+          onClick={() => setActivePanel(id)}  // Store-Action → togglet das Panel
+          style={{
+            width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
+            background: activePanel === id ? "#1e1e3a" : "transparent",
+            color:      activePanel === id ? "#454fda" : "#666",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Icon size={16} />
+        </button>
+      ))}
     </div>
   );
 }

@@ -1,68 +1,58 @@
-import { File, Settings, Keyboard, Sparkles, User, LogOut, HelpCircle } from "lucide-react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+/**
+ * Header.tsx
+ * ──────────
+ * Header braucht nur die History-Länge (für Undo/Redo sichtbarkeit).
+ * Kein Prop nötig.
+ */
+
+import { Download, Undo2, Redo2 } from "lucide-react";
+import { useEditorStore } from "../store/editorStore";
 
 export function Header() {
-  return (
-    <header className="h-12 bg-[#0f0f14] border-b border-border flex items-center justify-between px-4">
-      <div className="flex items-center gap-6">
-        <h1 className="text-lg font-semibold text-foreground">Webster</h1>
+  // Nur was der Header wirklich braucht
+  const history     = useEditorStore((s) => s.history);
+  const pushHistory = useEditorStore((s) => s.pushHistory);
 
-        <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors">
-            <File className="w-4 h-4" />
-            File
+  const canUndo = history.length > 1;
+
+  return (
+    <header style={{
+      height: 48, background: "#0d0d12", borderBottom: "1px solid #1e1e2a",
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0 16px", flexShrink: 0,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontWeight: 700, fontSize: 15, color: "#454fda", letterSpacing: "-0.5px" }}>
+          PixelCraft
+        </span>
+        {["File", "Edit", "Image", "Layer", "View"].map((m) => (
+          <button key={m} style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
+            {m}
           </button>
-          <button className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors">
-            <Settings className="w-4 h-4" />
-            Options
-          </button>
-        </div>
+        ))}
       </div>
 
-      <div className="flex items-center gap-4">
-        <a
-          href="/logo-maker"
-          className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          disabled={!canUndo}
+          style={{ ...btnStyle, opacity: canUndo ? 1 : 0.4 }}
+          onClick={() => pushHistory("Undo")}
         >
-          <Sparkles className="w-4 h-4" />
-          Logo Maker
-        </a>
-
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors">
-              <User className="w-4 h-4 text-foreground" />
-            </button>
-          </DropdownMenu.Trigger>
-
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content className="min-w-[200px] bg-popover border border-border rounded-lg shadow-lg p-1 z-50 mr-4">
-              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Profile
-              </DropdownMenu.Item>
-              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Settings
-              </DropdownMenu.Item>
-              <DropdownMenu.Separator className="h-px bg-border my-1" />
-              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
-                <Keyboard className="w-4 h-4" />
-                Keyboard Shortcuts
-              </DropdownMenu.Item>
-              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" />
-                Help & Support
-              </DropdownMenu.Item>
-              <DropdownMenu.Separator className="h-px bg-border my-1" />
-              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-destructive hover:text-destructive-foreground cursor-pointer flex items-center gap-2">
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
+          <Undo2 size={13} /> Undo
+        </button>
+        <button style={btnStyle} onClick={() => pushHistory("Redo")}>
+          <Redo2 size={13} /> Redo
+        </button>
+        <button style={{ ...btnStyle, background: "#454fda", border: "none", color: "#fff" }}>
+          <Download size={13} /> Export
+        </button>
       </div>
     </header>
   );
 }
+
+const btnStyle: React.CSSProperties = {
+  background: "none", border: "1px solid #2a2a3a", color: "#aaa",
+  borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer",
+  display: "flex", alignItems: "center", gap: 4,
+};

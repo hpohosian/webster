@@ -1,31 +1,24 @@
-import { Header } from "./../Page/Header";
-import { ToolsPanel, type ToolCategory } from "./ToolsPanel";
-import { FeaturesPanel } from "./FeaturesPanel";
-import { RightPanel } from "../Page/RightPanel";
-import { Canvas } from "../Page/Canvas";
-import {useState} from "react"
+import { Header } from "./../components/Header";
+import { FeaturesPanel } from "./../components/FeaturesPanel";
+import { Canvas } from "./../components/Canvas";
+import { RightPanel } from "./../components/RightPanel";
+import { ToolsPanel } from "./../components/ToolsPanel";
 
-export default function EditorPage() {
-  const [selectedCategory, setSelectedCategory] = useState<ToolCategory>(null);
-
+export default function LogoMakerPage() {
+  // Kein useState mehr hier!
   return (
-    <div className="size-full flex flex-col dark">
-      <Header/>
+    <div style={{
+      width: "100%", height: "100vh",
+      display: "flex", flexDirection: "column",
+      background: "#0d0d12", fontFamily: "system-ui, sans-serif", color: "#ccc",
+    }}>
+      <Header />
 
-      <div className="flex-1 flex overflow-hidden">
-        <ToolsPanel
-          selectedCategory={selectedCategory}
-          onCategorySelect={setSelectedCategory}
-        />
-
-        <FeaturesPanel
-          category={selectedCategory}
-          onClose={() => setSelectedCategory(null)}
-        />
-
-        <Canvas />
-
-        <RightPanel />
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+        <ToolsPanel />      
+        <FeaturesPanel />    
+        <Canvas />         
+        <RightPanel />       
       </div>
     </div>
   );
