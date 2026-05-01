@@ -1,0 +1,58 @@
+/**
+ * Header.tsx
+ * ──────────
+ * Header braucht nur die History-Länge (für Undo/Redo sichtbarkeit).
+ * Kein Prop nötig.
+ */
+
+import { Download, Undo2, Redo2 } from "lucide-react";
+import { useEditorStore } from "../store/editorStore";
+
+export function Header() {
+  // Nur was der Header wirklich braucht
+  const history     = useEditorStore((s) => s.history);
+  const pushHistory = useEditorStore((s) => s.pushHistory);
+
+  const canUndo = history.length > 1;
+
+  return (
+    <header style={{
+      height: 48, background: "#0d0d12", borderBottom: "1px solid #1e1e2a",
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0 16px", flexShrink: 0,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontWeight: 700, fontSize: 15, color: "#454fda", letterSpacing: "-0.5px" }}>
+          PixelCraft
+        </span>
+        {["File", "Edit", "Image", "Layer", "View"].map((m) => (
+          <button key={m} style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          disabled={!canUndo}
+          style={{ ...btnStyle, opacity: canUndo ? 1 : 0.4 }}
+          onClick={() => pushHistory("Undo")}
+        >
+          <Undo2 size={13} /> Undo
+        </button>
+        <button style={btnStyle} onClick={() => pushHistory("Redo")}>
+          <Redo2 size={13} /> Redo
+        </button>
+        <button style={{ ...btnStyle, background: "#454fda", border: "none", color: "#fff" }}>
+          <Download size={13} /> Export
+        </button>
+      </div>
+    </header>
+  );
+}
+
+const btnStyle: React.CSSProperties = {
+  background: "none", border: "1px solid #2a2a3a", color: "#aaa",
+  borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer",
+  display: "flex", alignItems: "center", gap: 4,
+};

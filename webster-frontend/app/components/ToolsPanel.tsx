@@ -1,0 +1,80 @@
+/**
+ * ToolsPanel.tsx + EditorPage.tsx
+ * ────────────────────────────────
+ * ToolsPanel: Keine Props mehr, kein selectedCategory callback
+ * EditorPage: Kein useState mehr, kein State-Drilling durch Props
+ */
+
+// ─── ToolsPanel.tsx ───────────────────────────────────────────────────────────
+
+import { useEditorStore } from "../store/editorStore";
+import {
+  MousePointer2, Hand, Upload, Maximize, SlidersHorizontal,
+  Wand2, Type, Pencil, Square, LayoutTemplate,
+} from "lucide-react";
+
+const TOOL_CATEGORIES = [
+  { id: "upload",      Icon: Upload,            label: "Upload" },
+  { id: "resize",      Icon: Maximize,          label: "Resize" },
+  { id: "adjustments", Icon: SlidersHorizontal, label: "Adjustments" },
+  { id: "filter",      Icon: Wand2,             label: "Filters" },
+  { id: "text",        Icon: Type,              label: "Text" },
+  { id: "draw",        Icon: Pencil,            label: "Draw" },
+  { id: "shapes",      Icon: Square,            label: "Shapes" },
+  { id: "templates",   Icon: LayoutTemplate,    label: "Templates" },
+] as const;
+
+// Kein Prop nötig!
+export function ToolsPanel() {
+  const activeTool   = useEditorStore((s) => s.activeTool);
+  const activePanel  = useEditorStore((s) => s.activePanel);
+  const setActiveTool = useEditorStore((s) => s.setActiveTool);
+  const setActivePanel = useEditorStore((s) => s.setActivePanel);
+
+  return (
+    <div style={{
+      width: 52, background: "#0d0d12", borderRight: "1px solid #1e1e2a",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      padding: "8px 0", gap: 2, flexShrink: 0,
+    }}>
+      {/* Canvas-Tools (pointer / hand) */}
+      {([
+        { id: "pointer" as const, Icon: MousePointer2, label: "Select (V)" },
+        { id: "hand"    as const, Icon: Hand,          label: "Pan (Space)" },
+      ]).map(({ id, Icon, label }) => (
+        <button
+          key={id}
+          title={label}
+          onClick={() => setActiveTool(id)}
+          style={{
+            width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
+            background: activeTool === id ? "#454fda" : "transparent",
+            color:      activeTool === id ? "#fff"    : "#666",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Icon size={16} />
+        </button>
+      ))}
+
+      <div style={{ width: 28, height: 1, background: "#1e1e2a", margin: "4px 0" }} />
+
+      {/* Panel-Buttons */}
+      {TOOL_CATEGORIES.map(({ id, Icon, label }) => (
+        <button
+          key={id}
+          title={label}
+          onClick={() => setActivePanel(id)}  // Store-Action → togglet das Panel
+          style={{
+            width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
+            background: activePanel === id ? "#1e1e3a" : "transparent",
+            color:      activePanel === id ? "#454fda" : "#666",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Icon size={16} />
+        </button>
+      ))}
+    </div>
+  );
+}

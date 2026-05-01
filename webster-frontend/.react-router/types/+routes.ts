@@ -14,98 +14,20 @@ type Pages = {
   "/": {
     params: {};
   };
-  "/login": {
-    params: {};
-  };
-  "/register": {
-    params: {};
-  };
-  "/verify-email": {
-    params: {};
-  };
-  "/password-reset/:token": {
-    params: {
-      "token": string;
-    };
-  };
-  "/profile/:userId": {
-    params: {
-      "userId": string;
-    };
-  };
-  "/profile/:userId/edit": {
-    params: {
-      "userId": string;
-    };
-  };
-  "/logo-maker": {
-    params: {};
-  };
-  "/edit-page": {
-    params: {};
-  };
-  "/auth/callback": {
-    params: {};
-  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/register" | "/verify-email" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/logo-maker" | "/edit-page" | "/auth/callback";
-  };
-  "routes/pages/HomePage/HomePage.tsx": {
-    id: "routes/pages/HomePage/HomePage";
     page: "/";
   };
-  "routes/pages/Auth/Login.tsx": {
-    id: "routes/pages/Auth/Login";
-    page: "/login";
-  };
-  "routes/pages/Auth/Register.tsx": {
-    id: "routes/pages/Auth/Register";
-    page: "/register";
-  };
-  "routes/pages/Auth/EmailVerif.tsx": {
-    id: "routes/pages/Auth/EmailVerif";
-    page: "/verify-email";
-  };
-  "routes/pages/Auth/PasswordReset.tsx": {
-    id: "routes/pages/Auth/PasswordReset";
-    page: "/password-reset/:token";
-  };
-  "routes/pages/UserPage/UserPage.tsx": {
-    id: "routes/pages/UserPage/UserPage";
-    page: "/profile/:userId";
-  };
-  "routes/pages/UserEditPage/EditUserPage.tsx": {
-    id: "routes/pages/UserEditPage/EditUserPage";
-    page: "/profile/:userId/edit";
-  };
-  "routes/pages/LogoMaker/LogoMakerPage.tsx": {
-    id: "routes/pages/LogoMaker/LogoMakerPage";
-    page: "/logo-maker";
-  };
-  "routes/pages/EditorPage/EditorPage.tsx": {
-    id: "routes/pages/EditorPage/EditorPage";
-    page: "/edit-page";
-  };
-  "routes/pages/Auth/Callback.tsx": {
-    id: "routes/pages/Auth/Callback";
-    page: "/auth/callback";
+  "routes/EditorPage.tsx": {
+    id: "routes/EditorPage";
+    page: "/";
   };
 };
 
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
-  "routes/pages/HomePage/HomePage": typeof import("./app/routes/pages/HomePage/HomePage.tsx");
-  "routes/pages/Auth/Login": typeof import("./app/routes/pages/Auth/Login.tsx");
-  "routes/pages/Auth/Register": typeof import("./app/routes/pages/Auth/Register.tsx");
-  "routes/pages/Auth/EmailVerif": typeof import("./app/routes/pages/Auth/EmailVerif.tsx");
-  "routes/pages/Auth/PasswordReset": typeof import("./app/routes/pages/Auth/PasswordReset.tsx");
-  "routes/pages/UserPage/UserPage": typeof import("./app/routes/pages/UserPage/UserPage.tsx");
-  "routes/pages/UserEditPage/EditUserPage": typeof import("./app/routes/pages/UserEditPage/EditUserPage.tsx");
-  "routes/pages/LogoMaker/LogoMakerPage": typeof import("./app/routes/pages/LogoMaker/LogoMakerPage.tsx");
-  "routes/pages/EditorPage/EditorPage": typeof import("./app/routes/pages/EditorPage/EditorPage.tsx");
-  "routes/pages/Auth/Callback": typeof import("./app/routes/pages/Auth/Callback.tsx");
+  "routes/EditorPage": typeof import("./app/routes/EditorPage.tsx");
 };

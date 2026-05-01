@@ -7,11 +7,8 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import "@radix-ui/themes/styles.css";
-
 import type { Route } from "./+types/root";
-import './index.css';
-
+import "./app.css";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
