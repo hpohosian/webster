@@ -3,7 +3,6 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 
-
 export function AuthHeader() {
   const route = useLocation();
   const navigate = useNavigate();

@@ -2,13 +2,69 @@ import { type ToolCategory } from "./ToolsPanel";
 import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
 import * as Slider from "@radix-ui/react-slider";
 
+const API = import.meta.env.VITE_API;
+
 interface FeaturesPanelProps {
   category: ToolCategory;
   onClose: () => void;
+  projectId: string;
+  onElementAdded: (el: any) => void;
 }
 
-export function FeaturesPanel({ category, onClose }: FeaturesPanelProps) {
+export function FeaturesPanel({
+  category,
+  onClose,
+  projectId,
+  onElementAdded,
+}: FeaturesPanelProps) {
   if (!category) return null;
+
+  const handleUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("projectId", projectId);
+
+    let uploadedFile: { id: string; url: string; width: number; height: number };
+    try {
+      const uploadRes = await fetch(`${API}/files/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      uploadedFile = await uploadRes.json();
+    } catch (e) {
+      console.error("Upload failed", e);
+      return;
+    }
+
+    await fetch(`${API}/projects/${projectId}/files`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileId: uploadedFile.id }),
+    });
+
+    const elRes = await fetch(`${API}/elements`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId,
+        type: "image",
+        x: 50,
+        y: 50,
+        width: uploadedFile.width ?? 200,
+        height: uploadedFile.height ?? 200,
+        rotation: 0,
+        scale: 1,
+        zIndex: 0,
+        data: { src: uploadedFile.url },
+      }),
+    });
+    const newEl = await elRes.json();
+    onElementAdded(newEl);
+    onClose();
+  };
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col">
@@ -19,7 +75,7 @@ export function FeaturesPanel({ category, onClose }: FeaturesPanelProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {renderCategoryContent(category)}
+        {renderCategoryContent(category, handleUpload)}
       </div>
     </div>
   );
@@ -30,7 +86,6 @@ function getCategoryTitle(category: ToolCategory): string {
     upload: "Upload Picture",
     resize: "Resize Canvas",
     adjustments: "Adjustments",
-    filter: "Filters",
     text: "Text Options",
     draw: "Draw & Fill",
     shapes: "Shapes",
@@ -39,14 +94,27 @@ function getCategoryTitle(category: ToolCategory): string {
   return titles[category || ""] || "";
 }
 
-function renderCategoryContent(category: ToolCategory) {
+function renderCategoryContent(
+  category: ToolCategory,
+  handleUpload: (file: File) => Promise<void>
+) {
   switch (category) {
     case "upload":
       return (
         <div className="space-y-4">
-          <button className="w-full p-4 border-2 border-dashed border-border rounded-lg hover:border-primary transition-colors">
-            <p className="text-sm text-muted-foreground">Drop image here or click to browse</p>
-          </button>
+          <label className="w-full p-4 border-2 border-dashed border-border rounded-lg hover:border-primary transition-colors cursor-pointer block">
+            <p className="text-sm text-muted-foreground text-center">
+              Drop image here or click to browse
+            </p>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.[0]) handleUpload(e.target.files[0]);
+              }}
+            />
+          </label>
           <button className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80">
             Create Empty Canvas
           </button>
@@ -57,7 +125,9 @@ function renderCategoryContent(category: ToolCategory) {
       return (
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Custom Size</label>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              Custom Size
+            </label>
             <div className="flex gap-2 items-center">
               <input
                 type="number"
@@ -78,7 +148,9 @@ function renderCategoryContent(category: ToolCategory) {
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Presets</label>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              Presets
+            </label>
             <div className="space-y-1 max-h-[400px] overflow-y-auto">
               {[
                 { name: "Instagram Post", size: "1080 × 1080" },
@@ -93,13 +165,15 @@ function renderCategoryContent(category: ToolCategory) {
                 { name: "Large Rectangle", size: "336 × 280" },
                 { name: "Mobile Banner", size: "320 × 50" },
                 { name: "Billboard", size: "970 × 250" },
-              ].map(preset => (
+              ].map((preset) => (
                 <button
                   key={preset.name}
                   className="w-full px-3 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors flex justify-between items-center text-sm"
                 >
                   <span>{preset.name}</span>
-                  <span className="text-xs text-muted-foreground">{preset.size}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {preset.size}
+                  </span>
                 </button>
               ))}
             </div>
@@ -119,20 +193,6 @@ function renderCategoryContent(category: ToolCategory) {
           <AdjustmentSlider icon={Palette} label="Color Balance" />
           <AdjustmentSlider icon={Lightbulb} label="Light" />
           <AdjustmentSlider icon={CloudRain} label="Shadow" />
-        </div>
-      );
-
-    case "filter":
-      return (
-        <div className="space-y-2">
-          {["Grayscale", "Blur", "Sharpen", "Sepia", "Vintage", "HDR"].map(filter => (
-            <button
-              key={filter}
-              className="w-full px-4 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
-            >
-              {filter}
-            </button>
-          ))}
         </div>
       );
 
@@ -215,78 +275,64 @@ function renderCategoryContent(category: ToolCategory) {
     case "shapes":
       return (
         <div className="space-y-2">
-          {["Rectangle", "Circle", "Line", "Arrow", "Triangle", "Star"].map(shape => (
-            <button
-              key={shape}
-              className="w-full px-4 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
-            >
-              {shape}
-            </button>
-          ))}
+          {["Rectangle", "Circle", "Line", "Arrow", "Triangle", "Star"].map(
+            (shape) => (
+              <button
+                key={shape}
+                className="w-full px-4 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+              >
+                {shape}
+              </button>
+            )
+          )}
         </div>
       );
 
     case "templates":
       return (
         <div className="space-y-4">
-          <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Social Media</label>
-            <div className="space-y-1">
-              {[
+          {[
+            {
+              label: "Social Media",
+              items: [
                 "Instagram Post",
                 "Instagram Story",
                 "Facebook Cover",
                 "Twitter Header",
-                "YouTube Thumbnail"
-              ].map(template => (
-                <button
-                  key={template}
-                  className="w-full px-4 py-3 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
-                >
-                  {template}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Business</label>
-            <div className="space-y-1">
-              {[
+                "YouTube Thumbnail",
+              ],
+            },
+            {
+              label: "Business",
+              items: [
                 "Business Card",
                 "Flyer",
                 "Poster",
                 "Brochure",
-                "Logo Template"
-              ].map(template => (
-                <button
-                  key={template}
-                  className="w-full px-4 py-3 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
-                >
-                  {template}
-                </button>
-              ))}
+                "Logo Template",
+              ],
+            },
+            {
+              label: "Creative",
+              items: ["Collage", "Photo Grid", "Mood Board", "Presentation Slide"],
+            },
+          ].map(({ label, items }) => (
+            <div key={label}>
+              <label className="text-sm text-muted-foreground mb-2 block">
+                {label}
+              </label>
+              <div className="space-y-1">
+                {items.map((template) => (
+                  <button
+                    key={template}
+                    className="w-full px-4 py-3 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-
-          <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Creative</label>
-            <div className="space-y-1">
-              {[
-                "Collage",
-                "Photo Grid",
-                "Mood Board",
-                "Presentation Slide"
-              ].map(template => (
-                <button
-                  key={template}
-                  className="w-full px-4 py-3 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
-                >
-                  {template}
-                </button>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       );
 
@@ -295,7 +341,13 @@ function renderCategoryContent(category: ToolCategory) {
   }
 }
 
-function AdjustmentSlider({ icon: Icon, label }: { icon: any; label: string }) {
+function AdjustmentSlider({
+  icon: Icon,
+  label,
+}: {
+  icon: any;
+  label: string;
+}) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">

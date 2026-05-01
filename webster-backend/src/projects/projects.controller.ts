@@ -3,6 +3,7 @@ import {
   Controller,
   Post,
   Req,
+  Res,
   UseGuards,
   Get,
   Param,
@@ -10,6 +11,7 @@ import {
   Delete,
   Put,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { SessionAuthGuard } from '../auth/guards/session-auth.guard';
@@ -52,6 +54,18 @@ export class ProjectsController {
   })
   findAll(@Req() req) {
     return this.projectsService.findAll(req.session.user.id);
+  }
+
+  @UseGuards(SessionAuthGuard)
+  @Get('new/:type')
+  async createAndRedirect(@Param('type') type: string, @Req() req, @Res() res: Response) {
+    const title = type === 'logo' ? 'Untitled Logo' : 'Untitled Photo';
+    const project = await this.projectsService.create(
+      { title, canvas: { width: 800, height: 600, background: '#ffffff' } },
+      req.session.user.id
+    );
+    const target = type === 'logo' ? 'logo-maker' : 'edit-page';
+    return res.redirect(`http://localhost:5173/${target}/${project.id}`);
   }
 
   @UseGuards(SessionAuthGuard)

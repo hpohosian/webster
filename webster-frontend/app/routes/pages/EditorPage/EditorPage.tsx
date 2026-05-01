@@ -1,12 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router";
 import { Header } from "./../Page/Header";
 import { ToolsPanel, type ToolCategory } from "./ToolsPanel";
 import { FeaturesPanel } from "./FeaturesPanel";
 import { Canvas } from "./../Page/Canvas";
 import { RightPanel } from "../Page/RightPanel";
 
+const API = import.meta.env.VITE_API;
+
 export default function EditorPage() {
+  const { projectId } = useParams();
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory>(null);
+  const [elements, setElements] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    fetch(`${API}/elements/project/${projectId}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then(setElements)
+      .catch(console.error);
+  }, [projectId]);
 
   return (
     <div className="size-full flex flex-col dark">
@@ -21,11 +34,20 @@ export default function EditorPage() {
         <FeaturesPanel
           category={selectedCategory}
           onClose={() => setSelectedCategory(null)}
+          projectId={projectId!}
+          onElementAdded={(el) => setElements((prev) => [...prev, el])}
         />
 
-        <Canvas />
+        <Canvas
+          projectId={projectId!}
+          elements={elements}
+        />
 
-        <RightPanel />
+        <RightPanel
+          elements={elements}
+          setElements={setElements}
+          projectId={projectId!}
+        />
       </div>
     </div>
   );

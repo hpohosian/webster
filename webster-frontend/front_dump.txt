@@ -1,0 +1,5653 @@
+===== ./.env =====
+VITE_API="http://localhost:3000"
+===== ./.gitignore =====
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+/.react-router/
+/build/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+===== ./app/index.css =====
+/* @import './fonts.css'; */
+@import './tailwind.css';
+@import './theme.css';===== ./app/root.tsx =====
+import {
+  isRouteErrorResponse,
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+} from "react-router";
+
+import "@radix-ui/themes/styles.css";
+
+import type { Route } from "./+types/root";
+import './index.css';
+
+
+export const links: Route.LinksFunction = () => [
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  {
+    rel: "preconnect",
+    href: "https://fonts.gstatic.com",
+    crossOrigin: "anonymous",
+  },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+  },
+];
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        {children}
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
+export default function App() {
+  return <Outlet />;
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  let message = "Oops!";
+  let details = "An unexpected error occurred.";
+  let stack: string | undefined;
+
+  if (isRouteErrorResponse(error)) {
+    message = error.status === 404 ? "404" : "Error";
+    details =
+      error.status === 404
+        ? "The requested page could not be found."
+        : error.statusText || details;
+  } else if (import.meta.env.DEV && error && error instanceof Error) {
+    details = error.message;
+    stack = error.stack;
+  }
+
+  return (
+    <main className="pt-16 p-4 container mx-auto">
+      <h1>{message}</h1>
+      <p>{details}</p>
+      {stack && (
+        <pre className="w-full p-4 overflow-x-auto">
+          <code>{stack}</code>
+        </pre>
+      )}
+    </main>
+  );
+}
+===== ./app/routes/assets/Icons.tsx =====
+
+export const IconEye = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+export const ClosedIconEye = () => (
+ <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+);
+
+export const CheckIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#b967e9" strokeWidth="3" strokeLinecap="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+export function CrossIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="2.5" strokeLinecap="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+};===== ./app/routes/pages/Auth/Callback.tsx =====
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+
+export default function AuthCallback() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (!code) {
+      navigate("/login");
+      return;
+    }
+
+    // Send the code to your backend
+    fetch(`${import.meta.env.VITE_API}/auth/google-callback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ code }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          navigate("/login?error=google_failed");
+        } else {
+          navigate("/"); // home after login
+        }
+      })
+      .catch(() => navigate("/login?error=google_failed"));
+  }, []);
+
+  return <p>Signing you in...</p>;
+}===== ./app/routes/pages/Auth/EmailVerif.tsx =====
+import { useNavigate } from 'react-router';
+import { useState } from 'react';
+import AuthHeader from '../AuthHeader';
+// import Footer from '../Footer';
+// import './EmailVerif.css';
+
+const API = import.meta.env.VITE_API;
+
+export default function VerifyEmail() {
+  const [otp, setOtp]     = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
+  const navigate = useNavigate();
+
+  // OTP input handlers
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>, index: number) {
+    const value = event.target.value.replace(/[^0-9]/g, "");
+    const newOtp = [...otp];
+
+    if (value) {
+      newOtp[index] = value[0];
+      setOtp(newOtp);
+      const next = event.target.nextSibling as HTMLInputElement | null;
+      if (next) next.focus();
+    } else {
+      newOtp[index] = "";
+      setOtp(newOtp);
+      const prev = event.target.previousSibling as HTMLInputElement | null;
+      if (prev) prev.focus();
+    }
+  }
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>, index: number) {
+    // Allow backspace to move backwards even when field is already empty
+    if (event.key === 'Backspace' && !otp[index]) {
+      const prev = event.currentTarget.previousSibling as HTMLInputElement | null;
+      if (prev) prev.focus();
+    }
+  }
+
+  function handlePaste(event: React.ClipboardEvent<HTMLInputElement>) {
+    event.preventDefault();
+    const paste = event.clipboardData.getData('text').replace(/[^0-9]/g, '');
+    if (!paste) return;
+
+    const newOtp = Array.from({ length: 6 }, (_, i) => paste[i] ?? "");
+    setOtp(newOtp);
+
+    const lastIndex = Math.min(paste.length, 6) - 1;
+    const inputs = (event.currentTarget.closest('form') as HTMLFormElement)
+      .querySelectorAll<HTMLInputElement>('input');
+    if (inputs[lastIndex]) inputs[lastIndex].focus();
+  }
+
+  // Submit
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const code = otp.join("");
+    if (code.length < 6) return;
+    try{
+
+      const res = await fetch(`${API}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code }),
+      })
+        const data = await res.json();
+
+        console.log(data);
+        
+  
+      // сервер вернул ошибку
+      if (!res.ok || data.error) {
+        setError(data.error || "Verification failed");
+        return;
+      }
+      setError("");
+      navigate("/");
+    }catch{
+      setError('Network error. Please try again.');
+    }
+  }
+
+  //  Resend code 
+  async function handleResend() {
+    if (resendTimer > 1) return;
+    try {
+      const res = await fetch(`${API}/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+      })
+      if (!res.ok){
+        setError(res.statusText);
+      }
+    } catch{
+      setError("Network error. Please try again.");
+    }
+  }
+
+  const isComplete = otp.every(d => d !== "");
+
+  return (
+    <>
+      <AuthHeader />
+
+      <div className="centerContainer page">
+        <div className="card">
+
+          {/* Icon */}
+          <div className="iconWrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e97f67" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+
+          {/* Heading */}
+          <h1 className="title">Email Verification</h1>
+          <p className="subtitle">
+            Enter the 6-digit code sent to your email address.
+          </p>
+
+          {/* OTP form */}
+          <form onSubmit={handleSubmit}>
+            <div className="otpRow">
+              {otp.map((digit, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={e => handleChange(e, i)}
+                  onKeyDown={e => handleKeyDown(e, i)}
+                  onPaste={handlePaste}
+                  className={`otpInput${digit ? ' filled' : ''}`}
+                  autoFocus={i === 0}
+                />
+              ))}
+            </div>
+
+            <button
+              type="submit"
+              className="submitBtn"
+              disabled={!isComplete}
+            >
+              Verify account →
+            </button>
+          </form>
+
+          {/* Resend */}
+          <p className="resendRow">
+            Didn't receive the code?{' '}
+            <button
+              className="resendLink"
+              onClick={handleResend}
+              disabled={resendTimer > 0}
+            >
+              {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend'}
+            </button>
+          </p>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="errorMsg">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* <Footer /> */}
+    </>
+  );
+}
+===== ./app/routes/pages/Auth/Login.css =====
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #8d3bff;
+  --accent-bg: rgba(170, 59, 255, 0.08);
+  --accent-border: rgba(170, 59, 255, 0.35);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px,
+    rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --heading: 'DM Serif Display', Georgia, serif;
+
+  font: 16px/150% var(--sans);
+  letter-spacing: 0.18px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Reset ─────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Page shell ─────────────────────────────── */
+.login-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* ── Main ───────────────────────────────────── */
+.main {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+}
+
+/* ── Left panel (dark hero) ─────────────────── */
+.left-panel {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+}
+
+.left-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    /* subtle grain */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #0d0b12 0%, #1a0b2e 50%, #0f0718 100%);
+  background-size: 200px 200px, cover;
+}
+
+/* Glowing orb */
+.left-bg::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 15%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(170, 59, 255, 0.28) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: pulse 6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+.left-overlay {
+  position: absolute;
+  inset: 0;
+  /* diagonal colour stripe */
+  background: linear-gradient(160deg,
+      transparent 55%,
+      rgba(170, 59, 255, 0.06) 55%,
+      rgba(170, 59, 255, 0.03) 100%);
+}
+
+/* ── Right panel (card area) ─────────────────── */
+.right-panel {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  /* justify-content: flex-end; */
+  width: 100%;
+  padding: 48px 5vw;
+}
+
+/* ── Login card ──────────────────────────────── */
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 44px 40px 40px;
+  box-shadow:
+    0 0 0 1px rgba(170, 59, 255, 0.06),
+    0 24px 60px rgba(0, 0, 0, 0.12),
+    0 8px 20px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(12px);
+  animation: slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Heading block ───────────────────────────── */
+.heading {
+  margin-bottom: 28px;
+}
+
+.heading h1 {
+  font-family: var(--heading);
+  font-size: 2.1rem;
+  font-weight: 400;
+  color: var(--text-h);
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.heading p {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.heading p a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.18s;
+}
+
+.heading p a:hover {
+  border-color: var(--accent);
+}
+
+/* ── Google button ───────────────────────────── */
+.google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 20px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+.google-btn::before {
+  content: '';
+  display: block;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23FFC107' d='M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z'/%3E%3Cpath fill='%23FF3D00' d='M6.3 14.7l6.6 4.8C14.6 16.1 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.4 6.3 14.7z'/%3E%3Cpath fill='%234CAF50' d='M24 44c5.2 0 10-1.9 13.7-5l-6.3-5.3C29.5 35.6 26.9 36.5 24 36.5c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.6 39.5 16.3 44 24 44z'/%3E%3Cpath fill='%231976D2' d='M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.2-4.1 5.6l6.3 5.3C41.9 35.5 44 30.1 44 24c0-1.3-.1-2.6-.4-3.9z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.google-btn:hover {
+  background: var(--code-bg);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* ── Divider ─────────────────────────────────── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider span {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+/* ── Form ────────────────────────────────────── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+}
+
+/* inputs get their styles inline from the component,
+   but we add the focus-ring glow here via a wrapper trick */
+.form input[type="email"],
+.form input[type="text"],
+.form input[type="password"] {
+  font-family: var(--sans) !important;
+}
+
+/* ── Password field wrapper ──────────────────── */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  padding-right: 68px !important;
+}
+
+.show-password {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.show-password:hover {
+  background: var(--accent-bg);
+}
+
+/* ── Forgot password ─────────────────────────── */
+.pass-req {
+  background: none;
+  border: none;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 2px 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.pass-req:hover {
+  color: var(--accent);
+}
+
+.reset-text {
+  font-size: 12px;
+  color: #2d9f6e;
+  font-weight: 500;
+  margin-top: 4px;
+  padding: 8px 12px;
+  background: rgba(45, 159, 110, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(45, 159, 110, 0.2);
+}
+
+/* ── Submit button ───────────────────────────── */
+.submit-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.1px;
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+  box-shadow: 0 4px 18px rgba(170, 59, 255, 0.35);
+}
+
+.submit-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.submit-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(170, 59, 255, 0.45);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Error banner ────────────────────────────── */
+/* (inline styles in the component are overridden here for consistency) */
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 768px) {
+  .left-bg::after {
+    display: none;
+  }
+
+  .left-panel {
+    flex-direction: column;
+    background: linear-gradient(160deg, #0d0b12 0%, #1a0b2e 100%);
+  }
+
+  .right-panel {
+    justify-content: center;
+    padding: 32px 20px 48px;
+  }
+
+  .login-card {
+    padding: 32px 24px 28px;
+    border-radius: 20px;
+  }
+
+  .heading h1 {
+    font-size: 1.75rem;
+  }
+}===== ./app/routes/pages/Auth/Login.tsx =====
+import { useState } from "react";
+import { useNavigate, Link } from 'react-router';
+import { AuthHeader } from '../AuthHeader'
+
+import "./Login.css";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const API = import.meta.env.VITE_API;
+function signInWithGoogle() {
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: import.meta.env.VITE_REDIRECT_URI ?? window.location.origin + "/auth/callback",
+    response_type: "code",
+    scope: "openid email profile",
+    prompt: "select_account",
+  });
+
+  window.location.href =
+    `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+export default function LoginPage() {
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [ resetPass, setResetPass ] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate(); 
+  
+  //submit
+  const handleSubmit = async (e: React.SubmitEvent) => {
+    e.preventDefault();
+
+    const res = await fetch(`${API}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      emailOrUsername: email,
+      password,
+    })
+  });
+    const data = await res.json();
+    console.log("login",data);
+   if (data.error) {
+        setError(data.message)
+        console.log(data.error); // ошибка от сервера
+      } else {
+        console.log('');
+        // all good
+        navigate('/');
+      }       
+  };
+  //passreset
+  const resetPasswordReq = async (e: React.SubmitEvent) => {
+    e.preventDefault();
+
+    if (email === '') {
+      setError("Please enter the email")
+    } 
+    const res = await fetch(`${API}/auth/password-reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      email,
+      password,
+    })
+  });
+    const data = await res.json();
+    console.log(data);
+    if (data.error) {
+        console.log(data.error); // ошибка от сервера
+    } else {
+        console.log('');
+        setResetPass(true)
+    }     
+  };
+
+  const inputStyle = (field: string) => ({
+    width: "100%",
+    padding: "14px 16px",
+    fontSize: 15,
+    fontWeight: 500,
+    color: "#000",
+    background: focusedField === field ? "#fff" : "#F5F5F5",
+    border:
+      focusedField === field
+        ? "1.5px solid #E97F67"
+        : "1.5px solid transparent",
+    borderRadius: 12,
+    outline: "none",
+    transition: "all 0.18s ease",
+    boxSizing: "border-box",
+  });
+
+  return (
+    <div className="login-page">
+
+      <AuthHeader/>
+      <main className="main">
+
+        {/* Background SIDE */}
+         <div className="left-panel">
+          <div className="left-bg" />
+           <div className="left-overlay" />
+            
+            <div className="right-panel">
+              <div className="login-card">
+                <div className="heading">
+                  <h1>Sign in</h1>
+
+                  <p>
+                    Don't have an account?{" "}
+                    <Link to="/register">Create one</Link>
+                  </p>
+                </div>
+
+                <button
+                  className="google-btn"
+                  onClick={signInWithGoogle}
+                >
+                  Continue with Google
+                </button>
+
+                <div className="divider">
+                  <div className="divider-line" />
+                  <span>or sign in with email</span>
+                  <div className="divider-line" />
+                </div>
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="form"
+                >
+                  <label>Email address</label>
+
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onFocus={() => setFocusedField("email")}
+                    onBlur={() => setFocusedField(null)}
+                    style={inputStyle("email")}
+                    required
+                  />
+
+                  <label>Password</label>
+
+                  <div className="password-field">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onFocus={() => setFocusedField("password")}
+                      onBlur={() => setFocusedField(null)}
+                      style={inputStyle("password")}
+                      required
+                    />
+
+                    <button
+                      type="button" 
+                      className="show-password"
+                      onClick={() => setShowPassword((p) => !p)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  <div>
+                    <button className="pass-req" onClick={resetPasswordReq}>
+                    forgot your password?
+                    </button>
+                    { resetPass? (
+                      <p className="reset-text"> Reset link is sent. Check your email </p>
+                      ):(
+                        <></>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="submit-btn"
+                  >
+                    {isLoading ? "Signing in..." : "Sign in"}
+                  </button>
+
+                     {/* Error banner */}
+                  {error && (
+                    <div style={{ padding: "16px 24px", background: "#fff0ed", borderRadius: 14, color: "#c0392b", fontWeight: 600, fontSize: 14 }}>
+                      {error}
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
+          </div>
+      </main>
+
+    </div>
+  );
+}===== ./app/routes/pages/Auth/PasswordReset.module.css =====
+===== ./app/routes/pages/Auth/PasswordReset.tsx =====
+import { useState } from "react";
+import { Link } from 'react-router'
+import { AuthHeader} from '../AuthHeader'
+import styles from "./PasswordReset.module.css";
+import { useParams } from "react-router";
+
+import {
+  IconEye,
+  ClosedIconEye,
+  CheckIcon,
+  CrossIcon,
+} from '../../assets/Icons'
+
+const RINGS = [
+  { size: 300, top: -150, right: -150 },
+  { size: 200, top: -100, right: -100 },
+  { size: 120, top:  -60, right:  -60 },
+];
+
+const API = import.meta.env.VITE_API;
+
+export default function PasswordReset() {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { token } = useParams();
+
+  //  Password strength
+  const rules = {
+    length: password.length >= 8,
+    upper:  /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+  };
+  const strength      = Object.values(rules).filter(Boolean).length;
+  const strengthColor = ["#eee", "#fbbf24", "#34d399", "#E97F67"][strength];
+  const strengthLabel = ["", "Weak", "Good", "Strong"][strength];
+
+  const passwordsMatch = confirm.length > 0 && password === confirm;
+  const canSubmit      = rules.length && rules.upper && rules.number && passwordsMatch;
+
+  // Submit
+  async function handleSubmit(e: React.SubmitEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    setError("");
+    setMessage("");
+    setLoading(true);
+
+    try {
+      console.log(token);
+      
+      const res = await fetch(
+        `${API}/auth/password-reset/${token}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            newPassword: password,
+            newPasswordConfirmation: confirm,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (data.error) setError(data.message);
+      else setMessage("Password has been reset successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  //  Confirm border class
+  const confirmClass = [
+    styles.input,
+    confirm.length > 0 ? (passwordsMatch ? styles.inputMatch : styles.inputMismatch) : "",
+  ].join(" ");
+
+  return (
+    <div className={styles.page}>
+      <AuthHeader/>
+      
+      <main className={styles.main}>
+
+        {/* Back ground */}
+        <div className={styles.leftPanel}>
+          <div className={styles.leftBg} />
+          <div className={styles.leftGradient} />
+
+          {RINGS.map(({ size, top, right }) => (
+            <div
+              key={size}
+              className={styles.ring}
+              style={{ width: size, height: size, top, right }}
+            />
+          ))}
+         </div>
+         
+        {/* --- Right panel */}
+        <div className={styles.rightPanel}>
+
+          {message ? (
+            /* Success state */
+            <div className={styles.successWrap}>
+              <div className={styles.successIcon}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E97F67" strokeWidth="2.5" strokeLinecap="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <h2 className={styles.successTitle}>All done!</h2>
+              <p className={styles.successText}>
+                Your password has been reset
+              </p>
+              <Link to="/login" className={styles.successLink}>Back to sign in</Link>
+            </div>
+
+          ) : (
+            /* -- Form state */
+            <div className={styles.card}>
+
+              <div className={styles.cardHeading}>
+                <h1 className={styles.cardTitle}>Reset password</h1>
+                <p className={styles.cardSubtitle}>
+                  Remember it?{" "}
+                  <a href="/login">Sign in</a>
+                </p>
+                 <p className={styles.leftSubtext}>
+                  Use at least 8 characters with an uppercase letter and a number.
+                </p>
+              </div>
+
+              {error && (
+                <div className={styles.errorBanner}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  {error}
+                </div>
+              )}
+
+              <form className={styles.form} onSubmit={handleSubmit}>
+
+                {/* New password */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>
+                    New password <span>*</span>
+                  </label>
+                  <div className={styles.inputWrap}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a strong password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      className={styles.input}
+                    />
+                    <button type="button" className={styles.eyeBtn} onClick={() => setShowPassword(p => !p)}>
+                      <EyeIcon open={showPassword} />
+                    </button>
+                  </div>
+
+                  {/* Strength bar */}
+                  {password.length > 0 && (
+                    <div className={styles.strengthWrap}>
+                      <div className={styles.strengthBars}>
+                        {[1, 2, 3].map(n => (
+                          <div
+                            key={n}
+                            className={styles.strengthBar}
+                            style={{ background: n <= strength ? strengthColor : "#e5e5e5" }}
+                          />
+                        ))}
+                      </div>
+                      <div className={styles.strengthMeta}>
+                        <div className={styles.strengthRules}>
+                          {[
+                            { ok: rules.length, text: "8+ chars" },
+                            { ok: rules.upper,  text: "Uppercase" },
+                            { ok: rules.number, text: "Number" },
+                          ].map(({ ok, text }) => (
+                            <span key={text} className={`${styles.strengthRule} ${ok ? styles.met : ""}`}>
+                              {ok ? <CheckIcon /> : <CrossIcon />}
+                              {text}
+                            </span>
+                          ))}
+                        </div>
+                        {strengthLabel && (
+                          <span className={styles.strengthLabel} style={{ color: strengthColor }}>
+                            {strengthLabel}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm password */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>
+                    Confirm password <span>*</span>
+                  </label>
+                  <div className={styles.inputWrap}>
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      placeholder="Repeat your new password"
+                      value={confirm}
+                      onChange={e => setConfirm(e.target.value)}
+                      required
+                      className={confirmClass}
+                    />
+                    <button type="button" className={styles.eyeBtn} onClick={() => setShowConfirm(p => !p)}>
+                      <EyeIcon open={showConfirm} />
+                    </button>
+                  </div>
+                  {confirm.length > 0 && !passwordsMatch && (
+                    <span className={styles.mismatchText}>Passwords don't match</span>
+                  )}
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={!canSubmit || loading}
+                  className={styles.submitBtn}
+                >
+                  {loading ? (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={styles.spinner}>
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                      </svg>
+                      Saving…
+                    </>
+                  ) : "Set new password"}
+                </button>
+
+              </form>
+            </div>
+          )}
+        </div>
+      </main>
+
+    </div>
+  );
+}
+
+/* ── Small icons ── */
+
+function EyeIcon({ open }: { open: boolean }) {
+  return open ? (
+    <ClosedIconEye/>
+  ) : (
+    <IconEye/>
+  );
+}
+===== ./app/routes/pages/Auth/Register.css =====
+/* ── Page shell  */
+.register-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.left-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    /* subtle grain */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #0d0b12 0%, #1a0b2e 50%, #0f0718 100%);
+  background-size: 200px 200px, cover;
+}
+
+
+/* ── Right panel (card area) ─────────────────── */
+.right-panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 48px 5vw;
+}
+
+/* ── Login card ──────────────────────────────── */
+.register-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 44px 40px 40px;
+  box-shadow:
+    0 0 0 1px rgba(170, 59, 255, 0.06),
+    0 24px 60px rgba(0, 0, 0, 0.12),
+    0 8px 20px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(12px);
+  animation: slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ── Form ────────────────────────────────────── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+}
+
+/* inputs get their styles inline from the component,
+   but we add the focus-ring glow here via a wrapper trick */
+.form input[type="email"],
+.form input[type="text"],
+.form input[type="password"] {
+  font-family: var(--sans) !important;
+}
+
+/* ── Password field wrapper ──────────────────── */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  padding-right: 68px !important;
+}
+
+.show-password {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.show-password:hover {
+  background: var(--accent-bg);
+}
+
+
+/* ── Submit button ───────────────────────────── */
+.submit-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  letter-spacing: 0.1px;
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+  box-shadow: 0 4px 18px rgba(170, 59, 255, 0.35);
+}
+
+.submit-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.submit-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(170, 59, 255, 0.45);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Error banner ────────────────────────────── */
+/* (inline styles in the component are overridden here for consistency) */
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 768px) {
+  .left-bg::after {
+    display: none;
+  }
+
+  .left-panel {
+    flex-direction: column;
+    background: linear-gradient(160deg, #0d0b12 0%, #1a0b2e 100%);
+  }
+
+  .right-panel {
+    justify-content: center;
+    padding: 32px 20px 48px;
+  }
+
+  .register-card {
+    padding: 32px 24px 28px;
+    border-radius: 20px;
+  }
+
+  .heading h1 {
+    font-size: 1.75rem;
+  }
+}===== ./app/routes/pages/Auth/Register.tsx =====
+import { useState } from "react";
+import { Link, useNavigate } from 'react-router';
+import { AuthHeader } from '../AuthHeader'
+import "./Register.css";
+import "./Login.css";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const API = import.meta.env.VITE_API;
+
+function signUpWithGoogle() {
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: import.meta.env.VITE_REDIRECT_URI ?? window.location.origin + "/auth/callback",
+    response_type: "code",
+    scope: "openid email profile",
+    prompt: "select_account",
+  });
+
+  window.location.href =
+    `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+export default function RegisterPage() {
+  const [username, setUserName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const navigate = useNavigate(); 
+  const [error, setError] = useState("");
+  const [notifMessage, setMessage] = useState("");
+
+const handleSubmit = async (e: React.SubmitEvent) => {
+  e.preventDefault();
+
+  if (password !== confirm) {
+    setError("Passwords do not match");
+    console.error("Passwords do not match");
+    return;
+  }
+
+  const res = await fetch(`${API}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      username,
+      email,
+      password,
+      passwordConfirmation: confirm,
+      firstName,
+      lastName,
+    })
+  });
+
+  const data = await res.json();
+   if (data.error) {
+        console.log(data.error); // ошибка от сервера
+        setError(data.message);
+        console.log(data.message);
+      } else {
+        // console.log('');
+        setMessage(`Password reset email sent to ${email}`);
+        navigate('/verify-email');
+      }       
+};
+  return (
+
+  <div className="register-page">
+    <AuthHeader/>
+
+    <main className="main">
+      <div className="left-panel">
+        <div className="left-bg"></div>
+        <div className="left-overlay"></div>
+       
+        <div className="right-panel">
+          <div className="register-card">
+            <div className="heading">
+
+            <h1>Create account</h1>
+
+            <p>
+              Already have one?
+              <Link to="/login"> Sign in</Link>
+            </p>
+
+        </div>
+
+        <button
+          className="google-btn" onClick={signUpWithGoogle}>
+          Continue with Google
+        </button>
+
+        <div className="divider">
+        <div className="divider-line"></div>
+
+        <span>
+          or register with email
+        </span>
+
+        <div className="divider-line"></div>
+
+        </div>
+          <form onSubmit={handleSubmit} className="form">
+
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={e=>setUserName(e.target.value)}
+              required
+            /> 
+            <div className="name-row">
+              <input
+                type="text"
+                placeholder="First name"
+                value={firstName}
+                onChange={e=>setFirstName(e.target.value)}
+                required
+              />
+
+              <input
+              type="text"
+              placeholder="Last name"
+              value={lastName}
+              onChange={e=>setLastName(e.target.value)}
+              required
+              />
+
+          </div>
+
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={e=>setEmail(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Create password"
+              value={password}
+              onChange={e=>setPassword(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirm}
+              onChange={e=>setConfirm(e.target.value)}
+              required
+            />
+
+            <button
+              type="submit"
+              className="submit-btn">
+              Create account
+            </button>
+
+            {/* Error banner */}
+              {error && (
+                <div style={{ padding: "16px 24px", background: "#fff0ed", borderRadius: 14, color: "#c0392b", fontWeight: 600, fontSize: 14 }}>
+                  {error}
+                </div>
+              )}
+          </form>
+        </div>
+      
+      </div>
+    </div>
+    </main>
+
+   </div>
+  );
+}===== ./app/routes/pages/AuthHeader.tsx =====
+import { File, Settings, Keyboard, Sparkles, User, LogOut, HelpCircle } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Link, useLocation, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+
+
+export function AuthHeader() {
+  const route = useLocation();
+  const navigate = useNavigate();
+  const isLoginPage = route.pathname === "/login";
+
+  // Fetch session user
+  const [user, setUser] = useState<{ data: SessionUser | null; isLogged: boolean }>({
+    data: null,
+    isLogged: false,
+  });
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API}/auth/me`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data?.user?.id) {
+          setUser({ data: data.user, isLogged: true });
+        } else {
+          setUser({ data: null, isLogged: false });
+        }
+      } catch {
+        setUser({ data: null, isLogged: false });
+      }
+    }
+    fetchUser();
+  }, []);
+
+  return (
+    <header className="h-12 bg-[#0f0f14] border-b border-border flex items-center justify-between px-4">
+      <div className="flex items-center gap-6">
+        <Link to="/" className="text-lg font-semibold text-foreground">Amethist studio</Link>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <Link
+          to="/logo-maker"
+          className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+        >
+          <Sparkles className="w-4 h-4" />
+          Logo Maker
+        </Link>
+
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors">
+              <User className="w-4 h-4 text-foreground" />
+            </button>
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content className="min-w-[200px] bg-popover border border-border rounded-lg shadow-lg p-1 z-50 mr-4">
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Settings
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator className="h-px bg-border my-1" />
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
+                <Keyboard className="w-4 h-4" />
+                Keyboard Shortcuts
+              </DropdownMenu.Item>
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
+                <HelpCircle className="w-4 h-4" />
+                Help & Support
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator className="h-px bg-border my-1" />
+              
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+        {isLoginPage ? (
+           <Link to="/register" className="header-link">Register</Link>
+          ) : (
+            <Link to="/login" className="header-link">Login</Link>
+          )}
+      </div>
+    </header>
+  );
+}
+===== ./app/routes/pages/EditorPage/EditorPage.tsx =====
+import { useState, useEffect } from "react";
+import { useParams } from "react-router";
+import { Header } from "./../Page/Header";
+import { ToolsPanel, type ToolCategory } from "./ToolsPanel";
+import { FeaturesPanel } from "./FeaturesPanel";
+import { Canvas } from "./../Page/Canvas";
+import { RightPanel } from "../Page/RightPanel";
+
+const API = import.meta.env.VITE_API;
+
+export default function EditorPage() {
+  const { projectId } = useParams();
+  const [selectedCategory, setSelectedCategory] = useState<ToolCategory>(null);
+  const [elements, setElements] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    fetch(`${API}/elements/project/${projectId}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then(setElements)
+      .catch(console.error);
+  }, [projectId]);
+
+  return (
+    <div className="size-full flex flex-col dark">
+      <Header />
+
+      <div className="flex-1 flex overflow-hidden">
+        <ToolsPanel
+          selectedCategory={selectedCategory}
+          onCategorySelect={setSelectedCategory}
+        />
+
+        <FeaturesPanel
+          category={selectedCategory}
+          onClose={() => setSelectedCategory(null)}
+          projectId={projectId!}
+          onElementAdded={(el) => setElements((prev) => [...prev, el])}
+        />
+
+        <Canvas
+          projectId={projectId!}
+          elements={elements}
+        />
+
+        <RightPanel
+          elements={elements}
+          setElements={setElements}
+          projectId={projectId!}
+        />
+      </div>
+    </div>
+  );
+}===== ./app/routes/pages/EditorPage/FeaturesPanel.tsx =====
+import { type ToolCategory } from "./ToolsPanel";
+import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
+import * as Slider from "@radix-ui/react-slider";
+
+const API = import.meta.env.VITE_API;
+
+interface FeaturesPanelProps {
+  category: ToolCategory;
+  onClose: () => void;
+  projectId: string;
+  onElementAdded: (el: any) => void;
+}
+
+export function FeaturesPanel({
+  category,
+  onClose,
+  projectId,
+  onElementAdded,
+}: FeaturesPanelProps) {
+  if (!category) return null;
+
+  const handleUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("projectId", projectId);
+
+    let uploadedFile: { id: string; url: string; width: number; height: number };
+    try {
+      const uploadRes = await fetch(`${API}/files/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      uploadedFile = await uploadRes.json();
+    } catch (e) {
+      console.error("Upload failed", e);
+      return;
+    }
+
+    // Attach file to project
+    await fetch(`${API}/projects/${projectId}/files`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileId: uploadedFile.id }),
+    });
+
+    // Create canvas element
+    const elRes = await fetch(`${API}/elements`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId,
+        type: "image",
+        x: 50,
+        y: 50,
+        width: uploadedFile.width ?? 200,
+        height: uploadedFile.height ?? 200,
+        rotation: 0,
+        scale: 1,
+        zIndex: 0,
+        data: { src: uploadedFile.url },
+      }),
+    });
+    const newEl = await elRes.json();
+    onElementAdded(newEl);
+    onClose();
+  };
+
+  return (
+    <div className="w-64 bg-card border-r border-border flex flex-col">
+      <div className="p-4 border-b border-border">
+        <h3 className="font-semibold text-foreground">
+          {getCategoryTitle(category)}
+        </h3>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {renderCategoryContent(category, handleUpload)}
+      </div>
+    </div>
+  );
+}
+
+function getCategoryTitle(category: ToolCategory): string {
+  const titles: Record<string, string> = {
+    upload: "Upload Picture",
+    resize: "Resize Canvas",
+    adjustments: "Adjustments",
+    filter: "Filters",
+    text: "Text Options",
+    draw: "Draw & Fill",
+    shapes: "Shapes",
+    templates: "Templates",
+  };
+  return titles[category || ""] || "";
+}
+
+function renderCategoryContent(
+  category: ToolCategory,
+  handleUpload: (file: File) => Promise<void>
+) {
+  switch (category) {
+    case "upload":
+      return (
+        <div className="space-y-4">
+          <label className="w-full p-4 border-2 border-dashed border-border rounded-lg hover:border-primary transition-colors cursor-pointer block">
+            <p className="text-sm text-muted-foreground text-center">
+              Drop image here or click to browse
+            </p>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.[0]) handleUpload(e.target.files[0]);
+              }}
+            />
+          </label>
+          <button className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80">
+            Create Empty Canvas
+          </button>
+        </div>
+      );
+
+    case "resize":
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              Custom Size
+            </label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                className="flex-1 px-3 py-2 bg-input rounded text-sm"
+                placeholder="1080"
+              />
+              <span className="text-xs text-muted-foreground">×</span>
+              <input
+                type="number"
+                className="flex-1 px-3 py-2 bg-input rounded text-sm"
+                placeholder="1080"
+              />
+              <select className="px-2 py-2 bg-input rounded text-sm">
+                <option>px</option>
+                <option>%</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              Presets
+            </label>
+            <div className="space-y-1 max-h-[400px] overflow-y-auto">
+              {[
+                { name: "Instagram Post", size: "1080 × 1080" },
+                { name: "Instagram Story", size: "1080 × 1920" },
+                { name: "Facebook Post", size: "1200 × 630" },
+                { name: "Facebook Cover", size: "820 × 312" },
+                { name: "YouTube Thumbnail", size: "1280 × 720" },
+                { name: "Twitter Post", size: "1200 × 675" },
+                { name: "LinkedIn Post", size: "1200 × 628" },
+                { name: "Pinterest Pin", size: "1000 × 1500" },
+                { name: "Banner", size: "468 × 60" },
+                { name: "Large Rectangle", size: "336 × 280" },
+                { name: "Mobile Banner", size: "320 × 50" },
+                { name: "Billboard", size: "970 × 250" },
+              ].map((preset) => (
+                <button
+                  key={preset.name}
+                  className="w-full px-3 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors flex justify-between items-center text-sm"
+                >
+                  <span>{preset.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {preset.size}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90">
+            Apply Resize
+          </button>
+        </div>
+      );
+
+    case "adjustments":
+      return (
+        <div className="space-y-6">
+          <AdjustmentSlider icon={Sun} label="Highlights" />
+          <AdjustmentSlider icon={Contrast} label="Contrast" />
+          <AdjustmentSlider icon={Palette} label="Color Balance" />
+          <AdjustmentSlider icon={Lightbulb} label="Light" />
+          <AdjustmentSlider icon={CloudRain} label="Shadow" />
+        </div>
+      );
+
+    case "filter":
+      return (
+        <div className="space-y-2">
+          {["Grayscale", "Blur", "Sharpen", "Sepia", "Vintage", "HDR"].map(
+            (filter) => (
+              <button
+                key={filter}
+                className="w-full px-4 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+              >
+                {filter}
+              </button>
+            )
+          )}
+        </div>
+      );
+
+    case "text":
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-muted-foreground">Font</label>
+            <select className="w-full px-3 py-2 bg-input rounded mt-1 text-sm">
+              <option>Arial</option>
+              <option>Helvetica</option>
+              <option>Times New Roman</option>
+              <option>Courier</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Size</label>
+            <input
+              type="number"
+              className="w-full px-3 py-2 bg-input rounded mt-1 text-sm"
+              placeholder="16"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button className="flex-1 px-3 py-2 bg-secondary rounded hover:bg-primary hover:text-primary-foreground text-sm font-bold">
+              B
+            </button>
+            <button className="flex-1 px-3 py-2 bg-secondary rounded hover:bg-primary hover:text-primary-foreground text-sm italic">
+              I
+            </button>
+            <button className="flex-1 px-3 py-2 bg-secondary rounded hover:bg-primary hover:text-primary-foreground text-sm underline">
+              U
+            </button>
+          </div>
+        </div>
+      );
+
+    case "draw":
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-muted-foreground">Brush Size</label>
+            <Slider.Root
+              className="relative flex items-center w-full h-5 mt-2"
+              defaultValue={[5]}
+              max={50}
+              step={1}
+            >
+              <Slider.Track className="relative bg-secondary rounded-full h-1 flex-1">
+                <Slider.Range className="absolute bg-primary rounded-full h-full" />
+              </Slider.Track>
+              <Slider.Thumb className="block w-4 h-4 bg-primary rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary" />
+            </Slider.Root>
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Opacity</label>
+            <Slider.Root
+              className="relative flex items-center w-full h-5 mt-2"
+              defaultValue={[100]}
+              max={100}
+              step={1}
+            >
+              <Slider.Track className="relative bg-secondary rounded-full h-1 flex-1">
+                <Slider.Range className="absolute bg-primary rounded-full h-full" />
+              </Slider.Track>
+              <Slider.Thumb className="block w-4 h-4 bg-primary rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary" />
+            </Slider.Root>
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Color</label>
+            <input
+              type="color"
+              className="w-full h-10 bg-input rounded mt-1 cursor-pointer"
+              defaultValue="#454fda"
+            />
+          </div>
+        </div>
+      );
+
+    case "shapes":
+      return (
+        <div className="space-y-2">
+          {["Rectangle", "Circle", "Line", "Arrow", "Triangle", "Star"].map(
+            (shape) => (
+              <button
+                key={shape}
+                className="w-full px-4 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+              >
+                {shape}
+              </button>
+            )
+          )}
+        </div>
+      );
+
+    case "templates":
+      return (
+        <div className="space-y-4">
+          {[
+            {
+              label: "Social Media",
+              items: [
+                "Instagram Post",
+                "Instagram Story",
+                "Facebook Cover",
+                "Twitter Header",
+                "YouTube Thumbnail",
+              ],
+            },
+            {
+              label: "Business",
+              items: [
+                "Business Card",
+                "Flyer",
+                "Poster",
+                "Brochure",
+                "Logo Template",
+              ],
+            },
+            {
+              label: "Creative",
+              items: ["Collage", "Photo Grid", "Mood Board", "Presentation Slide"],
+            },
+          ].map(({ label, items }) => (
+            <div key={label}>
+              <label className="text-sm text-muted-foreground mb-2 block">
+                {label}
+              </label>
+              <div className="space-y-1">
+                {items.map((template) => (
+                  <button
+                    key={template}
+                    className="w-full px-4 py-3 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
+
+function AdjustmentSlider({
+  icon: Icon,
+  label,
+}: {
+  icon: any;
+  label: string;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-4 h-4 text-muted-foreground" />
+        <label className="text-sm text-foreground">{label}</label>
+      </div>
+      <Slider.Root
+        className="relative flex items-center w-full h-5"
+        defaultValue={[0]}
+        min={-100}
+        max={100}
+        step={1}
+      >
+        <Slider.Track className="relative bg-secondary rounded-full h-1 flex-1">
+          <Slider.Range className="absolute bg-primary rounded-full h-full" />
+        </Slider.Track>
+        <Slider.Thumb className="block w-4 h-4 bg-primary rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary" />
+      </Slider.Root>
+    </div>
+  );
+}===== ./app/routes/pages/EditorPage/ToolsPanel.tsx =====
+import {
+  Upload,
+  Maximize,
+  Sliders,
+  Wand2,
+  Type,
+  Pencil,
+  Shapes,
+  ChevronRight,
+  LayoutTemplate
+} from "lucide-react";
+
+export type ToolCategory =
+  | "upload"
+  | "resize"
+  | "adjustments"
+  | "filter"
+  | "text"
+  | "draw"
+  | "shapes"
+  | "templates"
+  | null;
+
+interface ToolsPanelProps {
+  selectedCategory: ToolCategory;
+  onCategorySelect: (category: ToolCategory) => void;
+}
+
+export function ToolsPanel({ selectedCategory, onCategorySelect }: ToolsPanelProps) {
+  const tools = [
+    { id: "upload" as const, icon: Upload, label: "Upload Picture" },
+    { id: "resize" as const, icon: Maximize, label: "Resize Canvas" },
+    { id: "adjustments" as const, icon: Sliders, label: "Adjustments" },
+    { id: "filter" as const, icon: Wand2, label: "Filters" },
+    { id: "text" as const, icon: Type, label: "Text" },
+    { id: "draw" as const, icon: Pencil, label: "Draw & Fill" },
+    { id: "shapes" as const, icon: Shapes, label: "Shapes" },
+    { id: "templates" as const, icon: LayoutTemplate, label: "Templates" },
+  ];
+
+  return (
+    <div className="w-16 bg-[#0f0f14] border-r border-border flex flex-col items-center py-4 gap-2">
+      {tools.map((tool) => {
+        const Icon = tool.icon;
+        const isSelected = selectedCategory === tool.id;
+
+        return (
+          <button
+            key={tool.id}
+            onClick={() => onCategorySelect(tool.id)}
+            className={`
+              w-12 h-12 rounded-lg flex items-center justify-center
+              transition-all relative group
+              ${isSelected
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }
+            `}
+            title={tool.label}
+          >
+            <Icon className="w-5 h-5" />
+            {isSelected && (
+              <ChevronRight className="absolute -right-1 w-3 h-3 text-primary" />
+            )}
+
+            <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+              {tool.label}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+===== ./app/routes/pages/HomePage/HomePage.css =====
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+.home-page {
+  min-height: 100vh;
+  background-color: #1a1520;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(108, 60, 160, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(72, 30, 120, 0.3) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 60% 40%, rgba(140, 80, 200, 0.12) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  position: relative;
+  overflow: hidden;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.home-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(125deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(120, 60, 180, 0.03) 18px,
+      rgba(120, 60, 180, 0.03) 19px),
+    repeating-linear-gradient(55deg,
+      transparent 0px,
+      transparent 24px,
+      rgba(90, 40, 140, 0.03) 24px,
+      rgba(90, 40, 140, 0.03) 25px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-page::after {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(130, 70, 200, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  padding: 0 2rem;
+  min-height: calc(100vh - 48px);
+}
+
+.home-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  width: 240px;
+  height: 300px;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.home-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  z-index: 0;
+}
+
+.home-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(180, 130, 255, 0.15);
+  z-index: 2;
+  pointer-events: none;
+  transition: border-color 0.3s ease;
+}
+
+.home-btn:hover::after {
+  border-color: rgba(180, 130, 255, 0.4);
+}
+
+.home-btn:hover {
+  transform: translateY(-6px) scale(1.02);
+}
+
+.home-btn-primary {
+  background:
+    linear-gradient(160deg, #2d1d45 0%, #1e1230 40%, #160e26 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(200, 160, 255, 0.12),
+    inset 1px 0 0 rgba(180, 130, 255, 0.08),
+    inset -1px 0 0 rgba(180, 130, 255, 0.05),
+    0 8px 32px rgba(80, 30, 140, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.home-btn-primary::before {
+  background:
+    radial-gradient(ellipse 70% 50% at 30% 20%, rgba(160, 100, 240, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(100, 50, 180, 0.2) 0%, transparent 55%),
+    repeating-linear-gradient(135deg,
+      transparent 0px,
+      transparent 8px,
+      rgba(160, 100, 240, 0.025) 8px,
+      rgba(160, 100, 240, 0.025) 9px);
+}
+
+.home-btn-primary:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(200, 160, 255, 0.18),
+    inset 1px 0 0 rgba(180, 130, 255, 0.12),
+    0 16px 48px rgba(100, 40, 180, 0.5),
+    0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.home-btn-secondary {
+  background:
+    linear-gradient(160deg, #251b3a 0%, #1a1030 40%, #120a22 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(200, 160, 255, 0.1),
+    inset 1px 0 0 rgba(180, 130, 255, 0.06),
+    0 8px 32px rgba(60, 20, 100, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.home-btn-secondary::before {
+  background:
+    radial-gradient(ellipse 60% 45% at 70% 30%, rgba(130, 80, 200, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 35% at 20% 75%, rgba(90, 40, 160, 0.18) 0%, transparent 50%),
+    repeating-linear-gradient(45deg,
+      transparent 0px,
+      transparent 10px,
+      rgba(140, 90, 210, 0.02) 10px,
+      rgba(140, 90, 210, 0.02) 11px);
+}
+
+.home-btn-secondary:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(200, 160, 255, 0.15),
+    0 16px 48px rgba(80, 30, 140, 0.45),
+    0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.home-btn-icon {
+  position: relative;
+  z-index: 1;
+  font-size: 2rem;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  background: rgba(140, 80, 220, 0.12);
+  border: 1px solid rgba(180, 130, 255, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(220, 180, 255, 0.1),
+    0 4px 12px rgba(80, 30, 140, 0.3);
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.home-btn:hover .home-btn-icon {
+  background: rgba(150, 90, 230, 0.2);
+  border-color: rgba(200, 160, 255, 0.35);
+}
+
+.home-btn-label {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+}
+
+.home-btn-label span:first-child {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(220, 190, 255, 0.9);
+  text-shadow: 0 0 20px rgba(160, 100, 240, 0.4);
+  text-transform: uppercase;
+}
+
+.home-btn-label .home-btn-sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: rgba(160, 130, 200, 0.7);
+  font-weight: 300;
+}
+
+.home-btn-divider {
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(180, 130, 255, 0.4), transparent);
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .home-main {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .home-btn {
+    width: 200px;
+    height: 240px;
+  }
+}===== ./app/routes/pages/HomePage/Homepage.tsx =====
+import { AuthHeader } from "../AuthHeader";
+import { Link } from "react-router";
+import "./HomePage.css";
+
+export async function loader() {
+  return null;
+}
+
+export default function HomePage() {
+  return (
+    <div className="home-page">
+      <AuthHeader />
+      <main className="home-main">
+        <Link to="new/photo" className="home-btn home-btn-primary">
+          <div className="home-btn-icon">✏️</div>
+          <div className="home-btn-divider" />
+          <div className="home-btn-label">
+            <span>Edit photo</span>
+          </div>
+        </Link>
+
+        <Link to="new/logo" className="home-btn home-btn-secondary">
+          <div className="home-btn-icon">⭐</div>
+          <div className="home-btn-divider" />
+          <div className="home-btn-label">
+            <span>Create logo</span>
+          </div>
+        </Link>
+      </main>
+    </div>
+  );
+}===== ./app/routes/pages/HomePage/NewProject.tsx =====
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
+
+const API = import.meta.env.VITE_API;
+
+export default function NewProject() {
+  const navigate = useNavigate();
+  const { type } = useParams();
+
+  useEffect(() => {
+    fetch(`${API}/projects`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: type === "logo" ? "Untitled Logo" : "Untitled Photo" }),
+    })
+      .then(r => r.json())
+      .then(data => navigate(`/${type === "logo" ? "logo-maker" : "edit-page"}/${data.id}`, { replace: true }))
+      .catch(() => navigate("/", { replace: true }));
+  }, []);
+
+  return <div className="flex items-center justify-center h-full text-muted-foreground">Creating project...</div>;
+}===== ./app/routes/pages/LogoMaker/FeaturesPanel.tsx =====
+import { type ToolCategory } from "./ToolsPanel";
+import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
+import * as Slider from "@radix-ui/react-slider";
+
+const API = import.meta.env.VITE_API;
+
+interface FeaturesPanelProps {
+  category: ToolCategory;
+  onClose: () => void;
+  projectId: string;
+  onElementAdded: (el: any) => void;
+}
+
+export function FeaturesPanel({
+  category,
+  onClose,
+  projectId,
+  onElementAdded,
+}: FeaturesPanelProps) {
+  if (!category) return null;
+
+  const handleUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("projectId", projectId);
+
+    let uploadedFile: { id: string; url: string; width: number; height: number };
+    try {
+      const uploadRes = await fetch(`${API}/files/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      uploadedFile = await uploadRes.json();
+    } catch (e) {
+      console.error("Upload failed", e);
+      return;
+    }
+
+    await fetch(`${API}/projects/${projectId}/files`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileId: uploadedFile.id }),
+    });
+
+    const elRes = await fetch(`${API}/elements`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId,
+        type: "image",
+        x: 50,
+        y: 50,
+        width: uploadedFile.width ?? 200,
+        height: uploadedFile.height ?? 200,
+        rotation: 0,
+        scale: 1,
+        zIndex: 0,
+        data: { src: uploadedFile.url },
+      }),
+    });
+    const newEl = await elRes.json();
+    onElementAdded(newEl);
+    onClose();
+  };
+
+  return (
+    <div className="w-64 bg-card border-r border-border flex flex-col">
+      <div className="p-4 border-b border-border">
+        <h3 className="font-semibold text-foreground">
+          {getCategoryTitle(category)}
+        </h3>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {renderCategoryContent(category, handleUpload)}
+      </div>
+    </div>
+  );
+}
+
+function getCategoryTitle(category: ToolCategory): string {
+  const titles: Record<string, string> = {
+    upload: "Upload Picture",
+    resize: "Resize Canvas",
+    adjustments: "Adjustments",
+    text: "Text Options",
+    draw: "Draw & Fill",
+    shapes: "Shapes",
+    templates: "Templates",
+  };
+  return titles[category || ""] || "";
+}
+
+function renderCategoryContent(
+  category: ToolCategory,
+  handleUpload: (file: File) => Promise<void>
+) {
+  switch (category) {
+    case "upload":
+      return (
+        <div className="space-y-4">
+          <label className="w-full p-4 border-2 border-dashed border-border rounded-lg hover:border-primary transition-colors cursor-pointer block">
+            <p className="text-sm text-muted-foreground text-center">
+              Drop image here or click to browse
+            </p>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.[0]) handleUpload(e.target.files[0]);
+              }}
+            />
+          </label>
+          <button className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80">
+            Create Empty Canvas
+          </button>
+        </div>
+      );
+
+    case "resize":
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              Custom Size
+            </label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                className="flex-1 px-3 py-2 bg-input rounded text-sm"
+                placeholder="1080"
+              />
+              <span className="text-xs text-muted-foreground">×</span>
+              <input
+                type="number"
+                className="flex-1 px-3 py-2 bg-input rounded text-sm"
+                placeholder="1080"
+              />
+              <select className="px-2 py-2 bg-input rounded text-sm">
+                <option>px</option>
+                <option>%</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              Presets
+            </label>
+            <div className="space-y-1 max-h-[400px] overflow-y-auto">
+              {[
+                { name: "Instagram Post", size: "1080 × 1080" },
+                { name: "Instagram Story", size: "1080 × 1920" },
+                { name: "Facebook Post", size: "1200 × 630" },
+                { name: "Facebook Cover", size: "820 × 312" },
+                { name: "YouTube Thumbnail", size: "1280 × 720" },
+                { name: "Twitter Post", size: "1200 × 675" },
+                { name: "LinkedIn Post", size: "1200 × 628" },
+                { name: "Pinterest Pin", size: "1000 × 1500" },
+                { name: "Banner", size: "468 × 60" },
+                { name: "Large Rectangle", size: "336 × 280" },
+                { name: "Mobile Banner", size: "320 × 50" },
+                { name: "Billboard", size: "970 × 250" },
+              ].map((preset) => (
+                <button
+                  key={preset.name}
+                  className="w-full px-3 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors flex justify-between items-center text-sm"
+                >
+                  <span>{preset.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {preset.size}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90">
+            Apply Resize
+          </button>
+        </div>
+      );
+
+    case "adjustments":
+      return (
+        <div className="space-y-6">
+          <AdjustmentSlider icon={Sun} label="Highlights" />
+          <AdjustmentSlider icon={Contrast} label="Contrast" />
+          <AdjustmentSlider icon={Palette} label="Color Balance" />
+          <AdjustmentSlider icon={Lightbulb} label="Light" />
+          <AdjustmentSlider icon={CloudRain} label="Shadow" />
+        </div>
+      );
+
+    case "text":
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-muted-foreground">Font</label>
+            <select className="w-full px-3 py-2 bg-input rounded mt-1 text-sm">
+              <option>Arial</option>
+              <option>Helvetica</option>
+              <option>Times New Roman</option>
+              <option>Courier</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Size</label>
+            <input
+              type="number"
+              className="w-full px-3 py-2 bg-input rounded mt-1 text-sm"
+              placeholder="16"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button className="flex-1 px-3 py-2 bg-secondary rounded hover:bg-primary hover:text-primary-foreground text-sm font-bold">
+              B
+            </button>
+            <button className="flex-1 px-3 py-2 bg-secondary rounded hover:bg-primary hover:text-primary-foreground text-sm italic">
+              I
+            </button>
+            <button className="flex-1 px-3 py-2 bg-secondary rounded hover:bg-primary hover:text-primary-foreground text-sm underline">
+              U
+            </button>
+          </div>
+        </div>
+      );
+
+    case "draw":
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-muted-foreground">Brush Size</label>
+            <Slider.Root
+              className="relative flex items-center w-full h-5 mt-2"
+              defaultValue={[5]}
+              max={50}
+              step={1}
+            >
+              <Slider.Track className="relative bg-secondary rounded-full h-1 flex-1">
+                <Slider.Range className="absolute bg-primary rounded-full h-full" />
+              </Slider.Track>
+              <Slider.Thumb className="block w-4 h-4 bg-primary rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary" />
+            </Slider.Root>
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Opacity</label>
+            <Slider.Root
+              className="relative flex items-center w-full h-5 mt-2"
+              defaultValue={[100]}
+              max={100}
+              step={1}
+            >
+              <Slider.Track className="relative bg-secondary rounded-full h-1 flex-1">
+                <Slider.Range className="absolute bg-primary rounded-full h-full" />
+              </Slider.Track>
+              <Slider.Thumb className="block w-4 h-4 bg-primary rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary" />
+            </Slider.Root>
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Color</label>
+            <input
+              type="color"
+              className="w-full h-10 bg-input rounded mt-1 cursor-pointer"
+              defaultValue="#454fda"
+            />
+          </div>
+        </div>
+      );
+
+    case "shapes":
+      return (
+        <div className="space-y-2">
+          {["Rectangle", "Circle", "Line", "Arrow", "Triangle", "Star"].map(
+            (shape) => (
+              <button
+                key={shape}
+                className="w-full px-4 py-2 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+              >
+                {shape}
+              </button>
+            )
+          )}
+        </div>
+      );
+
+    case "templates":
+      return (
+        <div className="space-y-4">
+          {[
+            {
+              label: "Social Media",
+              items: [
+                "Instagram Post",
+                "Instagram Story",
+                "Facebook Cover",
+                "Twitter Header",
+                "YouTube Thumbnail",
+              ],
+            },
+            {
+              label: "Business",
+              items: [
+                "Business Card",
+                "Flyer",
+                "Poster",
+                "Brochure",
+                "Logo Template",
+              ],
+            },
+            {
+              label: "Creative",
+              items: ["Collage", "Photo Grid", "Mood Board", "Presentation Slide"],
+            },
+          ].map(({ label, items }) => (
+            <div key={label}>
+              <label className="text-sm text-muted-foreground mb-2 block">
+                {label}
+              </label>
+              <div className="space-y-1">
+                {items.map((template) => (
+                  <button
+                    key={template}
+                    className="w-full px-4 py-3 text-left bg-secondary rounded hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
+
+function AdjustmentSlider({
+  icon: Icon,
+  label,
+}: {
+  icon: any;
+  label: string;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-4 h-4 text-muted-foreground" />
+        <label className="text-sm text-foreground">{label}</label>
+      </div>
+      <Slider.Root
+        className="relative flex items-center w-full h-5"
+        defaultValue={[0]}
+        min={-100}
+        max={100}
+        step={1}
+      >
+        <Slider.Track className="relative bg-secondary rounded-full h-1 flex-1">
+          <Slider.Range className="absolute bg-primary rounded-full h-full" />
+        </Slider.Track>
+        <Slider.Thumb className="block w-4 h-4 bg-primary rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary" />
+      </Slider.Root>
+    </div>
+  );
+}===== ./app/routes/pages/LogoMaker/LogoMakerPage.tsx =====
+import { useState, useEffect } from "react";
+import { useParams } from "react-router";
+import { Header } from "./../Page/Header";
+import { ToolsPanel, type ToolCategory } from "./ToolsPanel";
+import { FeaturesPanel } from "./FeaturesPanel";
+import { RightPanel } from "../Page/RightPanel";
+import { Canvas } from "../Page/Canvas";
+
+const API = import.meta.env.VITE_API;
+
+export default function LogoMakerPage() {
+  const { projectId } = useParams();
+  const [selectedCategory, setSelectedCategory] = useState<ToolCategory>(null);
+  const [elements, setElements] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    fetch(`${API}/elements/project/${projectId}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then(setElements)
+      .catch(console.error);
+  }, [projectId]);
+
+  return (
+    <div className="size-full flex flex-col dark">
+      <Header />
+
+      <div className="flex-1 flex overflow-hidden">
+        <ToolsPanel
+          selectedCategory={selectedCategory}
+          onCategorySelect={setSelectedCategory}
+        />
+
+        <FeaturesPanel
+          category={selectedCategory}
+          onClose={() => setSelectedCategory(null)}
+          projectId={projectId!}
+          onElementAdded={(el) => setElements((prev) => [...prev, el])}
+        />
+
+        <Canvas
+          projectId={projectId!}
+          elements={elements}
+        />
+
+        <RightPanel
+          elements={elements}
+          setElements={setElements}
+          projectId={projectId!}
+        />
+      </div>
+    </div>
+  );
+}===== ./app/routes/pages/LogoMaker/ToolsPanel.tsx =====
+import {
+  Upload,
+  Maximize,
+  Sliders,
+  Type,
+  Pencil,
+  Shapes,
+  ChevronRight,
+  LayoutTemplate
+} from "lucide-react";
+
+export type ToolCategory =
+  | "upload"
+  | "resize"
+  | "adjustments"
+  | "filter"
+  | "text"
+  | "draw"
+  | "shapes"
+  | "templates"
+  | null;
+
+interface ToolsPanelProps {
+  selectedCategory: ToolCategory;
+  onCategorySelect: (category: ToolCategory) => void;
+}
+
+export function ToolsPanel({ selectedCategory, onCategorySelect }: ToolsPanelProps) {
+  const tools = [
+    { id: "upload" as const, icon: Upload, label: "Upload Picture" },
+    { id: "resize" as const, icon: Maximize, label: "Resize Canvas" },
+    { id: "adjustments" as const, icon: Sliders, label: "Adjustments" },
+    { id: "text" as const, icon: Type, label: "Text" },
+    { id: "draw" as const, icon: Pencil, label: "Draw & Fill" },
+    { id: "shapes" as const, icon: Shapes, label: "Shapes" },
+    { id: "templates" as const, icon: LayoutTemplate, label: "Templates" },
+  ];
+
+  return (
+    <div className="w-16 bg-[#0f0f14] border-r border-border flex flex-col items-center py-4 gap-2">
+      {tools.map((tool) => {
+        const Icon = tool.icon;
+        const isSelected = selectedCategory === tool.id;
+
+        return (
+          <button
+            key={tool.id}
+            onClick={() => onCategorySelect(tool.id)}
+            className={`
+              w-12 h-12 rounded-lg flex items-center justify-center
+              transition-all relative group
+              ${isSelected
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }
+            `}
+            title={tool.label}
+          >
+            <Icon className="w-5 h-5" />
+            {isSelected && (
+              <ChevronRight className="absolute -right-1 w-3 h-3 text-primary" />
+            )}
+
+            <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+              {tool.label}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+===== ./app/routes/pages/Page/Canvas.tsx =====
+import { useRef, useState } from "react";
+import { Hand, MousePointer2, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import * as ContextMenu from "@radix-ui/react-context-menu";
+import { Stage, Layer, Image as KonvaImage, Text, Rect } from "react-konva";
+import useImage from "use-image";
+
+const API = import.meta.env.VITE_API;
+
+type Tool = "hand" | "pointer";
+
+function CanvasImage({ el }: { el: any }) {
+  const [img] = useImage(`${API}${el.data.src}`);
+  return (
+    <KonvaImage
+      image={img}
+      x={el.x} y={el.y}
+      width={el.width} height={el.height}
+      rotation={el.rotation}
+    />
+  );
+}
+
+function CanvasText({ el }: { el: any }) {
+  return (
+    <Text
+      x={el.x} y={el.y}
+      text={el.data.text}
+      fontSize={el.data.fontSize ?? 16}
+      fill={el.data.fill ?? "#fff"}
+      rotation={el.rotation}
+    />
+  );
+}
+
+function CanvasShape({ el }: { el: any }) {
+  return (
+    <Rect
+      x={el.x} y={el.y}
+      width={el.width} height={el.height}
+      fill={el.data.fill ?? "#454fda"}
+      rotation={el.rotation}
+    />
+  );
+}
+
+export function Canvas({ projectId, elements }: { projectId: string; elements: any[] }) {
+  const [tool, setTool] = useState<Tool>("hand");
+  const [zoom, setZoom] = useState(100);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  return (
+    <div className="flex-1 flex flex-col bg-background">
+      {/* ── Toolbar (unchanged from original) ── */}
+      <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setTool("hand")}
+            className={`p-2 rounded ${tool === "hand" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
+            title="Hand Tool (Space)"
+          >
+            <Hand className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setTool("pointer")}
+            className={`p-2 rounded ${tool === "pointer" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
+            title="Pointer Tool (V)"
+          >
+            <MousePointer2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setZoom(Math.max(10, zoom - 10))}
+            className="p-2 rounded bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            title="Zoom Out"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <span className="text-sm text-foreground min-w-[60px] text-center">{zoom}%</span>
+          <button
+            onClick={() => setZoom(Math.min(400, zoom + 10))}
+            className="p-2 rounded bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            title="Zoom In"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => { setZoom(100); setOffset({ x: 0, y: 0 }); }}
+            className="p-2 rounded bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            title="Reset View"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded hover:bg-secondary/80">
+            Undo
+          </button>
+          <button className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded hover:bg-secondary/80">
+            Redo
+          </button>
+        </div>
+      </div>
+
+      {/* ── Canvas area ── */}
+      <div className="flex-1 flex items-center justify-center overflow-hidden">
+        <ContextMenu.Root>
+          <ContextMenu.Trigger>
+            <Stage
+              width={800}
+              height={600}
+              scaleX={zoom / 100}
+              scaleY={zoom / 100}
+              x={offset.x}
+              y={offset.y}
+              draggable={tool === "hand"}
+              onDragEnd={(e) => setOffset({ x: e.target.x(), y: e.target.y() })}
+              style={{ cursor: tool === "hand" ? "grab" : "default" }}
+            >
+              <Layer>
+                {elements.map((el) => {
+                  if (el.type === "image") return <CanvasImage key={el.id} el={el} />;
+                  if (el.type === "text")  return <CanvasText  key={el.id} el={el} />;
+                  if (el.type === "shape") return <CanvasShape key={el.id} el={el} />;
+                  return null;
+                })}
+              </Layer>
+            </Stage>
+          </ContextMenu.Trigger>
+
+          <ContextMenu.Portal>
+            <ContextMenu.Content className="min-w-[200px] bg-popover border border-border rounded-lg shadow-lg p-1 z-50">
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center justify-between">
+                Duplicate <span className="text-xs opacity-60">Ctrl+D</span>
+              </ContextMenu.Item>
+              <ContextMenu.Separator className="h-px bg-border my-1" />
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                Resize
+              </ContextMenu.Item>
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                Rotate 90° CW
+              </ContextMenu.Item>
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                Rotate 90° CCW
+              </ContextMenu.Item>
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                Flip Horizontal
+              </ContextMenu.Item>
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                Flip Vertical
+              </ContextMenu.Item>
+              <ContextMenu.Separator className="h-px bg-border my-1" />
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center justify-between">
+                Bring to Front <span className="text-xs opacity-60">Ctrl+]</span>
+              </ContextMenu.Item>
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                Bring Forward
+              </ContextMenu.Item>
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                Send Backward
+              </ContextMenu.Item>
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center justify-between">
+                Send to Back <span className="text-xs opacity-60">Ctrl+[</span>
+              </ContextMenu.Item>
+              <ContextMenu.Separator className="h-px bg-border my-1" />
+              <ContextMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-destructive hover:text-destructive-foreground cursor-pointer flex items-center justify-between">
+                Delete <span className="text-xs opacity-60">Del</span>
+              </ContextMenu.Item>
+            </ContextMenu.Content>
+          </ContextMenu.Portal>
+        </ContextMenu.Root>
+      </div>
+    </div>
+  );
+}===== ./app/routes/pages/Page/Header.tsx =====
+import { Link, useLocation } from "react-router"
+import { File, Settings, Keyboard, Sparkles, User, LogOut, HelpCircle, PenLine, Wand2 } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+
+export function Header() {
+  const { pathname } = useLocation();
+
+  const isLogoMaker = pathname === "/logo-maker";
+  const isEditor = pathname === "/edit-page" || pathname === "/";
+
+  return (
+    <header className="h-12 bg-[#0f0f14] border-b border-border flex items-center justify-between px-4">
+      <div className="flex items-center gap-6">
+        <Link to="/" className="text-lg font-semibold text-foreground">Amethist studio</Link>
+
+        <div className="flex items-center gap-4">
+          <button className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors">
+            <File className="w-4 h-4" />
+            File
+          </button>
+          <button className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors">
+            <Settings className="w-4 h-4" />
+            Options
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {!isLogoMaker && (
+          <Link
+            to="/logo-maker"
+            className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
+            <Wand2 className="w-4 h-4" />
+            Logo Maker
+          </Link>
+        )}
+
+        {!isEditor && (
+          <Link
+            to="/edit-page"
+            className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
+            <PenLine className="w-4 h-4" />
+            Editor
+          </Link>
+        )}
+
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors">
+              <User className="w-4 h-4 text-foreground" />
+            </button>
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content className="min-w-[200px] bg-popover border border-border rounded-lg shadow-lg p-1 z-50 mr-4">
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Profile
+              </DropdownMenu.Item>
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Settings
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator className="h-px bg-border my-1" />
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
+                <Keyboard className="w-4 h-4" />
+                Keyboard Shortcuts
+              </DropdownMenu.Item>
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2">
+                <HelpCircle className="w-4 h-4" />
+                Help & Support
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator className="h-px bg-border my-1" />
+              <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-destructive hover:text-destructive-foreground cursor-pointer flex items-center gap-2">
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      </div>
+    </header>
+  );
+}===== ./app/routes/pages/Page/RightPanel.tsx =====
+import { useState } from "react";
+import {
+  Layers,
+  History,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Lock,
+  Unlock,
+  MoreVertical,
+  Trash2,
+  Copy,
+  MoveUp,
+  MoveDown,
+  GitMerge,
+} from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as Slider from "@radix-ui/react-slider";
+
+const API = import.meta.env.VITE_API;
+
+type PanelTab = "layers" | "history" | null;
+
+interface RightPanelProps {
+  elements: any[];
+  setElements: React.Dispatch<React.SetStateAction<any[]>>;
+  projectId: string;
+}
+
+export function RightPanel({ elements, setElements, projectId }: RightPanelProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState<PanelTab>("layers");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+
+  // Local-only visibility toggle (CSS opacity on canvas side, no DB column for it yet)
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [locked, setLocked] = useState<Set<string>>(new Set());
+
+  const historyItems = ["Upload Image", "Adjust Brightness", "Add Text", "Apply Filter"];
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  const patchElement = (id: string, body: Record<string, any>) =>
+    fetch(`${API}/elements/${id}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+
+  const toggleVisibility = (id: string) =>
+    setHidden((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const toggleLock = (id: string) =>
+    setLocked((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const deleteElement = async (id: string) => {
+    await fetch(`${API}/elements/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    setElements((prev) => prev.filter((el) => el.id !== id));
+    if (selectedId === id) setSelectedId(null);
+  };
+
+  const duplicateElement = async (id: string) => {
+    const el = elements.find((e) => e.id === id);
+    if (!el) return;
+    const res = await fetch(`${API}/elements`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId,
+        type: el.type,
+        x: el.x + 20,
+        y: el.y + 20,
+        width: el.width,
+        height: el.height,
+        rotation: el.rotation,
+        scale: el.scale,
+        zIndex: el.zIndex + 1,
+        data: el.data,
+      }),
+    });
+    const newEl = await res.json();
+    setElements((prev) => [...prev, newEl]);
+  };
+
+  const moveUp = async (id: string) => {
+    const idx = elements.findIndex((el) => el.id === id);
+    if (idx >= elements.length - 1) return;
+    const a = elements[idx];
+    const b = elements[idx + 1];
+    await Promise.all([
+      patchElement(a.id, { zIndex: b.zIndex }),
+      patchElement(b.id, { zIndex: a.zIndex }),
+    ]);
+    const next = [...elements];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    setElements(next);
+  };
+
+  const moveDown = async (id: string) => {
+    const idx = elements.findIndex((el) => el.id === id);
+    if (idx <= 0) return;
+    const a = elements[idx];
+    const b = elements[idx - 1];
+    await Promise.all([
+      patchElement(a.id, { zIndex: b.zIndex }),
+      patchElement(b.id, { zIndex: a.zIndex }),
+    ]);
+    const next = [...elements];
+    [next[idx], next[idx - 1]] = [next[idx - 1], next[idx]];
+    setElements(next);
+  };
+
+  const updateOpacity = async (id: string, opacity: number) => {
+    await patchElement(id, { data: { ...elements.find((el) => el.id === id)?.data, opacity } });
+    setElements((prev) =>
+      prev.map((el) => (el.id === id ? { ...el, data: { ...el.data, opacity } } : el))
+    );
+  };
+
+  const startRename = (id: string, currentName: string) => {
+    setEditingId(id);
+    setEditName(currentName);
+  };
+
+  const finishRename = () => {
+    // name lives only in local display (elements have type, not a custom name)
+    setEditingId(null);
+    setEditName("");
+  };
+
+  // ── Collapsed sidebar ─────────────────────────────────────────────────────
+
+  if (isCollapsed) {
+    return (
+      <div className="w-12 bg-[#0f0f14] border-l border-border flex flex-col items-center py-4 gap-2">
+        <button
+          onClick={() => { setIsCollapsed(false); setActiveTab("layers"); }}
+          className="w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          title="Layers"
+        >
+          <Layers className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => { setIsCollapsed(false); setActiveTab("history"); }}
+          className="w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          title="History"
+        >
+          <History className="w-5 h-5" />
+        </button>
+      </div>
+    );
+  }
+
+  // ── Full panel ─────────────────────────────────────────────────────────────
+
+  const displayedElements = [...elements].reverse(); // top layer first
+
+  return (
+    <div className="w-64 bg-card border-l border-border flex flex-col">
+      {/* Header */}
+      <div className="h-12 border-b border-border flex items-center justify-between px-3">
+        <div className="flex gap-1 items-center">
+          <button
+            onClick={() => setActiveTab("layers")}
+            className={`px-3 py-1.5 text-sm rounded transition-colors ${
+              activeTab === "layers"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`px-3 py-1.5 text-sm rounded transition-colors ${
+              activeTab === "history"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <History className="w-4 h-4" />
+          </button>
+
+          {activeTab === "layers" && (
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content className="min-w-[200px] bg-popover border border-border rounded-lg shadow-lg p-1 z-50">
+                  <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center justify-between">
+                    New Group
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Separator className="h-px bg-border my-1" />
+                  <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                    Merge Visible
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer">
+                    Flatten Image
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          )}
+        </div>
+        <button
+          onClick={() => setIsCollapsed(true)}
+          className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto p-3">
+        {activeTab === "layers" && (
+          <div className="space-y-1">
+            {elements.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-4">
+                No elements yet. Upload an image or add a shape.
+              </p>
+            )}
+
+            {displayedElements.map((el) => {
+              const isSelected = selectedId === el.id;
+              const isVisible = !hidden.has(el.id);
+              const isLocked = locked.has(el.id);
+              const displayName = `${el.type} · ${el.id.slice(0, 6)}`;
+
+              return (
+                <div
+                  key={el.id}
+                  onClick={() => setSelectedId(el.id)}
+                  className={`flex items-center gap-2 p-2 rounded group cursor-pointer ${
+                    isSelected
+                      ? "bg-primary/20 ring-1 ring-primary"
+                      : "bg-secondary hover:bg-secondary/80"
+                  }`}
+                >
+                  {/* Visibility */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleVisibility(el.id); }}
+                    className="p-1 hover:bg-background rounded flex-shrink-0"
+                  >
+                    {isVisible
+                      ? <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                      : <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </button>
+
+                  {/* Thumbnail */}
+                  <div className="w-8 h-8 rounded bg-gradient-to-br from-primary/30 to-primary/10 border border-border flex-shrink-0 flex items-center justify-center">
+                    <span className="text-[9px] text-muted-foreground uppercase">{el.type[0]}</span>
+                  </div>
+
+                  {/* Name / rename */}
+                  {editingId === el.id ? (
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      onBlur={finishRename}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") finishRename();
+                        if (e.key === "Escape") { setEditingId(null); setEditName(""); }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 text-sm bg-background px-2 py-0.5 rounded text-foreground"
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      className="flex-1 text-xs text-foreground truncate"
+                      onDoubleClick={(e) => { e.stopPropagation(); startRename(el.id, displayName); }}
+                    >
+                      {displayName}
+                    </span>
+                  )}
+
+                  {/* Lock */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleLock(el.id); }}
+                    className="p-1 hover:bg-background rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    {isLocked
+                      ? <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                      : <Unlock className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </button>
+
+                  {/* Context menu */}
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger asChild>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1 hover:bg-background rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MoreVertical className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.Content className="min-w-[180px] bg-popover border border-border rounded-lg shadow-lg p-1 z-50">
+                        <DropdownMenu.Item
+                          className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2"
+                          onClick={() => duplicateElement(el.id)}
+                        >
+                          <Copy className="w-4 h-4" />
+                          Duplicate
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Separator className="h-px bg-border my-1" />
+                        <DropdownMenu.Item
+                          className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2"
+                          onClick={() => moveUp(el.id)}
+                        >
+                          <MoveUp className="w-4 h-4" />
+                          Move Up
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item
+                          className="px-3 py-2 text-sm rounded outline-none hover:bg-primary hover:text-primary-foreground cursor-pointer flex items-center gap-2"
+                          onClick={() => moveDown(el.id)}
+                        >
+                          <MoveDown className="w-4 h-4" />
+                          Move Down
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Separator className="h-px bg-border my-1" />
+                        <DropdownMenu.Item
+                          className="px-3 py-2 text-sm rounded outline-none hover:bg-destructive hover:text-destructive-foreground cursor-pointer flex items-center gap-2"
+                          onClick={() => deleteElement(el.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </DropdownMenu.Item>
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Root>
+                </div>
+              );
+            })}
+
+            {/* Selected element controls */}
+            {selectedId && (
+              <div className="mt-4 p-3 bg-background rounded-lg space-y-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-2 block">Blend Mode</label>
+                  <select className="w-full px-3 py-2 bg-input rounded text-sm">
+                    <option>Normal</option>
+                    <option>Multiply</option>
+                    <option>Screen</option>
+                    <option>Overlay</option>
+                    <option>Darken</option>
+                    <option>Lighten</option>
+                    <option>Color Dodge</option>
+                    <option>Color Burn</option>
+                    <option>Hard Light</option>
+                    <option>Soft Light</option>
+                    <option>Difference</option>
+                    <option>Exclusion</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs text-muted-foreground">Opacity</label>
+                    <span className="text-xs text-foreground">
+                      {elements.find((el) => el.id === selectedId)?.data?.opacity ?? 100}%
+                    </span>
+                  </div>
+                  <Slider.Root
+                    className="relative flex items-center w-full h-5"
+                    value={[elements.find((el) => el.id === selectedId)?.data?.opacity ?? 100]}
+                    onValueChange={([value]) => updateOpacity(selectedId, value)}
+                    max={100}
+                    step={1}
+                  >
+                    <Slider.Track className="relative bg-secondary rounded-full h-1 flex-1">
+                      <Slider.Range className="absolute bg-primary rounded-full h-full" />
+                    </Slider.Track>
+                    <Slider.Thumb className="block w-4 h-4 bg-primary rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </Slider.Root>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "history" && (
+          <div className="space-y-1">
+            {historyItems.map((item, index) => (
+              <div
+                key={index}
+                className="px-3 py-2 text-sm rounded bg-secondary hover:bg-secondary/80 cursor-pointer"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}===== ./app/routes/pages/UserEditPage/EditUserComponents.tsx =====
+export type Tab = 'profile' | 'interests' | 'password';
+
+export interface ProfileForm {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  bio: string;
+  hideFromAttendees: boolean;
+  // location: string;
+}
+
+type ProfileFormKey = keyof ProfileForm;
+
+export interface PasswordForm {
+  current: string;
+  next: string;
+  confirm: string;
+}
+
+export type PasswordFormKey = keyof PasswordForm;
+
+export type FormErrors = Partial<Record<ProfileFormKey, string>>;
+
+export interface ToastState {
+  msg: string;
+  type: 'success' | 'error';
+}
+
+export interface NavItemProps {
+  icon: JSX.Element;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}
+
+export interface SectionCardProps {
+  title: string;
+  subtitle?: string;
+  delay?: number;
+  children: JSX.Element | JSX.Element[];
+}
+
+export interface FieldProps {
+  label: string;
+  optional?: boolean;
+  error?: string;
+  full?: boolean;
+  children: JSX.Element | JSX.Element[];
+}
+
+// -- Sub-components 
+
+export const NavItem = ({ icon, label, active, onClick }: NavItemProps) => (
+  <button className={`ep-nav-item${active ? ' active' : ''}`} onClick={onClick}>
+    {icon}
+    {label}
+  </button>
+);
+
+export const SectionCard = ({ title, subtitle, delay = 0, children }: SectionCardProps) => (
+  <div className="ep-section-card" style={{ animationDelay: `${delay}s` }}>
+    <div className="ep-section-header">
+      <h2 className="ep-section-title">{title}</h2>
+      {subtitle && <span className="ep-section-subtitle">{subtitle}</span>}
+    </div>
+    {children}
+  </div>
+);
+
+export const Field = ({ label, optional, error, full, children }: FieldProps) => (
+  <div className={`ep-field${full ? ' full' : ''}`}>
+    <label className="ep-label">
+      {label}
+      {optional && <span className="ep-label-optional">(optional)</span>}
+    </label>
+    {children}
+    {error && <span className="ep-error-msg">{error}</span>}
+  </div>
+);
+===== ./app/routes/pages/UserEditPage/EditUserFunctions.ts =====
+const API = import.meta.env.VITE_API;
+
+export async function handleDelete(
+  id: string,
+  navigate: (path: string) => void,
+) {
+  try {
+    const delRes = await fetch(`${API}/users/${id}`, {
+      credentials: 'include',
+      method: 'DELETE',
+    });
+
+    if (!delRes.ok) {
+      console.error(delRes.statusText ?? 'Unknown error');
+      return;
+    }
+
+    navigate('/');
+  } catch (err: any) {
+    console.error(err.message ?? 'Unknown error');
+  }
+}
+
+interface HandleUpdateProps {
+  e: React.SubmitEvent;
+  validate: () => any;
+  setErrors: React.Dispatch<React.SetStateAction<any>>;
+  form: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    bio: string;
+    hideFromAttendees: boolean;
+  };
+  fileRef: React.RefObject<HTMLInputElement | null>;
+  navigate: (path: string) => void;
+  setSaving: React.Dispatch<React.SetStateAction<boolean>>;
+  showToast: (msg: string, type?: 'success' | 'error') => void;
+  userId?: string;
+}
+
+export async function handleUpdate({
+  e,
+  validate,
+  setErrors,
+  form,
+  fileRef,
+  navigate,
+  setSaving,
+  showToast,
+  userId,
+}: HandleUpdateProps) {
+  e.preventDefault();
+
+  try {
+    const errs = validate();
+
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
+
+    setSaving(true);
+
+    const formData = new FormData();
+
+    formData.append('username', form.username);
+
+    const fullName = `${form.firstName} ${form.lastName}`.trim();
+    formData.append('fullName', fullName);
+
+    formData.append('bio', form.bio);
+    formData.append('hideFromAttendees', String(form.hideFromAttendees));
+
+    const file = fileRef.current?.files?.[0];
+
+    if (file) {
+      formData.append('profilePicture', file);
+    }
+
+    console.log('FormData contents:');
+    formData.forEach((value, key) => {
+      console.log(key, value);
+    });
+        
+
+    const res = await fetch(`${API}/users/me`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error(err);
+      showToast('Failed to update profile', 'error');
+      return;
+    }
+
+    showToast('Profile updated successfully');
+    navigate(`/profile/${userId}`);
+  } catch (err: any) {
+    console.error(err.message ?? 'Unknown error');
+    showToast('Something went wrong', 'error');
+  } finally {
+    setSaving(false);
+  }
+}
+===== ./app/routes/pages/UserEditPage/EditUserPage.css =====
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,900&display=swap');
+
+/* ── Design tokens ── */
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --bg-muted: #f4f3ec;
+  --border: #e5e4e7;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.08);
+  --accent-border: rgba(170, 59, 255, 0.35);
+  --accent-shadow: rgba(170, 59, 255, 0.18);
+  --accent-hover: #9528e8;
+  --danger: #dc3545;
+  --danger-bg: rgba(220, 53, 69, 0.05);
+  --danger-border: rgba(220, 53, 69, 0.25);
+  --shadow:
+    rgba(0, 0, 0, 0.08) 0 4px 16px,
+    rgba(0, 0, 0, 0.04) 0 1px 4px;
+  --sans: 'DM Sans', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Page shell ── */
+.ep-page , .page {
+  min-height: 100vh;
+  background: #f4f3ec;
+  font-family: var(--sans);
+}
+
+/* ── Body layout ── */
+.ep-body , .body{
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+/* ── Sidebar ── */
+.ep-sidebar , .sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeUp 0.45s ease both;
+}
+
+.ep-avatar-card {
+  background: var(--bg);
+  border-radius: 20px;
+  padding: 32px 24px 28px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.ep-avatar-wrap {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.ep-avatar , .avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 42px;
+  color: #fff;
+  box-shadow: 0 4px 20px var(--accent-shadow);
+  overflow: hidden;
+  user-select: none;
+}
+
+.ep-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ep-avatar-edit-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--text-h);
+  border: 2px solid var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.ep-avatar-edit-btn:hover {
+  background: var(--accent);
+}
+
+.ep-avatar-name {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -.02em;
+  color: var(--text-h);
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.ep-avatar-email {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.ep-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0 16px;
+  width: 100%;
+}
+
+.ep-nav-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ep-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.ep-nav-item:hover {
+  background: var(--bg-muted);
+  color: var(--text-h);
+}
+
+.ep-nav-item.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.ep-nav-item.active svg {
+  stroke: var(--accent);
+}
+
+/* danger zone card */
+.ep-danger-card {
+  background: var(--bg);
+  border-radius: 20px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.ep-danger-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 12px;
+}
+
+.ep-danger-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.ep-danger-btn:hover {
+  background: rgba(220, 53, 69, 0.12);
+  border-color: rgba(220, 53, 69, 0.4);
+}
+
+/* ── Main content ── */
+.ep-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* breadcrumb */
+.ep-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  animation: fadeUp 0.35s ease both;
+}
+
+.ep-breadcrumb a {
+  color: var(--text);
+  transition: color .15s;
+}
+
+.ep-breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.ep-breadcrumb-sep {
+  opacity: .4;
+}
+
+.ep-breadcrumb-current {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+/* section card */
+.ep-section-card {
+  background: var(--bg);
+  border-radius: 20px;
+  padding: 28px 32px 32px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.45s ease both;
+}
+
+.ep-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ep-section-title {
+  margin: 0;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -.03em;
+  color: var(--text-h);
+}
+
+.ep-section-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* form grid */
+.ep-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+}
+
+.ep-form-grid.single {
+  grid-template-columns: 1fr;
+}
+
+.ep-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ep-field.full {
+  grid-column: 1 / -1;
+}
+
+.ep-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ep-label-optional {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text);
+  opacity: .6;
+}
+
+.ep-input-wrap {
+  position: relative;
+}
+
+.ep-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-h);
+  background: var(--bg-muted);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  outline: none;
+  transition: all .18s;
+  appearance: none;
+}
+
+.ep-input:focus {
+  background: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.ep-input::placeholder {
+  color: var(--text);
+  opacity: .5;
+}
+
+.ep-input.has-icon {
+  padding-left: 42px;
+}
+
+.ep-input.error {
+  border-color: var(--danger) !important;
+  background: #fff5f5;
+}
+
+.ep-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: .4;
+}
+
+.ep-textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.55;
+}
+
+.ep-char-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  opacity: .5;
+  text-align: right;
+  margin-top: 2px;
+}
+
+.ep-char-count.warn {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.ep-error-msg {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
+  margin-top: 2px;
+}
+
+/* interests tag input */
+.ep-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-muted);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  cursor: text;
+  min-height: 48px;
+  transition: all .18s;
+}
+
+.ep-tags-wrap:focus-within {
+  background: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.ep-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 14px;
+  border-radius: 50px;
+  background: var(--accent-bg);
+  border: 1.5px solid var(--accent-border);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--accent);
+  white-space: nowrap;
+  animation: fadeIn .15s ease;
+}
+
+.ep-tag-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--accent);
+  opacity: .5;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  font-size: 16px;
+  transition: opacity .1s;
+}
+
+.ep-tag-remove:hover {
+  opacity: 1;
+}
+
+.ep-tag-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-h);
+  min-width: 120px;
+  flex: 1;
+  padding: 4px 2px;
+}
+
+.ep-tag-input::placeholder {
+  color: var(--text);
+  opacity: .45;
+}
+
+/* action bar */
+.ep-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.ep-cancel-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ep-cancel-btn:hover {
+  border-color: var(--text);
+  color: var(--text-h);
+}
+
+.ep-save-btn {
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  transition: all .18s;
+  box-shadow: 0 4px 14px var(--accent-shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 130px;
+  justify-content: center;
+}
+
+.ep-save-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(170, 59, 255, 0.28);
+}
+
+.ep-save-btn:disabled {
+  background: var(--border);
+  color: var(--text);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.ep-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+/* toast */
+.ep-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: var(--text-h);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
+  animation: fadeUp .25s ease both;
+  z-index: 9999;
+  white-space: nowrap;
+}
+
+.ep-toast.success {
+  background: var(--text-h);
+  border: 1px solid var(--accent-border);
+}
+
+.ep-toast.error {
+  background: var(--danger);
+}
+
+/* password strength */
+.ep-strength-bar {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.ep-strength-seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 10px;
+  background: var(--border);
+  transition: background .3s;
+}
+
+.ep-strength-seg.weak {
+  background: var(--danger);
+}
+
+.ep-strength-seg.fair {
+  background: #fd7e14;
+}
+
+.ep-strength-seg.good {
+  background: #20c997;
+}
+
+.ep-strength-seg.strong {
+  background: #198754;
+}
+
+.ep-strength-label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  color: var(--text);
+}
+
+.eyeBtnStyle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  opacity: .5;
+  display: flex;
+  align-items: center;
+  transition: opacity .15s;
+}
+
+.eyeBtnStyle:hover {
+  opacity: 1;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .ep-body {
+    flex-direction: column;
+    padding: 24px 16px;
+  }
+
+  .ep-sidebar {
+    width: 100%;
+  }
+
+  .ep-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ep-field.full {
+    grid-column: 1;
+  }
+}===== ./app/routes/pages/UserEditPage/EditUserPage.tsx =====
+import { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router';
+import {AuthHeader} from '../AuthHeader';
+import './EditUserPage.css';
+import { userProfile } from '../UserPage/userLogik';
+import type {
+  ProfileFormKey,
+  Tab,
+  ToastState,
+  FormErrors,
+  ProfileForm,
+} from './EditUserComponents';
+import { NavItem, SectionCard, Field } from './EditUserComponents';
+import { handleDelete, handleUpdate } from './EditUserFunctions';
+
+const API = import.meta.env.VITE_API;
+
+export default function UserEditPage() {
+  const navigate = useNavigate();
+  const { profile, loading, error } = userProfile();
+
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const [activeTab, setActiveTab] = useState<Tab>('profile');
+  const [saving, setSaving] = useState<boolean>(false);
+  const [toast, setToast] = useState<ToastState | null>(null);
+
+  const [form, setForm] = useState<ProfileForm>({
+    firstName: '',
+    lastName: '',
+    username: '',
+    email: '',
+  });
+
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        firstName: profile.fullName.split(' ')[0] ?? '',
+        lastName: profile.fullName.split(' ')[1] ?? '',
+        username: profile.username ?? '',
+        email: profile.email ?? '',
+      });
+
+      if (profile.profilePicture) {
+        setAvatarPreview(`${API}/${profile.profilePicture}`);
+      }
+    }
+  }, [profile]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const validate = (): FormErrors => {
+    const errs: FormErrors = {};
+
+    if (!form.firstName.trim()) {
+      errs.firstName = 'First name is required';
+    }
+
+    if (!form.lastName.trim()) {
+      errs.lastName = 'Last name is required';
+    }
+
+    if (!form.username.trim()) {
+      errs.username = 'Username is required';
+    } else if (form.username.length < 3) {
+      errs.username = 'At least 3 characters';
+    }
+
+    if (!form.email.trim()) {
+      errs.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errs.email = 'Invalid email address';
+    }
+
+    return errs;
+  };
+
+  const showToast = (
+    msg: string,
+    type: ToastState['type'] = 'success',
+  ) => {
+    setToast({ msg, type });
+
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
+
+  const field = (key: ProfileFormKey) => ({
+    value: form[key],
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+      setForm((prev) => ({
+        ...prev,
+        [key]: e.target.value,
+      }));
+
+      if (errors[key]) {
+        setErrors((prev) => ({
+          ...prev,
+          [key]: undefined,
+        }));
+      }
+    },
+    className: `ep-input${errors[key] ? ' error' : ''}`,
+  });
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error || !profile) {
+    return <div>Failed to load profile</div>;
+  }
+
+  // console.log("profile?.avatarLetter", profile?.avatarLetter);
+  
+  return (
+    <form
+      onSubmit={(e) =>
+        handleUpdate({
+          e,
+          validate,
+          setErrors,
+          form,
+          fileRef,
+          navigate,
+          setSaving,
+          showToast,
+          userId: profile?.id
+        })
+      }
+    >
+
+      <div className="ep-page">
+        <AuthHeader/>
+
+        <div className="ep-body">
+          {/* ── Sidebar ── */}
+          <aside className="ep-sidebar">
+            <div className="ep-avatar-card">
+              <div className="ep-avatar-wrap">
+                <div className="ep-avatar">
+                  {avatarPreview && !avatarPreview.includes('default.png') ? (
+                    <img src={avatarPreview} alt="avatar" />
+                  ) : profile?.avatarLetter ? (
+                    <div className="ep-avatar-letter">{profile.avatarLetter}</div>
+                  ) : (
+                    <div className="ep-avatar-letter">U</div>
+                  )}
+                </div>
+                <button
+                  className="ep-avatar-edit-btn"
+                  onClick={() => fileRef.current?.click()}
+                  title="Change photo"
+                  type="button"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleAvatarChange}
+                />
+              </div>
+
+              <div className="ep-avatar-name">{profile?.firstName} {profile?.lastName}</div>
+              <div className="ep-avatar-email">{profile?.email}</div>
+
+              <div className="ep-divider" />
+
+              <nav className="ep-nav-list">
+                <NavItem
+                  active={activeTab === 'profile'}
+                  onClick={() => setActiveTab('profile')}
+                  label="Profile"
+                  icon={
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+                    </svg>
+                  }
+                />
+               
+              </nav>
+            </div>
+
+            {/* Danger zone */}
+            <div className="ep-danger-card">
+              <div className="ep-danger-title">Danger zone</div>
+              {profile?.id ?(
+                <button type="button" className="ep-danger-btn" onClick={() => handleDelete(profile?.id, navigate)}>Delete account</button>
+              ):( <></> )
+              }
+            </div>
+          </aside>
+
+          {/* ── Main ── */}
+          <main className="ep-content">
+
+            {/* ── PROFILE TAB ── */}
+            {activeTab === 'profile' && (
+              <SectionCard title="Personal info" subtitle="How others see you" delay={0.04}>
+                <div className="ep-form-grid">
+                  <Field label="First name" error={errors.firstName}>
+                    <input {...field('firstName')} placeholder={profile?.firstName}/>
+                  </Field>
+                  <Field label="Last name" error={errors.lastName}>
+                    <input {...field('lastName')} placeholder={profile?.lastName} />
+                  </Field>
+                  <Field label="Username" error={errors.username}>
+                    <div className="ep-input-wrap">
+                      <span className="ep-input-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+                        </svg>
+                      </span>
+                      <input
+                        {...field('username')}
+                        className={`ep-input has-icon${errors.username ? ' error' : ''}`}
+                        placeholder={profile?.username}
+                      />
+                    </div>
+                  </Field>
+                  <Field label="Email" error={errors.email}>
+                    <div className="ep-input-wrap">
+                      <span className="ep-input-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                          <polyline points="22,6 12,13 2,6" />
+                        </svg>
+                      </span>
+                      <input
+                        {...field('email')}
+                        className={`ep-input has-icon${errors.email ? ' error' : ''}`}
+                        placeholder={profile?.email}
+                        type="email"
+                        disabled
+                        style={{ cursor: 'not-allowed' }}
+                      />
+                    </div>
+                  </Field>
+
+                  <Field label="Privacy" full>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      fontSize: 14,
+                      cursor: 'pointer',
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={form.hideFromAttendees}
+                        onChange={(e) =>
+                          setForm((prev) => ({ ...prev, hideFromAttendees: e.target.checked }))
+                        }
+                      />
+                      Hide me from event attendee lists by default
+                    </label>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                      You can still override this per event after registering.
+                    </div>
+                  </Field>
+                </div>
+
+                <div className="ep-action-bar">
+                  <Link to={`/profile/${profile?.id}`} className="ep-cancel-btn">Cancel</Link>
+                  <button type="submit" className="ep-save-btn" disabled={saving}>
+                    {saving ? <><span className="ep-spinner" /> Saving…</> : 'Save changes'}
+                  </button>
+                </div>
+              </SectionCard>
+            
+            )}
+          </main>
+        </div>
+
+        {/* Toast */}
+        {toast && (
+          <div className={`ep-toast ${toast.type}`}>
+            {toast.msg}
+          </div>
+        )}
+      </div>
+    </form>
+  );
+}===== ./app/routes/pages/UserPage/userLogik.ts =====
+import { useState, useEffect } from "react";
+
+
+export interface UserProfile {
+  id: string;
+  username: string; 
+  email: string;
+  createdAt: string;
+  avatarLetter: string;
+  profilePicture: string;
+}
+
+const API = import.meta.env.VITE_API;
+
+export async function fetchCurrentUser(): Promise<{ id: string } | null> {
+  try {
+    const res = await fetch(`${API}/auth/me`, {
+      credentials: "include",
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data.user ?? null;
+  } catch {
+    return null;
+  }
+}
+
+//user profile 
+export async function fetchUserProfile(id: string): Promise<UserProfile> {
+  const res = await fetch(`${API}/users/${id}`, {
+    credentials: "include",
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok) {
+    throw new Error("Failed to fetch profile");
+  }
+  return (data);
+}
+
+export function userProfile() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadProfile() {
+      setLoading(true);
+      try {
+        const user = await fetchCurrentUser();
+        if (!user) throw new Error("Not logged in");
+        const profileData = await fetchUserProfile(user?.id);
+        profileData.avatarLetter = profileData.username[0];
+
+        setProfile(profileData);
+      } catch (err: any) {
+        setError(err.message ?? "Unknown error");
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+  
+  return { profile, loading, error };
+}===== ./app/routes/pages/UserPage/UserPage.css =====
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,900&display=swap');
+
+/* ── Design tokens ── */
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --bg-muted: #f4f3ec;
+  --border: #e5e4e7;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.08);
+  --accent-border: rgba(170, 59, 255, 0.35);
+  --accent-shadow: rgba(170, 59, 255, 0.18);
+  --accent-hover: #9528e8;
+  --danger: #dc3545;
+  --danger-bg: rgba(220, 53, 69, 0.05);
+  --danger-border: rgba(220, 53, 69, 0.25);
+  --shadow:
+    rgba(0, 0, 0, 0.08) 0 4px 16px,
+    rgba(0, 0, 0, 0.04) 0 1px 4px;
+  --sans: 'DM Sans', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--bg);
+}
+
+a {
+  text-decoration: none;
+}
+
+ div::-webkit-scrollbar {
+   display: none;
+ }
+
+/* --- Animations  */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- Page wrapper  */
+/* .page {
+  min-height: 100vh;
+  background: #f9f8f8;
+  font-family: 'DM Sans', sans-serif;
+} */
+
+/* --- Body layout  */
+/* .body {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+} */
+
+/* --- Sidebar  */
+/* .sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeUp 0.45s ease both;
+} */
+
+/* Profile card */
+.profileCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 24px 24px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.avatarWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* .avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #e97f67;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 42px;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(233, 127, 103, 0.35);
+} */
+
+.profileInfo {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.profileUsername {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: #000;
+  margin: 0 0 4px;
+}
+
+.profileEmail {
+  font-weight: 500;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 10px;
+}
+
+.editProfileLink {
+  font-weight: 600;
+  font-size: 13px;
+  color: #e97f67;
+}
+
+.editProfileLink:hover {
+  opacity: 0.75;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.07);
+  margin: 16px 0;
+}
+
+.metaList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+}
+
+.statItem {
+  text-align: center;
+  position: relative;
+}
+
+.statItem+.statItem::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.statValue {
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  color: #000;
+}
+
+.statLabel {
+  font-weight: 500;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Company CTA card */
+.companyCard {
+  background: #e97f67;
+  border-radius: 20px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.companyCard::before,
+.companyCard::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.companyCard::before {
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+}
+
+.companyCard::after {
+  top: -20px;
+  right: -20px;
+  width: 80px;
+  height: 80px;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.companyIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.companyCardTitle {
+  font-weight: 800;
+  font-size: 16px;
+  color: #000;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
+}
+
+.companyCardDesc {
+  font-weight: 500;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 150%;
+  margin: 0 0 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.companyBtn {
+  width: 100%;
+  padding: 11px;
+  background: #000;
+  border: none;
+  border-radius: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  position: relative;
+  z-index: 1;
+}
+
+.companyBtn:hover {
+  opacity: 0.85;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Interests card */
+.interestsCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 28px 24px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  animation: fadeUp 0.45s ease 0.08s both;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  color: #000;
+}
+
+.badge {
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  background: #e97f67;
+  border-radius: 50px;
+  padding: 1px 9px;
+}
+
+.pillsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  font-weight: 500;
+  font-size: 13px;
+  color: #000;
+  background: #fff;
+  cursor: default;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  border-color: #e97f67;
+  color: #e97f67;
+  background: #fff0ed;
+}
+
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, #de7962, #fba28c);
+  font-size: 32px;
+  color: #fff;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarLetter {
+  font-weight: bold;
+}
+===== ./app/routes/pages/UserPage/UserPage.tsx =====
+import { Link } from 'react-router';
+import { useState } from 'react';
+import {AuthHeader} from '../AuthHeader';
+import "./UserPage.css";
+import "../UserEditPage/EditUserPage.css"
+import { 
+  userProfile,
+} from "./userLogik";
+
+
+export default function UserPage() {
+  const { profile, loading, error } = userProfile();
+
+  return (
+    <div className='page'>
+      <AuthHeader/>
+
+      <div className='body'>
+        {/* -- Sidebar -- */}
+        <aside className='sidebar'>
+          <div className='profileCard'>
+            <div className='avatarWrap'>
+              <div
+                className='avatar'
+                style={{ background: profile?.profilePicture ?? "gradient (90gr, #de7962, #f0a267" }}
+              >
+                {loading ? (
+                  "…"
+                ) : profile?.profilePicture && !profile.profilePicture.includes('default.png') ? (
+                  <img src={`http://localhost:3000/${profile.profilePicture}`} alt="avatar" />
+                ) : profile?.avatarLetter ? (
+                  <div className="avatarLetter">{profile.avatarLetter}</div>
+                ) : (
+                  <div className="avatarLetter">U</div>
+                )}
+              </div>
+            </div>
+
+            <div className='profileInfo'>
+              <div className='profileUsername'>
+                {loading ? "Loading…" : profile?.username}
+              </div>
+              <div className='profileEmail'>{profile?.email ?? ""}</div>
+              <Link to={`/profile/${profile?.id}/edit`} className='editProfileLink'>
+                Edit profile
+              </Link>
+            </div>
+
+            <div className='divider' />
+
+            <div className='metaList'>
+              <div className='metaItem'>
+                Joined {profile?.createdAt ?? "—"}
+              </div>
+            </div>
+          </div>
+
+          {/* Company */}
+          <div className='companyCard'>
+            <p className='companyCardTitle'>Organise events?</p>
+            <p className='companyCardDesc'>
+              Create a company profile and create your events.
+            </p>
+          </div>
+        </aside>
+
+        {/* -- Main -- */}
+        <main className='content'>
+          {error && <div className='errorBox'>{error}</div>}
+
+        </main>
+      </div>
+
+    </div>
+  );
+}===== ./app/routes.ts =====
+import { type RouteConfig, index, route } from "@react-router/dev/routes";
+
+export default [
+  // index('routes/pages/EditorPage/EditorPage.tsx'),
+  index('routes/pages/HomePage/HomePage.tsx'),
+  route('login', "routes/pages/Auth/Login.tsx"),
+  route('register', "routes/pages/Auth/Register.tsx"),
+  route('verify-email', "routes/pages/Auth/EmailVerif.tsx"),
+  route('password-reset/:token', "routes/pages/Auth/PasswordReset.tsx"),
+  route('profile/:userId', "routes/pages/UserPage/UserPage.tsx"),
+  route('profile/:userId/edit', "routes/pages/UserEditPage/EditUserPage.tsx"),
+  route('logo-maker/:projectId', "routes/pages/LogoMaker/LogoMakerPage.tsx"),
+  route('edit-page/:projectId', "routes/pages/EditorPage/EditorPage.tsx"),
+  route('new/:type', "routes/pages/HomePage/NewProject.tsx"),
+  route('auth/callback', "routes/pages/Auth/Callback.tsx"),
+] satisfies RouteConfig;
+===== ./app/tailwind.css =====
+@import 'tailwindcss';
+@source '../**/*.{js,ts,jsx,tsx}';
+
+@import 'tw-animate-css';===== ./app/theme.css =====
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: #1a1a1f;
+  --foreground: #e5e5e7;
+  --card: #22222a;
+  --card-foreground: #e5e5e7;
+  --popover: #22222a;
+  --popover-foreground: #e5e5e7;
+  --primary: #454fda;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2a35;
+  --secondary-foreground: #e5e5e7;
+  --muted: #2a2a35;
+  --muted-foreground: #9090a0;
+  --accent: #454fda;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #33333d;
+  --input: #2a2a35;
+  --input-background: #2a2a35;
+  --switch-background: #3a3a45;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #454fda;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.375rem;
+  --sidebar: #1a1a1f;
+  --sidebar-foreground: #e5e5e7;
+  --sidebar-primary: #454fda;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2a35;
+  --sidebar-accent-foreground: #e5e5e7;
+  --sidebar-border: #33333d;
+  --sidebar-ring: #454fda;
+}
+
+.dark {
+  --background: #1a1a1f;
+  --foreground: #e5e5e7;
+  --card: #22222a;
+  --card-foreground: #e5e5e7;
+  --popover: #22222a;
+  --popover-foreground: #e5e5e7;
+  --primary: #454fda;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2a35;
+  --secondary-foreground: #e5e5e7;
+  --muted: #2a2a35;
+  --muted-foreground: #9090a0;
+  --accent: #454fda;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #33333d;
+  --input: #2a2a35;
+  --ring: #454fda;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: #1a1a1f;
+  --sidebar-foreground: #e5e5e7;
+  --sidebar-primary: #454fda;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2a35;
+  --sidebar-accent-foreground: #e5e5e7;
+  --sidebar-border: #33333d;
+  --sidebar-ring: #454fda;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}===== ./eslint.config.js =====
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+  },
+])
+===== ./front_dump.txt =====
+===== ./index.html =====
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>webster-frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+  </body>
+</html> 
+===== ./vite.config.ts =====
+import { defineConfig } from 'vite'
+import { reactRouter } from "@react-router/dev/vite";
+// import tsconfigPaths from "vite-tsconfig-paths";
+
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+    reactRouter(), 
+  // tsconfigPaths()
+  ],
+})

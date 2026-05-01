@@ -38,11 +38,20 @@ type Pages = {
       "userId": string;
     };
   };
-  "/logo-maker": {
-    params: {};
+  "/logo-maker/:projectId": {
+    params: {
+      "projectId": string;
+    };
   };
-  "/edit-page": {
-    params: {};
+  "/edit-page/:projectId": {
+    params: {
+      "projectId": string;
+    };
+  };
+  "/new/:type": {
+    params: {
+      "type": string;
+    };
   };
   "/auth/callback": {
     params: {};
@@ -52,7 +61,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/register" | "/verify-email" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/logo-maker" | "/edit-page" | "/auth/callback";
+    page: "/" | "/login" | "/register" | "/verify-email" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/logo-maker/:projectId" | "/edit-page/:projectId" | "/new/:type" | "/auth/callback";
   };
   "routes/pages/HomePage/HomePage.tsx": {
     id: "routes/pages/HomePage/HomePage";
@@ -84,11 +93,15 @@ type RouteFiles = {
   };
   "routes/pages/LogoMaker/LogoMakerPage.tsx": {
     id: "routes/pages/LogoMaker/LogoMakerPage";
-    page: "/logo-maker";
+    page: "/logo-maker/:projectId";
   };
   "routes/pages/EditorPage/EditorPage.tsx": {
     id: "routes/pages/EditorPage/EditorPage";
-    page: "/edit-page";
+    page: "/edit-page/:projectId";
+  };
+  "routes/pages/HomePage/NewProject.tsx": {
+    id: "routes/pages/HomePage/NewProject";
+    page: "/new/:type";
   };
   "routes/pages/Auth/Callback.tsx": {
     id: "routes/pages/Auth/Callback";
@@ -107,5 +120,6 @@ type RouteModules = {
   "routes/pages/UserEditPage/EditUserPage": typeof import("./app/routes/pages/UserEditPage/EditUserPage.tsx");
   "routes/pages/LogoMaker/LogoMakerPage": typeof import("./app/routes/pages/LogoMaker/LogoMakerPage.tsx");
   "routes/pages/EditorPage/EditorPage": typeof import("./app/routes/pages/EditorPage/EditorPage.tsx");
+  "routes/pages/HomePage/NewProject": typeof import("./app/routes/pages/HomePage/NewProject.tsx");
   "routes/pages/Auth/Callback": typeof import("./app/routes/pages/Auth/Callback.tsx");
 };

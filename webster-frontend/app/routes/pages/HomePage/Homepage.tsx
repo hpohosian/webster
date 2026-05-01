@@ -2,16 +2,12 @@ import { AuthHeader } from "../AuthHeader";
 import { Link } from "react-router";
 import "./HomePage.css";
 
-export async function loader() {
-  return null;
-}
-
 export default function HomePage() {
   return (
     <div className="home-page">
       <AuthHeader />
       <main className="home-main">
-        <Link to="logo-maker" className="home-btn home-btn-primary">
+        <Link to="http://localhost:3000/projects/new/photo" className="home-btn home-btn-primary">
           <div className="home-btn-icon">✏️</div>
           <div className="home-btn-divider" />
           <div className="home-btn-label">
@@ -19,7 +15,7 @@ export default function HomePage() {
           </div>
         </Link>
 
-        <Link to="edit-page" className="home-btn home-btn-secondary">
+        <Link to="http://localhost:3000/projects/new/logo" className="home-btn home-btn-secondary">
           <div className="home-btn-icon">⭐</div>
           <div className="home-btn-divider" />
           <div className="home-btn-label">
