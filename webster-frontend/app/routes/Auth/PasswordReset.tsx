@@ -9,7 +9,7 @@ import {
   ClosedIconEye,
   CheckIcon,
   CrossIcon,
-} from '../../assets/Icons.tsx'
+} from '../../assets/Icons'
 
 const RINGS = [
   { size: 300, top: -150, right: -150 },

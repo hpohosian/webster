@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { useState } from 'react';
-import {AuthHeader} from '../AuthHeader';
+import {AuthHeader} from '../../components/AuthHeader';
 import "./UserPage.css";
 import "../UserEditPage/EditUserPage.css"
 import { 
