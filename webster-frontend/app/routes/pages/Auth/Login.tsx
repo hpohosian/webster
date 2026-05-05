@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link } from "react-router-dom";
 import { AuthHeader } from '../AuthHeader'
 
 import "./Login.css";
@@ -31,8 +31,10 @@ export default function LoginPage() {
   const navigate = useNavigate(); 
   
   //submit
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    console.log("SUBMIT FIRED");
 
     const res = await fetch(`${API}/auth/login`, {
     method: "POST",
@@ -134,7 +136,8 @@ export default function LoginPage() {
 
                 <form
                   onSubmit={handleSubmit}
-                  className="form"
+                  action={undefined}
+                  method={undefined}
                 >
                   <label>Email address</label>
 
@@ -172,8 +175,8 @@ export default function LoginPage() {
                     </button>
                   </div>
                   <div>
-                    <button className="pass-req" onClick={resetPasswordReq}>
-                    forgot your password?
+                    <button type="button" className="pass-req" onClick={resetPasswordReq}>
+                      forgot your password?
                     </button>
                     { resetPass? (
                       <p className="reset-text"> Reset link is sent. Check your email </p>
