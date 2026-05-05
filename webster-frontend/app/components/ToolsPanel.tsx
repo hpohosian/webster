@@ -1,12 +1,3 @@
-/**
- * ToolsPanel.tsx + EditorPage.tsx
- * ────────────────────────────────
- * ToolsPanel: Keine Props mehr, kein selectedCategory callback
- * EditorPage: Kein useState mehr, kein State-Drilling durch Props
- */
-
-// ─── ToolsPanel.tsx ───────────────────────────────────────────────────────────
-
 import { useEditorStore } from "../store/editorStore";
 import {
   MousePointer2, Hand, Upload, Maximize, SlidersHorizontal,
@@ -24,7 +15,6 @@ const TOOL_CATEGORIES = [
   { id: "templates",   Icon: LayoutTemplate,    label: "Templates" },
 ] as const;
 
-// Kein Prop nötig!
 export function ToolsPanel() {
   const activeTool   = useEditorStore((s) => s.activeTool);
   const activePanel  = useEditorStore((s) => s.activePanel);
@@ -48,7 +38,7 @@ export function ToolsPanel() {
           onClick={() => setActiveTool(id)}
           style={{
             width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
-            background: activeTool === id ? "#454fda" : "transparent",
+            background: activeTool === id ? "var(--accent)" : "transparent",
             color:      activeTool === id ? "#fff"    : "#666",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
@@ -68,7 +58,7 @@ export function ToolsPanel() {
           style={{
             width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
             background: activePanel === id ? "#1e1e3a" : "transparent",
-            color:      activePanel === id ? "#454fda" : "#666",
+            color:      activePanel === id ? "var(--accent)" : "#666",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >

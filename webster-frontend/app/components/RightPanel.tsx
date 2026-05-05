@@ -1,10 +1,3 @@
-/**
- * RightPanel.tsx
- * ──────────────
- * VORHER: layers, selectedLayerId, addLayer, deleteLayer... alle als Props
- * JETZT:  Kein einziges Prop – alles direkt aus dem Store
- */
-
 import { useState } from "react";
 import {
   Layers, History, ChevronRight, ChevronLeft,
@@ -13,7 +6,6 @@ import {
 } from "lucide-react";
 import { useEditorStore, useSelectedLayer } from "../store/editorStore";
 
-// Keine Props nötig!
 export function RightPanel() {
   // Nur was diese Komponente wirklich braucht abonnieren
   const layers            = useEditorStore((s) => s.layers);
@@ -61,7 +53,7 @@ export function RightPanel() {
         <div style={{ display: "flex", gap: 4 }}>
           {([["layers", Layers], ["history", History]] as const).map(([id, Icon]) => (
             <button key={id} onClick={() => setTab(id)} style={{
-              background: tab === id ? "#454fda" : "transparent",
+              background: tab === id ? "var(--accent)" : "transparent",
               border: "none", color: tab === id ? "#fff" : "#666",
               borderRadius: 6, padding: "5px 8px", cursor: "pointer", display: "flex",
             }}>
@@ -127,7 +119,7 @@ export function RightPanel() {
                           if (e.key === "Escape") setEditingId(null);
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        style={{ flex: 1, background: "#0d0d12", border: "1px solid #454fda", color: "#fff", borderRadius: 4, padding: "1px 4px", fontSize: 12 }}
+                        style={{ flex: 1, background: "#0d0d12", border: "1px solid var(--accent)", color: "#fff", borderRadius: 4, padding: "1px 4px", fontSize: 12 }}
                       />
                     ) : (
                       <span
@@ -141,7 +133,7 @@ export function RightPanel() {
                     {/* Lock Toggle */}
                     <button
                       onClick={(e) => { e.stopPropagation(); updateLayer(layer.id, { locked: !layer.locked }); }}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: layer.locked ? "#454fda" : "#444", padding: 2, display: "flex" }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: layer.locked ? "var(--accent)" : "#444", padding: 2, display: "flex" }}
                     >
                       {layer.locked ? <Lock size={12} /> : <Unlock size={12} />}
                     </button>
@@ -171,7 +163,7 @@ export function RightPanel() {
             {/* Add Layer → ruft addLayer() aus dem Store auf */}
             <button
               onClick={addLayer}
-              style={{ marginTop: 8, width: "100%", background: "#454fda", border: "none", color: "#fff", borderRadius: 6, padding: "7px", cursor: "pointer", fontSize: 12 }}
+              style={{ marginTop: 8, width: "100%", background: "var(--accent)", border: "none", color: "#fff", borderRadius: 6, padding: "7px", cursor: "pointer", fontSize: 12 }}
             >+ Add Layer</button>
 
             {/* Layer Properties – zeigt Werte des selektierten Layers */}
@@ -200,7 +192,7 @@ export function RightPanel() {
                     type="range" min={0} max={100}
                     value={selectedLayer.opacity}
                     onChange={(e) => updateLayer(selectedLayer.id, { opacity: Number(e.target.value) })}
-                    style={{ width: "100%", accentColor: "#454fda" }}
+                    style={{ width: "100%", accentColor: "var(--accent)" }}
                   />
                 </div>
               </div>
@@ -217,7 +209,7 @@ export function RightPanel() {
                 padding: "7px 10px", borderRadius: 5, fontSize: 12, cursor: "pointer",
                 background: i === 0 ? "#454fda20" : "#1a1a26",
                 color:      i === 0 ? "#aaa"      : "#666",
-                borderLeft: `2px solid ${i === 0 ? "#454fda" : "transparent"}`,
+                borderLeft: `2px solid ${i === 0 ? "var(--accent)" : "transparent"}`,
               }}>
                 {item}
               </div>

@@ -1,7 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,900&display=swap');
-
 /* ── Design tokens ── */
-:root {
+/* :root {
   --text: #6b6375;
   --text-h: #08060d;
   --bg: #fff;
@@ -19,7 +17,7 @@
     rgba(0, 0, 0, 0.08) 0 4px 16px,
     rgba(0, 0, 0, 0.04) 0 1px 4px;
   --sans: 'DM Sans', system-ui, sans-serif;
-}
+} */
 
 *,
 *::before,

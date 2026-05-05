@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Hand, MousePointer2, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Hand, MousePointer2, ZoomIn, ZoomOut, RotateCcw, Lock, Unlock, } from "lucide-react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { Canvas as FabricCanvas, Rect } from "fabric";
 import { useEditorStore, useSelectedLayer, useIsLayerLocked } from "../store/editorStore";
@@ -34,20 +34,18 @@ export function Canvas() {
     const [showCtxMenu, setShowCtxMenu] = useState(false);
     const [ctxPos,      setCtxPos]      = useState({ x: 0, y: 0 });
  
- // ── Canvas initialisieren ──────────────────────────────────────────────
- 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "#2a2a35";
+    ctx.fillStyle = "var(--background)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#454fda";
+    ctx.strokeStyle = "var(--accent)";
     ctx.lineWidth = 2;
     ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
   }, []);
  
-  // ── Event Handler ──────────────────────────────────────────────────────
+  // ── Event Handler 
  
   const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -71,8 +69,6 @@ export function Canvas() {
   };
  
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    // Pan: offset direkt in den globalen Store schreiben
-    // → ToolsPanel oder RightPanel könnten offset theoretisch auch lesen
     if (isPanning && activeTool === "hand") {
       setOffset({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
     }
@@ -81,8 +77,6 @@ export function Canvas() {
       const ctx = canvasRef.current!.getContext("2d")!;
       const pos = getCanvasPos(e);
  
-      // brushColor/brushSize/brushOpacity kommen direkt aus dem Store –
-      // wenn der User in der FeaturesPanel die Farbe ändert, wirkt es sofort
       ctx.globalAlpha  = brushOpacity / 100;
       ctx.strokeStyle  = brushColor;
       ctx.lineWidth    = brushSize;
@@ -97,7 +91,7 @@ export function Canvas() {
   };
  
   const handleMouseUp = () => {
-    if (isDrawing) pushHistory("Draw Stroke"); // → History-Tab zeigt das sofort
+    if (isDrawing) pushHistory("Draw Stroke");
     setIsPanning(false);
     setIsDrawing(false);
     setLastPos(null);
@@ -115,14 +109,13 @@ export function Canvas() {
     "default";
  
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#161620", overflow: "hidden", position: "relative" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--background)", overflow: "hidden", position: "relative" }}>
  
       {/* ── Toolbar ── */}
       <div style={{
-        height: 44, background: "#0d0d12", borderBottom: "1px solid #1e1e2a",
+        height: 44, background: "var(--card)", borderBottom: "1px solid var(--border)",
         display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px", flexShrink: 0,
       }}>
-        {/* Tool-Buttons zeigen den globalen activeTool State an */}
         <div style={{ display: "flex", gap: 4 }}>
           {([
             { id: "pointer" as const, Icon: MousePointer2 },
@@ -133,8 +126,8 @@ export function Canvas() {
               onClick={() => setActiveTool(id)} // schreibt in den Store → ToolsPanel-Buttons updaten sich auch
               style={{
                 padding: 6, borderRadius: 6, border: "none", cursor: "pointer",
-                background: activeTool === id ? "#454fda" : "transparent",
-                color:      activeTool === id ? "#fff"    : "#666",
+                background: activeTool === id ? "var(--accent)" : "transparent",
+                color:      activeTool === id ? "var(--accent-foreground)"    : "var(--muted-foreground)",
               }}
             >
               <Icon size={15} />
@@ -145,14 +138,14 @@ export function Canvas() {
         {/* Zoom-Controls lesen+schreiben aus dem Store */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <button onClick={zoomOut} style={iconBtnStyle}><ZoomOut  size={14} /></button>
-          <span style={{ fontSize: 12, color: "#888", minWidth: 44, textAlign: "center" }}>{zoom}%</span>
+          <span style={{ fontSize: 12, color: "var(--muted-foreground)", minWidth: 44, textAlign: "center" }}>{zoom}%</span>
           <button onClick={zoomIn}  style={iconBtnStyle}><ZoomIn   size={14} /></button>
           <button onClick={resetView} style={iconBtnStyle}><RotateCcw size={14} /></button>
         </div>
  
         {/* Zeigt den aktuell selektierten Layer – kommt aus dem Store */}
-        <div style={{ fontSize: 11, color: "#555" }}>
-          {selectedLayer ? `${selectedLayer.name}${isLocked ? " 🔒" : ""}` : "–"}
+        <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
+          {selectedLayer ? `${selectedLayer.name}${isLocked ? {Lock} : ""}` : "–"}
         </div>
       </div>
  
@@ -182,7 +175,7 @@ export function Canvas() {
       {showCtxMenu && (
         <div style={{
           position: "fixed", left: ctxPos.x, top: ctxPos.y, zIndex: 100,
-          background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 8,
+          background: "var(--popover)", border: "1px solid var(--border)", borderRadius: "var(--radius)",
           padding: 4, minWidth: 180, boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
         }}>
           {([
@@ -197,7 +190,7 @@ export function Canvas() {
             ["Delete",         "Del"],
           ] as ([string, string] | null)[]).map((item, i) =>
             item === null ? (
-              <div key={i} style={{ height: 1, background: "#2a2a3a", margin: "3px 0" }} />
+              <div key={i} style={{ height: 1, background: "var(--border)", margin: "3px 0" }} />
             ) : (
               <button
                 key={i}
@@ -205,7 +198,7 @@ export function Canvas() {
                 style={{
                   display: "flex", justifyContent: "space-between", width: "100%",
                   background: "none", border: "none",
-                  color: item[0] === "Delete" ? "#f87171" : "#ccc",
+                  color: item[0] === "Delete" ? "var(--destructive)" : "var(--foreground)",
                   padding: "7px 10px", borderRadius: 5, cursor: "pointer", fontSize: 12,
                 }}
               >
@@ -221,7 +214,7 @@ export function Canvas() {
 }
  
 const iconBtnStyle: React.CSSProperties = {
-  background: "transparent", border: "1px solid #2a2a3a", color: "#888",
-  borderRadius: 5, padding: 5, cursor: "pointer", display: "flex", alignItems: "center",
+  background: "transparent", border: "1px solid var(--border)", color: "var(--muted-foreground)",
+  borderRadius: "var(--radius)", padding: 5, cursor: "pointer", display: "flex", alignItems: "center",
 };
  

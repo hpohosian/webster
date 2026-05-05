@@ -1,22 +1,10 @@
 import { useEffect, useState } from "react";
-/**
- * FeaturesPanel.tsx
- * ─────────────────
- * VORHER: Bekam adjustments, setBrushColor, brushSize... als Props
- * JETZT:  Kein einziges Prop mehr nötig – alles kommt aus dem Store
- *
- * Das ist der Hauptvorteil von Zustand:
- * EditorPage muss keine Props mehr durchreichen.
- * FeaturesPanel "greift" sich selbst was es braucht.
- */
-
 import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
 import type { Adjustments } from "../store/editorStore";
 import { getPalette, listFonts, searchImages } from "../lib/demoApi";
 import type { DemoColor, DemoFont, DemoImage } from "../lib/demoApi";
 
-// Keine Props mehr! (außer onClose falls du das brauchst)
 export function FeaturesPanel() {
   // activePanel bestimmt welcher Inhalt angezeigt wird
   const activePanel      = useEditorStore((s) => s.activePanel);
@@ -62,15 +50,6 @@ export function FeaturesPanel() {
   );
 }
 
-// ─── Adjustments ─────────────────────────────────────────────────────────────
-/**
- * Diese Sub-Komponente holt sich NUR adjustments + setAdjustment aus dem Store.
- * Wenn du den Highlights-Slider bewegst:
- *   1. setAdjustment("highlights", 42) wird aufgerufen
- *   2. Store updated adjustments.highlights auf 42
- *   3. Diese Komponente re-rendert (weil sie adjustments abonniert hat)
- *   4. Canvas kann adjustments auch abonnieren und reagieren
- */
 function AdjustmentsContent() {
   const adjustments    = useEditorStore((s) => s.adjustments);
   const setAdjustment  = useEditorStore((s) => s.setAdjustment);
@@ -103,7 +82,7 @@ function AdjustmentsContent() {
               setAdjustment(key, Number(e.target.value));
               pushHistory(`Adjust ${label}`);
             }}
-            style={{ width: "100%", accentColor: "#454fda" }}
+            style={{ width: "100%", accentColor: "var(--accent)" }}
           />
         </div>
       ))}
@@ -118,7 +97,7 @@ function AdjustmentsContent() {
   );
 }
 
-// ─── Draw ─────────────────────────────────────────────────────────────────────
+// ─── Draw 
 /**
  * Brush-Einstellungen kommen aus dem Store.
  * Wenn du hier die Farbe änderst → brushColor im Store ändert sich →
@@ -201,7 +180,7 @@ function DrawContent() {
   );
 }
 
-// ─── Filter ───────────────────────────────────────────────────────────────────
+// ─── Filter 
 function FilterContent() {
   const pushHistory = useEditorStore((s) => s.pushHistory);
   return (
@@ -216,7 +195,7 @@ function FilterContent() {
   );
 }
 
-// ─── Text ─────────────────────────────────────────────────────────────────────
+// ─── Text 
 function TextContent() {
   const [fonts, setFonts] = useState<DemoFont[]>([]);
   const [isLoadingFonts, setIsLoadingFonts] = useState(false);
@@ -271,7 +250,7 @@ function TextContent() {
   );
 }
 
-// ─── Shapes ───────────────────────────────────────────────────────────────────
+// ─── Shapes 
 function ShapesContent() {
   const pushHistory = useEditorStore((s) => s.pushHistory);
   return (
@@ -286,7 +265,7 @@ function ShapesContent() {
   );
 }
 
-// ─── Resize ───────────────────────────────────────────────────────────────────
+// ─── Resize 
 function ResizeContent() {
   const pushHistory    = useEditorStore((s) => s.pushHistory);
   const setCanvasSize  = useEditorStore((s) => s.setCanvasSize);
@@ -319,7 +298,7 @@ function ResizeContent() {
   );
 }
 
-// ─── Upload ───────────────────────────────────────────────────────────────────
+// ─── Upload 
 function UploadContent() {
   const pushHistory = useEditorStore((s) => s.pushHistory);
   const [query, setQuery] = useState("social media");
@@ -351,7 +330,7 @@ function UploadContent() {
           textAlign: "center", cursor: "pointer", color: "#555", fontSize: 12,
           background: "transparent",
         }}
-        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#454fda")}
+        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "var(--accent)")}
         onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#2a2a3a")}
       >
         {isLoadingImages ? "Searching Unsplash..." : <>Drop image here<br />or click to browse</>}
@@ -402,7 +381,7 @@ function UploadContent() {
   );
 }
 
-// ─── Templates ────────────────────────────────────────────────────────────────
+// ─── Templates 
 function TemplatesContent() {
   const pushHistory = useEditorStore((s) => s.pushHistory);
   return (
@@ -418,7 +397,7 @@ function TemplatesContent() {
   );
 }
 
-// ─── Shared UI Helpers ────────────────────────────────────────────────────────
+// ─── Shared UI Helpers 
 
 function SliderField({ label, value, min, max, onChange, unit = "" }: {
   label: string; value: number; min: number; max: number;
@@ -432,7 +411,7 @@ function SliderField({ label, value, min, max, onChange, unit = "" }: {
       </div>
       <input type="range" min={min} max={max} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        style={{ width: "100%", accentColor: "#454fda" }} />
+        style={{ width: "100%", accentColor: "var(--accent)" }} />
     </div>
   );
 }
