@@ -39,6 +39,7 @@ export function Canvas() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
     ctx.fillStyle = "var(--background)";
+    // ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = "var(--accent)";
     ctx.lineWidth = 2;

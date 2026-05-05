@@ -44,15 +44,17 @@ type Pages = {
   "/logo-maker": {
     params: {};
   };
-  "/edit-page": {
-    params: {};
+  "/edit-page/:projectId": {
+    params: {
+      "projectId": string;
+    };
   };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/logo-maker" | "/edit-page";
+    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/logo-maker" | "/edit-page/:projectId";
   };
   "routes/HomePage/HomePage.tsx": {
     id: "routes/HomePage/HomePage";
@@ -92,7 +94,7 @@ type RouteFiles = {
   };
   "routes/EditorPage.tsx": {
     id: "routes/EditorPage";
-    page: "/edit-page";
+    page: "/edit-page/:projectId";
   };
 };
 
