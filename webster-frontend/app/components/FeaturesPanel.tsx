@@ -4,7 +4,7 @@ import { useEditorStore } from "../store/editorStore";
 import type { Adjustments } from "../store/editorStore";
 import { getPalette, listFonts, searchImages } from "../lib/demoApi";
 import type { DemoColor, DemoFont, DemoImage } from "../lib/demoApi";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 
 export function FeaturesPanel() {
   const activePanel    = useEditorStore((s) => s.activePanel);

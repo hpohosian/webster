@@ -44,7 +44,7 @@ export function Header() {
 }
 
 const btnStyle: React.CSSProperties = {
-  background: "none", border: "1px solid #2a2a3a", color: "#aaa",
+  background: "none", border: "1px solid #2a2a2a", color: "#aaa",
   borderRadius: 6, padding: "4px 12px", fontSize: 12, cursor: "pointer",
   display: "flex", alignItems: "center", gap: 4,
 };

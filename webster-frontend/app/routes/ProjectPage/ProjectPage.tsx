@@ -1,0 +1,447 @@
+import { useState } from "react";
+import { Link } from "react-router";
+import "./ProjectPage.css"
+
+type ProjectType = "photo" | "logo";
+type SortKey = "recent" | "name" | "type";
+
+interface Project {
+  id: string;
+  name: string;
+  type: ProjectType;
+  updatedAt: string;
+  thumb?: string; // optional data-url or url
+}
+
+// ─── Mock data (replace with real API fetch) ──────────────────────────────────
+const MOCK_PROJECTS: Project[] = [
+  { id: "1", name: "Summer Campaign", type: "photo", updatedAt: "2026-05-04" },
+  { id: "2", name: "Brand Identity v2", type: "logo", updatedAt: "2026-05-03" },
+  { id: "3", name: "Mountain Series", type: "photo", updatedAt: "2026-04-29" },
+  { id: "4", name: "Prismat Logo", type: "logo", updatedAt: "2026-04-27" },
+  { id: "5", name: "Product Launch", type: "photo", updatedAt: "2026-04-20" },
+  { id: "6", name: "Icon Set", type: "logo", updatedAt: "2026-04-15" },
+];
+
+// ─── Helpers 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric", month: "short", year: "numeric",
+  });
+}
+
+function sortProjects(projects: Project[], key: SortKey) {
+  return [...projects].sort((a, b) => {
+    if (key === "name") return a.name.localeCompare(b.name);
+    if (key === "type") return a.type.localeCompare(b.type);
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  });
+}
+
+// ─── Project card thumbnail ───────────────────────────────────────────────────
+function ProjectThumb({ project }: { project: Project }) {
+  const isLogo = project.type === "logo";
+  return (
+    <div style={{
+      width: "100%",
+      aspectRatio: "4/3",
+      background: isLogo ? "#1a1a1a" : "#e8e8e8",
+      borderRadius: "10px 10px 0 0",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+      position: "relative",
+    }}>
+      {/* Spectrum accent on hover (CSS handles it) */}
+      <div className="thumb-shimmer" />
+
+      {isLogo ? (
+        // Logo placeholder
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: "50%",
+            border: "1.5px solid rgba(255,255,255,0.25)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 8px",
+          }}>
+            <div style={{
+              width: 18, height: 18, borderRadius: "50%",
+              background: "linear-gradient(135deg, #7ec8e3, #b0e0f5)",
+            }} />
+          </div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            Logo
+          </div>
+        </div>
+      ) : (
+        // Photo placeholder — crosshair like VSCO empty state
+        <div style={{
+          width: 48, height: 48, borderRadius: "50%",
+          border: "1.5px solid #ccc",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <svg width="24" height="24" fill="none" stroke="#ccc" strokeWidth="1.5" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Type badge ───────────────────────────────────────────────────────────────
+function TypeBadge({ type }: { type: ProjectType }) {
+  const isLogo = type === "logo";
+  return (
+    <span style={{
+      display: "inline-block",
+      padding: "2px 8px",
+      borderRadius: 999,
+      fontSize: 10,
+      fontWeight: 600,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      background: isLogo ? "rgba(126,200,227,0.12)" : "#f0f0f0",
+      color: isLogo ? "#5ab6d4" : "#999",
+      border: isLogo ? "1px solid rgba(126,200,227,0.25)" : "1px solid #e4e4e4",
+    }}>
+      {type}
+    </span>
+  );
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+function EmptyState() {
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      flex: 1, padding: "80px 24px", textAlign: "center",
+    }}>
+      <div style={{
+        width: 64, height: 64, borderRadius: "50%",
+        border: "1.5px solid #d0d0d0",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        marginBottom: 20,
+      }}>
+        <svg width="28" height="28" fill="none" stroke="#ccc" strokeWidth="1.5" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </div>
+      <p style={{
+        fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
+        textTransform: "uppercase", color: "#bbb",
+      }}>
+        No projects yet
+      </p>
+      <p style={{ fontSize: 13, color: "#ccc", marginTop: 6, maxWidth: 240 }}>
+        Create your first photo edit or logo to get started.
+      </p>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+export default function MyProjectsPage() {
+  const [filter, setFilter] = useState<"all" | ProjectType>("all");
+  const [sort, setSort] = useState<SortKey>("recent");
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const [search, setSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  // Filter + sort
+  const visible = sortProjects(
+    MOCK_PROJECTS.filter((p) => {
+      const matchType = filter === "all" || p.type === filter;
+      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+      return matchType && matchSearch;
+    }),
+    sort
+  );
+
+  return (
+    <>
+      <div style={{
+        display: "flex", flexDirection: "column",
+        height: "100%", minHeight: "100vh",
+        fontFamily: "'DM Sans', sans-serif",
+        background: "f0f0f0"
+      }}>
+
+        {/* ── TOP BAR ── */}
+        <div style={{
+          borderBottom: "1px solid #e8e8e8",
+          background: "#f7f7f7",
+          padding: "18px 36px",
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          position: "sticky", top: 0, zIndex: 10,
+        }}>
+          {/* Left: user identity (mirrors VSCO username + avatar) */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* Avatar */}
+            <div style={{
+              width: 46, height: 46, borderRadius: "50%",
+              background: "#e4e4e4",
+              border: "1.5px solid #d0d0d0",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <svg width="22" height="22" fill="none" stroke="#bbb" strokeWidth="1.5" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </div>
+            <div>
+              <h1 style={{
+                fontSize: 22, fontWeight: 600,
+                color: "#1a1a1a", letterSpacing: "-0.02em",
+                lineHeight: 1.1,
+              }}>
+                My Projects
+              </h1>
+              <p style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>
+                {MOCK_PROJECTS.length} projects
+              </p>
+            </div>
+          </div>
+
+          {/* Right: action buttons */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Link to="/studio">
+              <button className="new-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                New Photo Edit
+              </button>
+            </Link>
+            <Link to="/canvas">
+              <button className="new-btn" style={{ background: "#5ab6d4" }}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                New Logo
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* ── SPECTRUM ACCENT ── */}
+        <div className="spectrum-bar" style={{ margin: "0 36px", borderRadius: 0 }} />
+
+        {/* ── CONTROLS ROW ── */}
+        <div style={{
+          padding: "18px 36px 0",
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between", gap: 12, flexWrap: "wrap",
+        }}>
+          {/* Filter chips */}
+          <div style={{ display: "flex", gap: 6 }}>
+            {(["all", "photo", "logo"] as const).map((f) => (
+              <button
+                key={f}
+                className={`filter-chip${filter === f ? " active" : ""}`}
+                onClick={() => setFilter(f)}
+              >
+                {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Right controls */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* Search */}
+            <div style={{ position: "relative" }}>
+              <svg
+                width="14" height="14" fill="none" stroke="#bbb" strokeWidth="1.8"
+                viewBox="0 0 24 24"
+                style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
+              >
+                <circle cx="11" cy="11" r="7"/>
+                <path d="M16.5 16.5L21 21" strokeLinecap="round"/>
+              </svg>
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search projects..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+              />
+            </div>
+
+            {/* Sort */}
+            <div style={{ position: "relative" }}>
+              <select
+                className="sort-select"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+              >
+                <option value="recent">Recent</option>
+                <option value="name">Name</option>
+                <option value="type">Type</option>
+              </select>
+              <svg width="10" height="10" fill="none" stroke="#aaa" strokeWidth="2" viewBox="0 0 24 24"
+                style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </div>
+
+            {/* View toggle */}
+            <button
+              className={`view-toggle${view === "grid" ? " active" : ""}`}
+              onClick={() => setView("grid")}
+              title="Grid view"
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </button>
+            <button
+              className={`view-toggle${view === "list" ? " active" : ""}`}
+              onClick={() => setView("list")}
+              title="List view"
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* ── CONTENT ── */}
+        <div style={{ padding: "24px 36px 48px", flex: 1 }}>
+          {visible.length === 0 ? (
+            <EmptyState />
+          ) : view === "grid" ? (
+            /* Grid */
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: 18,
+            }}>
+              {visible.map((project, i) => (
+                <Link
+                  key={project.id}
+                  to={`/projects/${project.id}`}
+                  className="project-card fade-in"
+                  style={{ animationDelay: `${i * 0.05}s`, display: "block" }}
+                >
+                  <ProjectThumb project={project} />
+                  <div style={{ padding: "12px 14px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
+                      <span style={{
+                        fontSize: 14, fontWeight: 600,
+                        color: "#1a1a1a", lineHeight: 1.3,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }}>
+                        {project.name}
+                      </span>
+                      <TypeBadge type={project.type} />
+                    </div>
+                    <div style={{ fontSize: 11, color: "#bbb", marginTop: 5 }}>
+                      {formatDate(project.updatedAt)}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+              {/* "New project" card */}
+              <Link
+                to="/studio"
+                className="project-card fade-in"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1.5px dashed #d8d8d8",
+                  background: "transparent",
+                  aspectRatio: "unset",
+                  minHeight: 160,
+                  animationDelay: `${visible.length * 0.05}s`,
+                }}
+              >
+                <div style={{ textAlign: "center" }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: "50%",
+                    border: "1.5px solid #d0d0d0",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    margin: "0 auto 8px",
+                  }}>
+                    <svg width="18" height="18" fill="none" stroke="#ccc" strokeWidth="2" viewBox="0 0 24 24">
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </div>
+                  <span style={{ fontSize: 12, color: "#bbb", fontWeight: 500 }}>New project</span>
+                </div>
+              </Link>
+            </div>
+          ) : (
+            /* List */
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {visible.map((project, i) => (
+                <Link
+                  key={project.id}
+                  to={`/projects/${project.id}`}
+                  className="list-row fade-in"
+                  style={{ animationDelay: `${i * 0.04}s` }}
+                >
+                  {/* Thumb */}
+                  <div
+                    className="list-thumb"
+                    style={{ background: project.type === "logo" ? "#1a1a1a" : "#ebebeb" }}
+                  >
+                    {project.type === "logo" ? (
+                      <div style={{
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: "linear-gradient(135deg, #7ec8e3, #b0e0f5)",
+                      }} />
+                    ) : (
+                      <svg width="18" height="18" fill="none" stroke="#ccc" strokeWidth="1.5" viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                      </svg>
+                    )}
+                  </div>
+
+                  {/* Name */}
+                  <span style={{
+                    flex: 1, fontSize: 14, fontWeight: 500, color: "#1a1a1a",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {project.name}
+                  </span>
+
+                  {/* Type badge */}
+                  <TypeBadge type={project.type} />
+
+                  {/* Date */}
+                  <span style={{
+                    fontSize: 12, color: "#bbb", minWidth: 90, textAlign: "right",
+                  }}>
+                    {formatDate(project.updatedAt)}
+                  </span>
+
+                  {/* Arrow */}
+                  <svg width="14" height="14" fill="none" stroke="#ccc" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}

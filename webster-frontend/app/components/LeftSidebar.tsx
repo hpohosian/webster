@@ -1,7 +1,10 @@
 import { useNavigate, Link } from 'react-router';
 import { useState } from "react";
+import "./LeftSidebar.css"
 
 const NAV_ITEMS = [
+  { 
+    label: "Login", path: "/login" },
   {
     label: "Logo maker",
     icon: (
@@ -12,6 +15,7 @@ const NAV_ITEMS = [
         <rect x="13" y="13" width="8" height="8" rx="1" />
       </svg>
     ),
+    path: "/logo-maker"
   },
   {
     label: "Editor",
@@ -21,6 +25,7 @@ const NAV_ITEMS = [
         <path d="M7 7h4M7 12h10M7 17h6" strokeLinecap="round" />
       </svg>
     ),
+     path: "/edit-page"
   },
   {
     label: "Profile",
@@ -30,16 +35,14 @@ const NAV_ITEMS = [
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
       </svg>
     ),
+    path: "profile/:userId"
   },
-  {
-    label: "LEARN",
-    icon: (
+  { label: "Projekts", 
+    icon: ( 
       <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-        <path d="M4 19V6a2 2 0 012-2h12a2 2 0 012 2v13" strokeLinecap="round" />
-        <path d="M4 19h16M9 10h6M9 14h4" strokeLinecap="round" />
-      </svg>
+      <path d="M21 7H3M16 12H3M21 17H3" strokeLinecap="round" /></svg>
     ),
-  },
+    path: "/projects/:userId'" },
 ];
 
 function PrismatLogo() {
@@ -69,10 +72,9 @@ function PrismatLogo() {
 
 export default function LeftSidebar() {
   const navigate = useNavigate();
-  const [activeNav, setActiveNav] = useState<string | null>("PROFILE");
+  const [activeNav, setActiveNav] = useState<string | null>("profile");
   return (
     <>
-      {/* ── LEFT SIDEBAR ── */}
         <aside style={{
           width: 210,
           minWidth: 210,
@@ -82,7 +84,6 @@ export default function LeftSidebar() {
           padding: "24px 16px",
           borderRight: "1px solid rgba(255,255,255,0.06)",
         }}>
-          {/* Logo */}
           <div style={{ padding: "4px 2px 32px" }}>
             <PrismatLogo />
           </div>
@@ -90,32 +91,27 @@ export default function LeftSidebar() {
           {/* Nav items */}
           <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
             {NAV_ITEMS.map((item) => (
-              <a
+              <Link
                 key={item.label}
-                href="#"
-                className={`prismat-nav-item${activeNav === item.label ? " active" : ""}`}
-                onClick={(e) => { e.preventDefault(); setActiveNav(item.label); }}
+                to={item.path}
+                className={`prismat-nav-item${activeNav === item.label ? "" : ""}`}
+                onClick={(e) => { setActiveNav(item.label); }}
               >
                 {item.icon}
                 {item.label}
-                {/* {item.external && <span className="ext-arrow">↗</span>} */}
-              </a>
+              </Link>
             ))}
           </nav>
 
           {/* Bottom section */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <Link to="*" className="prismat-nav-item" style={{ gap: 14 }}>
+            {/* <Link to="*" className="prismat-nav-item" style={{ gap: 14 }}>
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path d="M21 7H3M16 12H3M21 17H3" strokeLinecap="round" />
               </svg>
               My Projekts
-            </Link>
-            <button className="account-chip">
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
-              </svg>
+            </Link> */}
+            <button className="account-chip prismat-nav-item" style={{ gap: 14 }}>
               Logout
             </button>
           </div>

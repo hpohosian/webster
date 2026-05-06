@@ -1,197 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from 'react-router';
-// import { AuthHeader } from '../../components/AuthHeader'
 import {GoogleIcon} from '../../assets/Icons'
 import "./Login.css";
-import LeftSidebar from '../../components/LeftAuthPanel'
-// export default function LoginPage() {
 
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [focusedField, setFocusedField] = useState<string | null>(null);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [ resetPass, setResetPass ] = useState(false);
-//   const [error, setError] = useState("");
-//   const navigate = useNavigate(); 
-  
-//   //submit
-//   const handleSubmit = async (e: React.SubmitEvent) => {
-//     e.preventDefault();
-
-//     const res = await fetch(`${API}/auth/login`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     credentials: "include",
-//     body: JSON.stringify({
-//       emailOrUsername: email,
-//       password,
-//     })
-//   });
-//     const data = await res.json();
-//     console.log("login",data);
-//    if (data.error) {
-//         setError(data.message)
-//         console.log(data.error); // ошибка от сервера
-//       } else {
-//         console.log('');
-//         // all good
-//         navigate('/edtit-page');
-//       }       
-//   };
-//   //passreset
-//   const resetPasswordReq = async (e: React.SubmitEvent) => {
-//     e.preventDefault();
-
-//     if (email === '') {
-//       setError("Please enter the email")
-//     } 
-//     const res = await fetch(`${API}/auth/password-reset`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     credentials: "include",
-//     body: JSON.stringify({
-//       email,
-//       password,
-//     })
-//   });
-//     const data = await res.json();
-//     console.log(data);
-//     if (data.error) {
-//         console.log(data.error); // ошибка от сервера
-//     } else {
-//         console.log('');
-//         setResetPass(true)
-//     }     
-//   };
-
-//   const inputStyle = (field: string) => ({
-//     width: "100%",
-//     padding: "14px 16px",
-//     fontSize: 15,
-//     fontWeight: 500,
-//     color: "#000",
-//     background: focusedField === field ? "#fff" : "#F5F5F5",
-//     border:
-//       focusedField === field
-//         ? "1.5px solid #E97F67"
-//         : "1.5px solid transparent",
-//     borderRadius: 12,
-//     outline: "none",
-//     transition: "all 0.18s ease",
-//     boxSizing: "border-box",
-//   });
-
-//   return (
-//     <div className="login-page">
-
-//       <AuthHeader/>
-//       <main className="main">
-
-//         {/* Background SIDE */}
-//          <div className="left-panel">
-//           <div className="left-bg" />
-//            <div className="left-overlay" />
-            
-//             <div className="right-panel">
-//               <div className="login-card">
-//                 <div className="heading">
-//                   <h1>Sign in</h1>
-
-//                   <p>
-//                     Don't have an account?{" "}
-//                     <Link to="/register">Create one</Link>
-//                   </p>
-//                 </div>
-
-//                 <button
-//                   className="google-btn"
-//                   onClick={signInWithGoogle}
-//                 >
-//                   Continue with Google
-//                 </button>
-
-//                 <div className="divider">
-//                   <div className="divider-line" />
-//                   <span>or sign in with email</span>
-//                   <div className="divider-line" />
-//                 </div>
-
-//                 <form
-//                   onSubmit={handleSubmit}
-//                   className="form"
-//                 >
-//                   <label>Email address</label>
-
-//                   <input
-//                     type="email"
-//                     placeholder="you@example.com"
-//                     value={email}
-//                     onChange={(e) => setEmail(e.target.value)}
-//                     onFocus={() => setFocusedField("email")}
-//                     onBlur={() => setFocusedField(null)}
-//                     style={inputStyle("email")}
-//                     required
-//                   />
-
-//                   <label>Password</label>
-
-//                   <div className="password-field">
-//                     <input
-//                       type={showPassword ? "text" : "password"}
-//                       placeholder="Enter password"
-//                       value={password}
-//                       onChange={(e) => setPassword(e.target.value)}
-//                       onFocus={() => setFocusedField("password")}
-//                       onBlur={() => setFocusedField(null)}
-//                       style={inputStyle("password")}
-//                       required
-//                     />
-
-//                     <button
-//                       type="button" 
-//                       className="show-password"
-//                       onClick={() => setShowPassword((p) => !p)}
-//                     >
-//                       {showPassword ? "Hide" : "Show"}
-//                     </button>
-//                   </div>
-//                   <div>
-//                     <button className="pass-req" onClick={resetPasswordReq}>
-//                     forgot your password?
-//                     </button>
-//                     { resetPass? (
-//                       <p className="reset-text"> Reset link is sent. Check your email </p>
-//                       ):(
-//                         <></>
-//                     )}
-//                   </div>
-//                   <button
-//                     type="submit"
-//                     disabled={isLoading}
-//                     className="submit-btn"
-//                   >
-//                     {isLoading ? "Signing in..." : "Sign in"}
-//                   </button>
-
-//                      {/* Error banner */}
-//                   {error && (
-//                     <div style={{ padding: "16px 24px", background: "#fff0ed", borderRadius: 14, color: "#c0392b", fontWeight: 600, fontSize: 14 }}>
-//                       {error}
-//                     </div>
-//                   )}
-//                 </form>
-//               </div>
-//             </div>
-//           </div>
-//       </main>
-
-//     </div>
-//   );
-// }
-
-const GOOGLE_CLIENT_ID = import.meta.env?.VITE_GOOGLE_CLIENT_ID ?? "";
-const API = import.meta.env?.VITE_API ?? "";
+const GOOGLE_CLIENT_ID = import.meta.env?.VITE_GOOGLE_CLIENT_ID;
+const API = import.meta.env?.VITE_API;
 
 function signInWithGoogle() {
   const params = new URLSearchParams({
@@ -215,7 +28,6 @@ export default function LoginPage() {
   const [resetPass, setResetPass] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [error, setError] = useState("");
-  const [activeNav, setActiveNav] = useState<string | null>("PROFILE");
 
   const navigate = (path: string) => { window.location.href = path; };
 
@@ -271,7 +83,7 @@ export default function LoginPage() {
     }
   };
 
-  // ── shared input style (mirrors the provided snippet with filled palette) ──
+  // ── shared input style
   const inputBase = (field: string): React.CSSProperties => ({
     width: "100%",
     padding: "13px 16px",
@@ -281,7 +93,7 @@ export default function LoginPage() {
     background: focusedField === field ? "#fff" : "#f4f4f4",
     border: focusedField === field
       ? "1.5px solid #7ec8e3"
-      : "1.5px solid transparent",
+      : "1.5px solid #e0e0e0",
     borderRadius: 10,
     outline: "none",
     transition: "all 0.18s ease",
@@ -291,22 +103,8 @@ export default function LoginPage() {
 
   return (
     <>
-      <div style={{
-        display: "flex",
-        height: "100vh",
-        fontFamily: "'Elms Sans', 'DM Sans', sans-serif",
-        background: "#f0f0f0",
-        overflow: "hidden",
-      }}> 
-      <LeftSidebar/>
-
-        {/* ── RIGHT PANEL ── */}
-        <main style={{
-          flex: 1,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-        }}>
+      <div className="wraper-page"> 
+        <main className='auth-main'>
           
           {/* Login form area */}
           <div style={{
@@ -335,7 +133,7 @@ export default function LoginPage() {
                   : "Welcome back. Sign in to continue editing."}
               </p>
 
-              {/* ── Google button (login mode only) ── */}
+              {/* Google button */}
               {!resetPass && (
                 <>
                   <button className="google-btn" onClick={signInWithGoogle}>
@@ -484,9 +282,9 @@ export default function LoginPage() {
                     </button>
                     <span style={{ fontSize: 12, color: "#999" }}>
                       No account?{" "}
-                      <a href="/register" style={{ color: "#7ec8e3", fontWeight: 500, textDecoration: "none" }}>
+                      <Link to="/register" style={{ color: "#7ec8e3", fontWeight: 500, textDecoration: "none" }}>
                         Sign up
-                      </a>
+                      </Link>
                     </span>
                   </>
                 ) : (

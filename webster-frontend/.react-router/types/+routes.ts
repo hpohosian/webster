@@ -41,6 +41,11 @@ type Pages = {
       "userId": string;
     };
   };
+  "/projects/:userId": {
+    params: {
+      "userId": string;
+    };
+  };
   "/logo-maker": {
     params: {};
   };
@@ -54,11 +59,15 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/logo-maker" | "/edit-page/:projectId";
+    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/projects/:userId" | "/logo-maker" | "/edit-page/:projectId";
   };
-  "routes/HomePage/HomePage.tsx": {
-    id: "routes/HomePage/HomePage";
+  "routes/WelcomePage/WelcomePage.tsx": {
+    id: "routes/WelcomePage/WelcomePage";
     page: "/";
+  };
+  "routes/Auth/HomePagelayout.tsx": {
+    id: "routes/Auth/HomePagelayout";
+    page: "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/projects/:userId";
   };
   "routes/Auth/Login.tsx": {
     id: "routes/Auth/Login";
@@ -88,6 +97,10 @@ type RouteFiles = {
     id: "routes/UserEditPage/EditUserPage";
     page: "/profile/:userId/edit";
   };
+  "routes/ProjectPage/ProjectPage.tsx": {
+    id: "routes/ProjectPage/ProjectPage";
+    page: "/projects/:userId";
+  };
   "routes/LogoMakerPage.tsx": {
     id: "routes/LogoMakerPage";
     page: "/logo-maker";
@@ -100,7 +113,8 @@ type RouteFiles = {
 
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
-  "routes/HomePage/HomePage": typeof import("./app/routes/HomePage/HomePage.tsx");
+  "routes/WelcomePage/WelcomePage": typeof import("./app/routes/WelcomePage/WelcomePage.tsx");
+  "routes/Auth/HomePagelayout": typeof import("./app/routes/Auth/HomePagelayout.tsx");
   "routes/Auth/Login": typeof import("./app/routes/Auth/Login.tsx");
   "routes/Auth/Register": typeof import("./app/routes/Auth/Register.tsx");
   "routes/Auth/EmailVerif": typeof import("./app/routes/Auth/EmailVerif.tsx");
@@ -108,6 +122,7 @@ type RouteModules = {
   "routes/Auth/PasswordReset": typeof import("./app/routes/Auth/PasswordReset.tsx");
   "routes/UserPage/UserPage": typeof import("./app/routes/UserPage/UserPage.tsx");
   "routes/UserEditPage/EditUserPage": typeof import("./app/routes/UserEditPage/EditUserPage.tsx");
+  "routes/ProjectPage/ProjectPage": typeof import("./app/routes/ProjectPage/ProjectPage.tsx");
   "routes/LogoMakerPage": typeof import("./app/routes/LogoMakerPage.tsx");
   "routes/EditorPage": typeof import("./app/routes/EditorPage.tsx");
 };

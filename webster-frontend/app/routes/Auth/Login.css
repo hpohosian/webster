@@ -1,6 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
-
-  * {
+ 
+ @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+ 
+ * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -12,39 +13,21 @@
     height: 100%;
   }
 
-  .prismat-nav-item {
+  .wraper-page{
     display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 11px 18px;
-    border-radius: 8px;
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    cursor: pointer;
-    text-decoration: none;
-    transition: color 0.18s ease, background 0.18s ease;
-    white-space: nowrap;
+    height: 100vh;
     font-family: 'Elms Sans', 'DM Sans', sans-serif;
+    background: #f0f0f0;
+    overflow: hidden;
   }
 
-  .prismat-nav-item:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.06);
+  .auth-main {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
-
-  .prismat-nav-item.active {
-    color: #fff;
-  }
-
-  .prismat-nav-item .ext-arrow {
-    font-size: 10px;
-    opacity: 0.5;
-    margin-left: 2px;
-  }
-
+ 
   .login-btn {
     width: 100%;
     padding: 13px;
