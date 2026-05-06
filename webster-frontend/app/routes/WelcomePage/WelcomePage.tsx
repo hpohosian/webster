@@ -40,12 +40,21 @@ export default function HomePage() {
 
   const createProject = async () => {
     try {
+      const me = await fetch("http://localhost:3000/auth/me", {
+        credentials: "include",
+      });
+
+      const meData = await me.json();
+
+      if (!meData.user) {
+        window.location.href = "/login";
+        return;
+      }
+
       const res = await fetch("http://localhost:3000/projects", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: "My project",
           canvas: {
@@ -55,17 +64,6 @@ export default function HomePage() {
           },
         }),
       });
-
-      if (res.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
-
-      if (!res.ok) {
-        const error = await res.text();
-        console.error("Backend error:", error);
-        throw new Error("Failed to create project");
-      }
 
       const project = await res.json();
 

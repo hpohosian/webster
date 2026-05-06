@@ -235,7 +235,8 @@ export default function LoginPage() {
       if (data.error) {
         setError(data.message || "Login failed.");
       } else {
-        navigate("/edit-page");
+        // navigate("/edit-page");
+        navigate(`profile/${data.user.id}`);
       }
     } catch {
       setError("Network error. Please try again.");

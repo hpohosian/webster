@@ -13,7 +13,8 @@ export function Canvas() {
   const brushColor    = useEditorStore((s) => s.brushColor);
   const brushSize     = useEditorStore((s) => s.brushSize);
   const brushOpacity  = useEditorStore((s) => s.brushOpacity);
- 
+  const canvasSize = useEditorStore((s) => s.canvasSize);
+  
   // Actions aus dem Store – diese Funktionen ändern den State
   const zoomIn        = useEditorStore((s) => s.zoomIn);
   const zoomOut       = useEditorStore((s) => s.zoomOut);
@@ -34,16 +35,30 @@ export function Canvas() {
     const [showCtxMenu, setShowCtxMenu] = useState(false);
     const [ctxPos,      setCtxPos]      = useState({ x: 0, y: 0 });
  
+  // useEffect(() => {
+  //   const canvas = canvasRef.current;
+  //   if (!canvas) return;
+  //   const ctx = canvas.getContext("2d")!;
+  //   ctx.fillStyle = "#323232";
+  //   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  //   ctx.strokeStyle = "#a7bfc6";
+  //   ctx.lineWidth = 2;
+  //   ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+  // }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "#323232";
+
+    canvas.width = canvasSize.w;
+    canvas.height = canvasSize.h;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#a7bfc6";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-  }, []);
+  }, [canvasSize]);
  
   // ── Event Handler 
  
@@ -167,7 +182,7 @@ export function Canvas() {
           onMouseLeave={handleMouseUp}
           onContextMenu={handleContextMenu}
         >
-          <canvas ref={canvasRef} width={800} height={600} style={{ display: "block" }} />
+          <canvas ref={canvasRef} style={{ display: "block" }} />
         </div>
       </div>
  

@@ -64,6 +64,8 @@ export interface EditorStore {
   // ── ACTIONS (Funktionen die State ändern) ───────────────────────────────
   // Naming-Convention: Verben wie set..., add..., delete..., toggle...
 
+  resizeCanvas: (width: number, height: number) => void;
+
   setActiveTool: (tool: EditorStore["activeTool"]) => void;
   setActivePanel: (panel: EditorStore["activePanel"]) => void;
 
@@ -256,6 +258,19 @@ export const useEditorStore = create<EditorStore>()(
       // ── Canvas ──────────────────────────────────────────────────────────
 
       setCanvasSize: (canvasSize) => set({ canvasSize }, false, "setCanvasSize"),
+
+      resizeCanvas: (width, height) =>
+        set(
+          (state) => ({
+            canvasSize: { w: width, h: height },
+            history: [
+              ...state.history,
+              `Resize canvas to ${width}x${height}`,
+            ],
+          }),
+          false,
+          "resizeCanvas"
+        ),
     }),
     { name: "EditorStore" } // Name in den DevTools
   )
