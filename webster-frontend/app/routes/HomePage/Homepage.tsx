@@ -64,6 +64,43 @@ export default function HomePage() {
     setSliderPos((x / rect.width) * 100);
   };
 
+  const createProject = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/projects", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: "My project",
+          canvas: {
+            width: 800,
+            height: 600,
+            background: "#ffffff",
+          },
+        }),
+      });
+
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      if (!res.ok) {
+        const error = await res.text();
+        console.error("Backend error:", error);
+        throw new Error("Failed to create project");
+      }
+
+      const project = await res.json();
+
+      window.location.href = `/edit-page/${project.id}`;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-[#f0f0f0] text-[#1a1a1a] overflow-x-hidden"
@@ -144,9 +181,9 @@ export default function HomePage() {
 
             {/* CTA Buttons */}
             <div className={`fade-up ${heroVisible ? "visible" : ""} delay-3 flex flex-wrap gap-4`}>
-              <Link to="edit-page"  className="btn-primary px-7 py-3.5 rounded-full bg-[#5ab6d4] text-white text-[15px] font-medium tracking-wide">
+              <button onClick={createProject}  className="btn-primary px-7 py-3.5 rounded-full bg-[#5ab6d4] text-white text-[15px] font-medium tracking-wide">
                 Open Photo Editor
-              </Link>
+              </button>
               <Link to="logo-maker"  className="btn-secondary px-7 py-3.5 rounded-full border border-[#ccc] bg-white text-[#1a1a1a] text-[15px] font-medium tracking-wide hover:border-[#7ec8e3] transition-all">
                 Open Logo Creator
               </Link>

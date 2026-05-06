@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
+import cors from "cors";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,6 +26,13 @@ async function bootstrap() {
       resave: false, // не сохранять сессию, если она не изменилась
       saveUninitialized: false, // не сохранять пустые сессии
       cookie: { maxAge: 1000 * 60 * 60 }, // 1 час
+    }),
+  );
+
+  app.use(
+    cors({
+      origin: 'http://localhost:5173',
+      credentials: true,
     }),
   );
 
