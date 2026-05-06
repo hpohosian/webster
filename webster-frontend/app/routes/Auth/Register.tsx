@@ -22,8 +22,6 @@ function signUpWithGoogle() {
 
 export default function RegisterPage() {
   const [username, setUserName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -51,8 +49,6 @@ const handleSubmit = async (e: React.SubmitEvent) => {
       email,
       password,
       passwordConfirmation: confirm,
-      firstName,
-      lastName,
     })
   });
 
@@ -113,25 +109,6 @@ const handleSubmit = async (e: React.SubmitEvent) => {
               onChange={e=>setUserName(e.target.value)}
               required
             /> 
-            <div className="name-row">
-              <input
-                type="text"
-                placeholder="First name"
-                value={firstName}
-                onChange={e=>setFirstName(e.target.value)}
-                required
-              />
-
-              <input
-              type="text"
-              placeholder="Last name"
-              value={lastName}
-              onChange={e=>setLastName(e.target.value)}
-              required
-              />
-
-          </div>
-
             <input
               type="email"
               placeholder="you@example.com"
