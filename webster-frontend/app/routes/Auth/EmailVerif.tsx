@@ -58,6 +58,16 @@ export default function VerifyEmail() {
     const code = otp.join("");
     if (code.length < 6) return;
     try{
+      const me = await fetch("http://localhost:3000/auth/me", {
+        credentials: "include",
+      });
+
+      const meData = await me.json();
+
+      if (!meData.user) {
+        window.location.href = "/login";
+        return;
+      }
 
       const res = await fetch(`${API}/auth/verify-email`, {
         method: 'POST',
@@ -76,7 +86,7 @@ export default function VerifyEmail() {
         return;
       }
       setError("");
-      navigate("/edtit-page");
+      navigate(`/profile/${meData.user.id}`);
     }catch{
       setError('Network error. Please try again.');
     }

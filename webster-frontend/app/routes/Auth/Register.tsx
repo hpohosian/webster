@@ -19,8 +19,6 @@ function signUpWithGoogle() {
 
 export default function RegisterPage() {
   const [username, setUserName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -46,14 +44,7 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-          passwordConfirmation: confirm,
-          firstName,
-          lastName,
-        }),
+        body: JSON.stringify({ username, email, password, passwordConfirmation: confirm }),
       });
       const data = await res.json();
       if (data.error) {
@@ -68,7 +59,6 @@ export default function RegisterPage() {
     }
   };
 
-  // ── shared input style (identical to Login)
   const inputBase = (field: string): React.CSSProperties => ({
     width: "100%",
     padding: "13px 16px",
@@ -76,9 +66,7 @@ export default function RegisterPage() {
     fontWeight: 400,
     color: "#1a1a1a",
     background: focusedField === field ? "#fff" : "#f4f4f4",
-    border: focusedField === field
-      ? "1.5px solid #7ec8e3"
-      : "1.5px solid #e0e0e0",
+    border: focusedField === field ? "1.5px solid #7ec8e3" : "1.5px solid #e0e0e0",
     borderRadius: 10,
     outline: "none",
     transition: "all 0.18s ease",
@@ -94,11 +82,24 @@ export default function RegisterPage() {
     display: "flex", alignItems: "center",
   };
 
+  const EyeOpen = () => (
+    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+
+  const EyeOff = () => (
+    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+      <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" />
+    </svg>
+  );
+
   return (
     <div className="wraper-page">
       <main className="auth-main">
-
-        {/* Register form area */}
         <div style={{
           flex: 1,
           display: "flex",
@@ -109,21 +110,15 @@ export default function RegisterPage() {
         }}>
           <div className="fade-in" style={{ width: "100%" }}>
 
-            {/* Spectrum accent */}
             <div className="spectrum-bar" style={{ width: 48, marginBottom: 24 }} />
 
-            <h2 style={{
-              fontSize: 22, fontWeight: 600,
-              color: "#1a1a1a", marginBottom: 6,
-              letterSpacing: "-0.01em",
-            }}>
+            <h2 style={{ fontSize: 22, fontWeight: 600, color: "#1a1a1a", marginBottom: 6, letterSpacing: "-0.01em" }}>
               Create account
             </h2>
             <p style={{ fontSize: 13, color: "#888", marginBottom: 28, lineHeight: 1.5 }}>
               Join Prismat. It only takes a minute.
             </p>
 
-            {/* Google button */}
             <button className="google-btn" onClick={signUpWithGoogle}>
               <GoogleIcon />
               Continue with Google
@@ -131,15 +126,11 @@ export default function RegisterPage() {
 
             <div className="divider" style={{ margin: "20px 0" }}>or</div>
 
-            {/* ── Form ── */}
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
               {/* Username */}
               <div>
-                <label style={{
-                  display: "block", fontSize: 12, fontWeight: 500,
-                  color: "#666", marginBottom: 6, letterSpacing: "0.04em",
-                }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#666", marginBottom: 6, letterSpacing: "0.04em" }}>
                   USERNAME
                 </label>
                 <input
@@ -154,50 +145,9 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* First + Last name */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <label style={{
-                    display: "block", fontSize: 12, fontWeight: 500,
-                    color: "#666", marginBottom: 6, letterSpacing: "0.04em",
-                  }}>
-                    FIRST NAME
-                  </label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={e => setFirstName(e.target.value)}
-                    onFocus={() => setFocusedField("firstName")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="Jane"
-                    style={inputBase("firstName")}
-                  />
-                </div>
-                <div>
-                  <label style={{
-                    display: "block", fontSize: 12, fontWeight: 500,
-                    color: "#666", marginBottom: 6, letterSpacing: "0.04em",
-                  }}>
-                    LAST NAME
-                  </label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={e => setLastName(e.target.value)}
-                    onFocus={() => setFocusedField("lastName")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="Doe"
-                    style={inputBase("lastName")}
-                  />
-                </div>
-              </div>
-
               {/* Email */}
               <div>
-                <label style={{
-                  display: "block", fontSize: 12, fontWeight: 500,
-                  color: "#666", marginBottom: 6, letterSpacing: "0.04em",
-                }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#666", marginBottom: 6, letterSpacing: "0.04em" }}>
                   EMAIL
                 </label>
                 <input
@@ -214,10 +164,7 @@ export default function RegisterPage() {
 
               {/* Password */}
               <div>
-                <label style={{
-                  display: "block", fontSize: 12, fontWeight: 500,
-                  color: "#666", marginBottom: 6, letterSpacing: "0.04em",
-                }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#666", marginBottom: 6, letterSpacing: "0.04em" }}>
                   PASSWORD
                 </label>
                 <div style={{ position: "relative" }}>
@@ -232,28 +179,14 @@ export default function RegisterPage() {
                     style={{ ...inputBase("password"), paddingRight: 48 }}
                   />
                   <button type="button" onClick={() => setShowPassword(v => !v)} style={eyeButtonStyle} tabIndex={-1}>
-                    {showPassword ? (
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
-                        <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
-                        <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
-                        <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" />
-                      </svg>
-                    ) : (
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    )}
+                    {showPassword ? <EyeOff /> : <EyeOpen />}
                   </button>
                 </div>
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label style={{
-                  display: "block", fontSize: 12, fontWeight: 500,
-                  color: "#666", marginBottom: 6, letterSpacing: "0.04em",
-                }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#666", marginBottom: 6, letterSpacing: "0.04em" }}>
                   CONFIRM PASSWORD
                 </label>
                 <div style={{ position: "relative" }}>
@@ -268,48 +201,24 @@ export default function RegisterPage() {
                     style={{ ...inputBase("confirm"), paddingRight: 48 }}
                   />
                   <button type="button" onClick={() => setShowConfirm(v => !v)} style={eyeButtonStyle} tabIndex={-1}>
-                    {showConfirm ? (
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
-                        <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
-                        <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
-                        <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" />
-                      </svg>
-                    ) : (
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    )}
+                    {showConfirm ? <EyeOff /> : <EyeOpen />}
                   </button>
                 </div>
               </div>
 
-              {/* Error message */}
+              {/* Error */}
               {error && (
-                <div style={{
-                  padding: "10px 14px",
-                  background: "#fff0f0",
-                  border: "1px solid #fdd",
-                  borderRadius: 8,
-                  fontSize: 13, color: "#c44",
-                }}>
+                <div style={{ padding: "10px 14px", background: "#fff0f0", border: "1px solid #fdd", borderRadius: 8, fontSize: 13, color: "#c44" }}>
                   {error}
                 </div>
               )}
 
-              {/* Submit */}
-              <button
-                type="submit"
-                className="login-btn"
-                disabled={isLoading}
-                style={{ marginTop: 4 }}
-              >
+              <button type="submit" className="login-btn" disabled={isLoading} style={{ marginTop: 4 }}>
                 {isLoading ? "Please wait…" : "Create account"}
               </button>
 
             </form>
 
-            {/* Footer link */}
             <div style={{ marginTop: 18 }}>
               <span style={{ fontSize: 12, color: "#999" }}>
                 Already have an account?{" "}
