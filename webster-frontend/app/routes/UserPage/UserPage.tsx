@@ -11,6 +11,44 @@ import {
 export default function UserPage() {
   const { profile, loading, error } = userProfile();
 
+  const createProject = async () => {
+    try {
+      const me = await fetch("http://localhost:3000/auth/me", {
+        credentials: "include",
+      });
+
+      const meData = await me.json();
+
+      console.log(meData);
+      
+
+      if (!meData.user) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const res = await fetch("http://localhost:3000/projects", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "My project",
+          canvas: {
+            width: 800,
+            height: 600,
+            background: "#ffffff",
+          },
+        }),
+      });
+
+      const project = await res.json();
+
+      window.location.href = `/edit-page/${project.id}`;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className='page'>
       <AuthHeader/>
@@ -62,6 +100,10 @@ export default function UserPage() {
               Create a company profile and create your events.
             </p>
           </div>
+
+          <button onClick={createProject}  className="btn-primary px-7 py-3.5 rounded-full bg-[#5ab6d4] text-white text-[15px] font-medium tracking-wide">
+            Open Photo Editor
+          </button>
         </aside>
 
         {/* -- Main -- */}

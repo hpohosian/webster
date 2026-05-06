@@ -4,6 +4,7 @@ import { useEditorStore } from "../store/editorStore";
 import type { Adjustments } from "../store/editorStore";
 import { getPalette, listFonts, searchImages } from "../lib/demoApi";
 import type { DemoColor, DemoFont, DemoImage } from "../lib/demoApi";
+import { useParams } from "react-router-dom";
 
 export function FeaturesPanel() {
   const activePanel    = useEditorStore((s) => s.activePanel);
@@ -274,22 +275,84 @@ function ShapesContent() {
 }
 
 function ResizeContent() {
-  const pushHistory   = useEditorStore((s) => s.pushHistory);
+  const canvasSize = useEditorStore((s) => s.canvasSize);
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize);
+  const pushHistory = useEditorStore((s) => s.pushHistory);
+  const { projectId } = useParams<{ projectId: string }>();
 
   const applyPreset = (w: number, h: number, name: string) => {
     setCanvasSize({ w, h });
     pushHistory(`Resize: ${name}`);
   };
 
+  async function saveProject(projectId: string, projectState: any) {
+    const res = await fetch(`http://localhost:3000/projects/${projectId}/save`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        projectState,
+        isAutoSave: false,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to save project");
+    }
+
+    return res.json();
+  }
+
+  const handleApply = async () => {
+
+    await saveProject(projectId, {
+      canvas: {
+        width: canvasSize.w,
+        height: canvasSize.h,
+        background: "#ffffff",
+      },
+      objects: [],
+    });
+
+    pushHistory("Resize saved to DB");
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-        <input type="number" defaultValue={800} placeholder="W" style={{ ...inputStyle, flex: 1 }} />
+        {/* <input type="number" defaultValue={800} placeholder="W" style={{ ...inputStyle, flex: 1 }} />
         <span style={{ color: "var(--muted-foreground)" }}>×</span>
-        <input type="number" defaultValue={600} placeholder="H" style={{ ...inputStyle, flex: 1 }} />
+        <input type="number" defaultValue={600} placeholder="H" style={{ ...inputStyle, flex: 1 }} /> */}
+        
+        <input
+          type="number"
+          placeholder="W"
+          value={canvasSize.w}
+          onChange={(e) =>
+            setCanvasSize({
+              w: Number(e.target.value),
+              h: canvasSize.h,
+            })
+          }
+          style={{ ...inputStyle, flex: 1 }}
+        />
+        <span style={{ color: "var(--muted-foreground)" }}>×</span>
+        <input
+          type="number"
+          value={canvasSize.h}
+          onChange={(e) =>
+            setCanvasSize({
+              w: canvasSize.w,
+              h: Number(e.target.value),
+            })
+          }
+          style={{ ...inputStyle, flex: 1 }}
+        />
       </div>
       {([
+        ["Full HD", 1920, 1080],
         ["Instagram Post", 1080, 1080],
         ["Story",          1080, 1920],
         ["YouTube",        1280, 720],
@@ -301,6 +364,13 @@ function ResizeContent() {
           <span style={{ color: "var(--muted-foreground)", fontSize: 11, opacity: 0.7 }}>{w}×{h}</span>
         </button>
       ))}
+
+      <button
+        onClick={handleApply}
+        style={pillButtonStyle}
+      >
+        Apply
+      </button>
     </div>
   );
 }
@@ -449,6 +519,22 @@ const panelBtnStyle: React.CSSProperties = {
   justifyContent: "space-between",
   alignItems: "center",
   width: "100%",
+};
+
+const pillButtonStyle: React.CSSProperties = {
+  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+  border: "none",
+  color: "white",
+  borderRadius: 999,
+  padding: "10px 16px",
+  textAlign: "left",
+  cursor: "pointer",
+  fontSize: 12,
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  width: "100%",
+  boxShadow: "0 6px 18px rgba(59, 130, 246, 0.35)",
 };
 
 const selectStyle: React.CSSProperties = {
