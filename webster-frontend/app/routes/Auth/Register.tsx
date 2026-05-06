@@ -62,7 +62,6 @@ const handleSubmit = async (e: React.SubmitEvent) => {
         setError(data.message);
         console.log(data.message);
       } else {
-        // console.log('');
         setMessage(`Password reset email sent to ${email}`);
         navigate('/verify-email');
       }       

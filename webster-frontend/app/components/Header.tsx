@@ -17,7 +17,7 @@ export function Header() {
         <span style={{ fontWeight: 700, fontSize: 15, color: "var(--accent)", letterSpacing: "-0.5px" }}>
           Prismat
         </span>
-        {["File", "Edit", "Image", "Layer", "View"].map((m) => (
+        {["Save to projects", "Edit", "Image", "View"].map((m) => (
           <button key={m} style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
             {m}
           </button>

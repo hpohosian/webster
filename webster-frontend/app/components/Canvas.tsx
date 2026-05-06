@@ -38,9 +38,9 @@ export function Canvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "var(--background)";
+    ctx.fillStyle = "#323232";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "var(--accent)";
+    ctx.strokeStyle = "#a7bfc6";
     ctx.lineWidth = 2;
     ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
   }, []);
@@ -113,7 +113,7 @@ export function Canvas() {
  
       {/* ── Toolbar ── */}
       <div style={{
-        height: 44, background: "var(--card)", borderBottom: "1px solid var(--border)",
+        height: 44, background: "var(--accent-forground)", borderBottom: "1px solid var(--border)",
         display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px", flexShrink: 0,
       }}>
         <div style={{ display: "flex", gap: 4 }}>
@@ -126,8 +126,8 @@ export function Canvas() {
               onClick={() => setActiveTool(id)} // schreibt in den Store → ToolsPanel-Buttons updaten sich auch
               style={{
                 padding: 6, borderRadius: 6, border: "none", cursor: "pointer",
-                background: activeTool === id ? "var(--accent)" : "transparent",
-                color:      activeTool === id ? "var(--accent-foreground)"    : "var(--muted-foreground)",
+                background: activeTool === id ? "var(--accent)" : "var(--secondary)",
+                color:      activeTool === id ? "var(--accent-foreground)"  : "var(--secondary-foreground)",
               }}
             >
               <Icon size={15} />
@@ -159,7 +159,7 @@ export function Canvas() {
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom / 100})`,
             transformOrigin: "center",
             cursor,
-            boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
+            boxShadow: "0 8px 40px rgba(29, 30, 30, 0.6)",
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -176,7 +176,7 @@ export function Canvas() {
         <div style={{
           position: "fixed", left: ctxPos.x, top: ctxPos.y, zIndex: 100,
           background: "var(--popover)", border: "1px solid var(--border)", borderRadius: "var(--radius)",
-          padding: 4, minWidth: 180, boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+          padding: 4, minWidth: 180, boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
         }}>
           {([
             ["Duplicate",      "Ctrl+D"],

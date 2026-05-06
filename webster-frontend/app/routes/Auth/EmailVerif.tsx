@@ -76,7 +76,7 @@ export default function VerifyEmail() {
         return;
       }
       setError("");
-      navigate("/");
+      navigate("/edtit-page");
     }catch{
       setError('Network error. Please try again.');
     }
@@ -146,7 +146,7 @@ export default function VerifyEmail() {
               className="submitBtn"
               disabled={!isComplete}
             >
-              Verify account →
+              Verify account
             </button>
           </form>
 

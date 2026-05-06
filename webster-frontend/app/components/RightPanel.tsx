@@ -31,7 +31,7 @@ export function RightPanel() {
 
   if (collapsed) {
     return (
-      <div style={{ width: 44, background: "#0d0d12", borderLeft: "1px solid #1e1e2a", display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 4, flexShrink: 0 }}>
+      <div style={{ width: 44, background: "var(--sidebar)", borderLeft: "1px solid var(--sidebar-borde)", display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 4, flexShrink: 0 }}>
         <button onClick={() => setCollapsed(false)} style={iconBtnStyle} title="Expand">
           <ChevronLeft size={16} />
         </button>
@@ -46,15 +46,15 @@ export function RightPanel() {
   }
 
   return (
-    <div style={{ width: 240, background: "#0f0f18", borderLeft: "1px solid #1e1e2a", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+    <div style={{ width: 240, background: "var(--sidebar)", borderLeft: "1px solid var(--sidebar-border)", display: "flex", flexDirection: "column", flexShrink: 0 }}>
 
       {/* Tab-Header */}
-      <div style={{ height: 44, borderBottom: "1px solid #1e1e2a", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px" }}>
+      <div style={{ height: 44, borderBottom: "1px solid var(--sidebar-border)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px" }}>
         <div style={{ display: "flex", gap: 4 }}>
           {([["layers", Layers], ["history", History]] as const).map(([id, Icon]) => (
             <button key={id} onClick={() => setTab(id)} style={{
               background: tab === id ? "var(--accent)" : "transparent",
-              border: "none", color: tab === id ? "#fff" : "#666",
+              border: "none", color: tab === id ? "var(--sidebar-primary)" : "var(--sidebar-foreground)",
               borderRadius: 6, padding: "5px 8px", cursor: "pointer", display: "flex",
             }}>
               <Icon size={15} />
@@ -82,14 +82,14 @@ export function RightPanel() {
                     style={{
                       display: "flex", alignItems: "center", gap: 6,
                       padding: "6px 8px", borderRadius: 6, cursor: "pointer",
-                      background: isSelected ? "#454fda20" : "#1a1a26",
-                      border: `1px solid ${isSelected ? "#454fda60" : "transparent"}`,
+                      background: isSelected ? "var(--sidebar-layer)" : "var(--sidebar-accent)",
+                      border: `1px solid ${isSelected ? "var(--sidebar-ring-mid)" : "transparent"}`,
                     }}
                   >
                     {/* Visibility Toggle → updateLayer schreibt in den Store */}
                     <button
                       onClick={(e) => { e.stopPropagation(); updateLayer(layer.id, { visible: !layer.visible }); }}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#666", padding: 2, display: "flex" }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--sidebar-foreground)", padding: 2, display: "flex" }}
                     >
                       {layer.visible ? <Eye size={13} /> : <EyeOff size={13} />}
                     </button>
@@ -97,8 +97,8 @@ export function RightPanel() {
                     {/* Layer Vorschau */}
                     <div style={{
                       width: 22, height: 22, borderRadius: 4,
-                      background: "linear-gradient(135deg, #454fda40, #454fda10)",
-                      border: "1px solid #2a2a3a", flexShrink: 0,
+                      background: "linear-gradient(135deg, var(--sidebar-ring), var(--sidebar-ring-mid))",
+                      border: "1px solid var(--sidebar-border)", flexShrink: 0,
                       opacity: layer.opacity / 100,
                     }} />
 
@@ -119,12 +119,12 @@ export function RightPanel() {
                           if (e.key === "Escape") setEditingId(null);
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        style={{ flex: 1, background: "#0d0d12", border: "1px solid var(--accent)", color: "#fff", borderRadius: 4, padding: "1px 4px", fontSize: 12 }}
+                        style={{ flex: 1, background: "var(--sidebar)", border: "1px solid var(--accent)", color: "#fff", borderRadius: 4, padding: "1px 4px", fontSize: 12 }}
                       />
                     ) : (
                       <span
                         onDoubleClick={(e) => { e.stopPropagation(); setEditingId(layer.id); setEditName(layer.name); }}
-                        style={{ flex: 1, fontSize: 12, color: isSelected ? "#ccc" : "#777", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        style={{ flex: 1, fontSize: 12, color: isSelected ? "var( --sidebar-foreground)" : "var(--sidebar-accent)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                       >
                         {layer.name}
                       </span>
@@ -133,7 +133,7 @@ export function RightPanel() {
                     {/* Lock Toggle */}
                     <button
                       onClick={(e) => { e.stopPropagation(); updateLayer(layer.id, { locked: !layer.locked }); }}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: layer.locked ? "var(--accent)" : "#444", padding: 2, display: "flex" }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: layer.locked ? "var(--accent)" : "var(--sidebar-accent)", padding: 2, display: "flex" }}
                     >
                       {layer.locked ? <Lock size={12} /> : <Unlock size={12} />}
                     </button>
@@ -164,17 +164,17 @@ export function RightPanel() {
             <button
               onClick={addLayer}
               style={{ marginTop: 8, width: "100%", background: "var(--accent)", border: "none", color: "#fff", borderRadius: 6, padding: "7px", cursor: "pointer", fontSize: 12 }}
-            >+ Add Layer</button>
+            > Add Layer</button>
 
             {/* Layer Properties – zeigt Werte des selektierten Layers */}
             {selectedLayer && (
-              <div style={{ marginTop: 10, background: "#0d0d12", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ marginTop: 10, background: "var(--sidebar)", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 10 }}>
                 <div>
                   <label style={{ fontSize: 11, color: "#555", display: "block", marginBottom: 4 }}>Blend Mode</label>
                   <select
                     value={selectedLayer.blendMode}
                     onChange={(e) => updateLayer(selectedLayer.id, { blendMode: e.target.value })}
-                    style={{ width: "100%", background: "#1a1a2a", border: "1px solid #2a2a3a", color: "#ccc", borderRadius: 5, padding: "5px 8px", fontSize: 12 }}
+                    style={{ width: "100%", background: "var(--sidebar)", border: "1px solid #2a2a2a", color: "#ccc", borderRadius: 5, padding: "5px 8px", fontSize: 12 }}
                   >
                     {["Normal", "Multiply", "Screen", "Overlay", "Darken", "Lighten", "Color Dodge", "Color Burn", "Soft Light", "Difference"].map((m) => (
                       <option key={m}>{m}</option>
@@ -207,7 +207,7 @@ export function RightPanel() {
             {[...history].reverse().map((item, i) => (
               <div key={i} style={{
                 padding: "7px 10px", borderRadius: 5, fontSize: 12, cursor: "pointer",
-                background: i === 0 ? "#454fda20" : "#1a1a26",
+                background: i === 0 ? "var(-sidebar-accent)" : "var(--sidebar)",
                 color:      i === 0 ? "#aaa"      : "#666",
                 borderLeft: `2px solid ${i === 0 ? "var(--accent)" : "transparent"}`,
               }}>
@@ -223,6 +223,6 @@ export function RightPanel() {
 }
 
 const iconBtnStyle: React.CSSProperties = {
-  background: "transparent", border: "1px solid #2a2a3a", color: "#666",
+  background: "transparent", border: "1px solid var(--sidebar-accent)", color: "#666",
   borderRadius: 5, padding: 5, cursor: "pointer", display: "flex", alignItems: "center",
 };

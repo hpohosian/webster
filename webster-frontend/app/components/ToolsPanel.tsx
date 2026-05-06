@@ -23,7 +23,7 @@ export function ToolsPanel() {
 
   return (
     <div style={{
-      width: 52, background: "#0d0d12", borderRight: "1px solid #1e1e2a",
+      width: 52, background: "var(--sidebar)", borderRight: "1px solid var(-sidebar-border)",
       display: "flex", flexDirection: "column", alignItems: "center",
       padding: "8px 0", gap: 2, flexShrink: 0,
     }}>
@@ -47,7 +47,7 @@ export function ToolsPanel() {
         </button>
       ))}
 
-      <div style={{ width: 28, height: 1, background: "#1e1e2a", margin: "4px 0" }} />
+      <div style={{ width: 28, height: 1, background: "#1e1e1e", margin: "4px 0" }} />
 
       {/* Panel-Buttons */}
       {TOOL_CATEGORIES.map(({ id, Icon, label }) => (
@@ -57,7 +57,7 @@ export function ToolsPanel() {
           onClick={() => setActivePanel(id)}  // Store-Action → togglet das Panel
           style={{
             width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
-            background: activePanel === id ? "#1e1e3a" : "transparent",
+            background: activePanel === id ? " #1e1e1e" : "transparent",
             color:      activePanel === id ? "var(--accent)" : "#666",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
