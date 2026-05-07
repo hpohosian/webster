@@ -16,7 +16,10 @@ export class LayersController {
   constructor(private readonly layersService: LayersService) {}
 
   @Post()
-  create(@Param('projectId') projectId: string, @Body() dto: CreateLayerDto) {
+  create(
+    @Param('projectId') projectId: string,
+    @Body() dto: CreateLayerDto,
+  ) {
     return this.layersService.create(projectId, dto);
   }
 
@@ -26,13 +29,20 @@ export class LayersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateLayerDto) {
-    return this.layersService.update(id, dto);
+  update(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateLayerDto,
+  ) {
+    return this.layersService.update(projectId, id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.layersService.remove(id);
+  remove(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+  ) {
+    return this.layersService.remove(projectId, id);
   }
 
   @Post('reorder')

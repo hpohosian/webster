@@ -6,7 +6,11 @@ import { Project } from './entities/project.entity';
 import { ProjectVersion } from './entities/project-version.entity';
 import { FileEntity } from '../files/entities/file.entity';
 import { CanvasElement } from '../elements/entities/canvas-element.entity';
-import { Layer } from '../layers/entities/layer.entity';
+import { BaseLayer } from '../layers/entities/base-layer.entity';
+import { ImageLayer } from '../layers/entities/image-layer.entity';
+import { TextLayer } from '../layers/entities/text-layer.entity';
+import { ShapeLayer } from '../layers/entities/shape-layer.entity';
+import { BackgroundLayer } from '../layers/entities/background-layer.entity';
 
 @Module({
   imports: [
@@ -15,7 +19,11 @@ import { Layer } from '../layers/entities/layer.entity';
       FileEntity,
       ProjectVersion,
       CanvasElement,
-      Layer,
+      BaseLayer,
+      ImageLayer,
+      TextLayer,
+      ShapeLayer,
+      BackgroundLayer,
     ]),
   ],
   controllers: [ProjectsController],

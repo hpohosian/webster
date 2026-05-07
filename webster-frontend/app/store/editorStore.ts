@@ -31,7 +31,7 @@ import { devtools } from "zustand/middleware";
 
 type BaseLayer = {
   id: string;
-  type: "image" | "text" | "shape";
+  type: "background" | "image" | "text" | "shape";
   visible: boolean;
   locked: boolean;
   opacity: number;

@@ -23,4 +23,24 @@ export class CreateLayerDto {
   @IsOptional()
   @IsString()
   blendMode?: string;
+
+  @IsOptional()
+  @IsString()
+  src?: string;
+
+  @IsOptional()
+  @IsNumber()
+  x?: number;
+
+  @IsOptional()
+  @IsNumber()
+  y?: number;
+
+  @IsOptional()
+  @IsNumber()
+  width?: number;
+
+  @IsOptional()
+  @IsNumber()
+  height?: number;
 }
