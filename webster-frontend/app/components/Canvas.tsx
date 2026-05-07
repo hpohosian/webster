@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Hand, MousePointer2, ZoomIn, ZoomOut, RotateCcw, Lock, Unlock, } from "lucide-react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { Canvas as FabricCanvas, Rect } from "fabric";
+import { FabricImage } from "fabric";
 import { useEditorStore, useSelectedLayer, useIsLayerLocked } from "../store/editorStore";
 
 type Tool = "hand" | "pointer";
@@ -35,88 +36,167 @@ export function Canvas() {
     const [showCtxMenu, setShowCtxMenu] = useState(false);
     const [ctxPos,      setCtxPos]      = useState({ x: 0, y: 0 });
  
+  const fabricRef = useRef<FabricCanvas | null>(null);
+
+  const layers = useEditorStore((s) => s.layers);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const fabricCanvas = new FabricCanvas(canvasRef.current, {
+      width: canvasSize.w,
+      height: canvasSize.h,
+      backgroundColor: "#ffffff",
+    });
+
+    fabricRef.current = fabricCanvas;
+
+    return () => {
+      fabricCanvas.dispose();
+      fabricRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!fabricRef.current) return;
+
+    fabricRef.current.setDimensions({
+      width: canvasSize.w,
+      height: canvasSize.h,
+    });
+    // fabricRef.current.renderAll();
+    fabricRef.current.requestRenderAll();
+  }, [canvasSize]);
+
   // useEffect(() => {
   //   const canvas = canvasRef.current;
   //   if (!canvas) return;
-  //   const ctx = canvas.getContext("2d")!;
-  //   ctx.fillStyle = "#323232";
+
+  //   canvas.width = canvasSize.w;
+  //   canvas.height = canvasSize.h;
+
+  //   const ctx = canvas.getContext("2d");
+  //   if (!ctx) return;
+
+  //   ctx.fillStyle = "#ffffff";
   //   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  //   ctx.strokeStyle = "#a7bfc6";
-  //   ctx.lineWidth = 2;
-  //   ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-  // }, []);
+  // }, [canvasSize]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  // const handleImageUpload = async (file: File) => {
+  //   if (!fabricRef.current) return;
 
-    canvas.width = canvasSize.w;
-    canvas.height = canvasSize.h;
+  //   const reader = new FileReader();
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  //   reader.onload = async () => {
+  //     const imgUrl = reader.result as string;
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, [canvasSize]);
+  //     const img = await FabricImage.fromURL(imgUrl);
+
+  //     img.set({
+  //       left: 100,
+  //       top: 100,
+  //       scaleX: 0.5,
+  //       scaleY: 0.5,
+  //       selectable: true,
+  //     });
+
+  //     fabricRef.current!.add(img);
+  //     fabricRef.current!.setActiveObject(img);
+  //     fabricRef.current!.renderAll();
+  //   };
+
+  //   reader.readAsDataURL(file);
+  // };
  
   // ── Event Handler 
  
-  const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = canvasRef.current!.getBoundingClientRect();
-    return {
-      x: (e.clientX - rect.left) / (zoom / 100),
-      y: (e.clientY - rect.top)  / (zoom / 100),
+  // const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  //   const rect = canvasRef.current!.getBoundingClientRect();
+  //   return {
+  //     x: (e.clientX - rect.left) / (zoom / 100),
+  //     y: (e.clientY - rect.top)  / (zoom / 100),
+  //   };
+  // };
+ 
+  // const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  //   if (e.button === 2) return;
+  //   setShowCtxMenu(false);
+ 
+  //   if (activeTool === "hand") {
+  //     setIsPanning(true);
+  //     setPanStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+  //   } else if (activeTool === "draw" && !isLocked) {
+  //     setIsDrawing(true);
+  //     setLastPos(getCanvasPos(e));
+  //   }
+  // };
+ 
+  // const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  //   if (isPanning && activeTool === "hand") {
+  //     setOffset({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+  //   }
+ 
+  //   if (isDrawing && activeTool === "draw" && !isLocked && lastPos) {
+  //     const ctx = canvasRef.current!.getContext("2d")!;
+  //     const pos = getCanvasPos(e);
+ 
+  //     ctx.globalAlpha  = brushOpacity / 100;
+  //     ctx.strokeStyle  = brushColor;
+  //     ctx.lineWidth    = brushSize;
+  //     ctx.lineCap      = "round";
+  //     ctx.lineJoin     = "round";
+  //     ctx.beginPath();
+  //     ctx.moveTo(lastPos.x, lastPos.y);
+  //     ctx.lineTo(pos.x, pos.y);
+  //     ctx.stroke();
+  //     setLastPos(pos);
+  //   }
+  // };
+ 
+  // const handleMouseUp = () => {
+  //   if (isDrawing) pushHistory("Draw Stroke");
+  //   setIsPanning(false);
+  //   setIsDrawing(false);
+  //   setLastPos(null);
+  // };
+ 
+  // const handleContextMenu = (e: React.MouseEvent) => {
+  //   e.preventDefault();
+  //   setCtxPos({ x: e.clientX, y: e.clientY });
+  //   setShowCtxMenu(true);
+  // };
+
+  useEffect(() => {
+    if (!fabricRef.current) return;
+
+    const canvas = fabricRef.current;
+
+    canvas.clear();
+
+    canvas.backgroundColor = "#ffffff";
+
+    const loadImages = async () => {
+      for (const layer of layers) {
+        if (layer.type !== "image") continue;
+
+        const img = await FabricImage.fromURL(layer.src);
+
+        img.set({
+          left: layer.x,
+          top: layer.y,
+          scaleX: layer.width / img.width!,
+          scaleY: layer.height / img.height!,
+          selectable: true,
+        });
+
+        canvas.add(img);
+      }
+
+      canvas.requestRenderAll();
     };
-  };
- 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (e.button === 2) return;
-    setShowCtxMenu(false);
- 
-    if (activeTool === "hand") {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-    } else if (activeTool === "draw" && !isLocked) {
-      setIsDrawing(true);
-      setLastPos(getCanvasPos(e));
-    }
-  };
- 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (isPanning && activeTool === "hand") {
-      setOffset({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
-    }
- 
-    if (isDrawing && activeTool === "draw" && !isLocked && lastPos) {
-      const ctx = canvasRef.current!.getContext("2d")!;
-      const pos = getCanvasPos(e);
- 
-      ctx.globalAlpha  = brushOpacity / 100;
-      ctx.strokeStyle  = brushColor;
-      ctx.lineWidth    = brushSize;
-      ctx.lineCap      = "round";
-      ctx.lineJoin     = "round";
-      ctx.beginPath();
-      ctx.moveTo(lastPos.x, lastPos.y);
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-      setLastPos(pos);
-    }
-  };
- 
-  const handleMouseUp = () => {
-    if (isDrawing) pushHistory("Draw Stroke");
-    setIsPanning(false);
-    setIsDrawing(false);
-    setLastPos(null);
-  };
- 
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setCtxPos({ x: e.clientX, y: e.clientY });
-    setShowCtxMenu(true);
-  };
+
+    loadImages();
+  }, [layers]);
  
   const cursor =
     activeTool === "hand"  ? (isPanning ? "grabbing" : "grab") :
@@ -176,11 +256,11 @@ export function Canvas() {
             cursor,
             boxShadow: "0 8px 40px rgba(29, 30, 30, 0.6)",
           }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onContextMenu={handleContextMenu}
+          // onMouseDown={handleMouseDown}
+          // onMouseMove={handleMouseMove}
+          // onMouseUp={handleMouseUp}
+          // onMouseLeave={handleMouseUp}
+          // onContextMenu={handleContextMenu}
         >
           <canvas ref={canvasRef} style={{ display: "block" }} />
         </div>
