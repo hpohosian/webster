@@ -11,6 +11,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { User } from '../users/entities/user.entity';
 import { FileEntity } from '../files/entities/file.entity';
 import { ProjectVersion } from './entities/project-version.entity';
+import { Layer } from '../layers/entities/layer.entity';
 
 type VersionGroup = {
   type: 'autosave' | 'manual';
@@ -32,6 +33,9 @@ export class ProjectsService {
 
     @InjectRepository(FileEntity)
     private readonly fileRepo: Repository<FileEntity>,
+
+    @InjectRepository(Layer)
+    private readonly layerRepo: Repository<Layer>,
   ) {}
 
   async create(dto: CreateProjectDto, userId: string) {
@@ -43,6 +47,21 @@ export class ProjectsService {
       },
       user: { id: userId } as User,
     });
+
+    const savedProject = await this.projectRepo.save(project);
+
+    const backgroundLayer = this.layerRepo.create({
+      projectId: savedProject.id,
+      name: 'Background',
+      type: 'image',
+      visible: true,
+      locked: true,
+      opacity: 100,
+      blendMode: 'normal',
+      position: 0,
+    });
+
+    await this.layerRepo.save(backgroundLayer);
 
     return await this.projectRepo.save(project);
   }

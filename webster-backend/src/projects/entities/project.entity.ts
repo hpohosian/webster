@@ -13,6 +13,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { FileEntity } from '../../files/entities/file.entity';
 import { ProjectVersion } from './project-version.entity';
+import { Layer } from '../../layers/entities/layer.entity';
 
 @Entity()
 export class Project {
@@ -66,4 +67,7 @@ export class Project {
 
   @Column({ nullable: true })
   currentVersionId: string;
+
+  @OneToMany(() => Layer, (layer) => layer.project)
+  layers: Layer[];
 }

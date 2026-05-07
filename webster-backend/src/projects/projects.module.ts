@@ -6,6 +6,7 @@ import { Project } from './entities/project.entity';
 import { ProjectVersion } from './entities/project-version.entity';
 import { FileEntity } from '../files/entities/file.entity';
 import { CanvasElement } from '../elements/entities/canvas-element.entity';
+import { Layer } from '../layers/entities/layer.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CanvasElement } from '../elements/entities/canvas-element.entity';
       FileEntity,
       ProjectVersion,
       CanvasElement,
+      Layer,
     ]),
   ],
   controllers: [ProjectsController],
