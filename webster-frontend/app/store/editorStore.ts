@@ -20,14 +20,32 @@ import { devtools } from "zustand/middleware";
 // Typen sind Schablonen – sie sagen TypeScript welche Form ein Objekt hat.
 // Wenn du später einen Tippfehler machst, zeigt TypeScript einen Fehler.
 
-export interface Layer {
+// export interface Layer {
+//   id: string;
+//   name: string;
+//   visible: boolean;
+//   locked: boolean;
+//   opacity: number;        // 0–100
+//   blendMode: string;
+// }
+
+type BaseLayer = {
   id: string;
-  name: string;
+  type: "background" | "image" | "text" | "shape";
   visible: boolean;
   locked: boolean;
-  opacity: number;        // 0–100
+  opacity: number;
   blendMode: string;
-}
+};
+
+type ImageLayer = BaseLayer & {
+  type: "image";
+  src: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export interface Adjustments {
   highlights: number;     // -100 bis 100
@@ -48,7 +66,8 @@ export interface EditorStore {
   zoom: number;
   offset: { x: number; y: number };
 
-  layers: Layer[];
+  // layers: Layer[];
+  layers: (BaseLayer | ImageLayer)[];
   selectedLayerId: string;
 
   history: string[];
@@ -78,7 +97,10 @@ export interface EditorStore {
   addLayer: () => void;
   deleteLayer: (id: string) => void;
   duplicateLayer: (id: string) => void;
-  updateLayer: (id: string, patch: Partial<Layer>) => void;
+  updateLayer: (
+    id: string,
+    patch: Partial<BaseLayer | ImageLayer>
+  ) => void;
   moveLayer: (id: string, dir: "up" | "down") => void;
   setSelectedLayerId: (id: string) => void;
 
@@ -92,6 +114,19 @@ export interface EditorStore {
   setBrushOpacity: (opacity: number) => void;
 
   setCanvasSize: (size: { w: number; h: number }) => void;
+
+  addImageLayer: (layer: {
+    id: string;
+    type: "image";
+    src: string;
+    fileId?: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => void;
+
+  setLayers: (layers: (BaseLayer | ImageLayer)[]) => void;
 }
 
 // ─── Default Werte ───────────────────────────────────────────────────────────
@@ -123,11 +158,13 @@ export const useEditorStore = create<EditorStore>()(
       zoom: 100,
       offset: { x: 0, y: 0 },
 
-      layers: [
-        { id: "bg", name: "Background", visible: true, locked: false, opacity: 100, blendMode: "Normal" },
-        { id: "l1", name: "Layer 1",    visible: true, locked: false, opacity: 100, blendMode: "Normal" },
-      ],
-      selectedLayerId: "bg",
+      // layers: [
+      //   { id: "bg", name: "Background", visible: true, locked: false, opacity: 100, blendMode: "Normal" },
+      //   { id: "l1", name: "Layer 1",    visible: true, locked: false, opacity: 100, blendMode: "Normal" },
+      // ],
+      layers: [],
+      // selectedLayerId: "bg",
+      selectedLayerId: "",
 
       history: ["Canvas Created"],
 
@@ -219,6 +256,16 @@ export const useEditorStore = create<EditorStore>()(
           "updateLayer"
         ),
 
+      setLayers: (layers) =>
+        set(
+          {
+            layers,
+            selectedLayerId: layers.length ? layers[0].id : "",
+          },
+          false,
+          "setLayers"
+        ),
+
       moveLayer: (id, dir) => {
         const { layers } = get();
         const idx = layers.findIndex((l) => l.id === id);
@@ -258,6 +305,25 @@ export const useEditorStore = create<EditorStore>()(
       // ── Canvas ──────────────────────────────────────────────────────────
 
       setCanvasSize: (canvasSize) => set({ canvasSize }, false, "setCanvasSize"),
+
+      addImageLayer: (layer) =>
+        set(
+          (state) => ({
+          layers: [
+            ...state.layers,
+            {
+              name: "Image Layer",
+              visible: true,
+              locked: false,
+              opacity: 100,
+              blendMode: "Normal",
+              ...layer,
+            },
+          ],
+          }),
+          false,
+          "addImageLayer"
+        ),
 
       resizeCanvas: (width, height) =>
         set(

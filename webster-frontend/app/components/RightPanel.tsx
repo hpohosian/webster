@@ -5,6 +5,8 @@ import {
   Trash2, Copy, MoveUp, MoveDown,
 } from "lucide-react";
 import { useEditorStore, useSelectedLayer } from "../store/editorStore";
+import { useEffect } from "react";
+import { useParams } from "react-router";
 
 export function RightPanel() {
   // Nur was diese Komponente wirklich braucht abonnieren
@@ -28,6 +30,25 @@ export function RightPanel() {
   const [tab,        setTab]        = useState<"layers" | "history">("layers");
   const [editingId,  setEditingId]  = useState<string | null>(null);
   const [editName,   setEditName]   = useState("");
+
+  const { projectId } = useParams();
+  const setLayers = useEditorStore((s) => s.setLayers);
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    fetch(`http://localhost:3000/projects/${projectId}/layers`)
+      .then((r) => r.json())
+      .then((data) => {
+        console.log("LAYERS LOADED:", data);
+        setLayers(data);
+
+        if (data.length > 0) {
+          setSelectedLayerId(data[0].id);
+        }
+      })
+      .catch(console.error);
+  }, [projectId]);
 
   if (collapsed) {
     return (

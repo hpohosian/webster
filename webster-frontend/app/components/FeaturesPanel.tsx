@@ -5,6 +5,7 @@ import type { Adjustments } from "../store/editorStore";
 import { getPalette, listFonts, searchImages } from "../lib/demoApi";
 import type { DemoColor, DemoFont, DemoImage } from "../lib/demoApi";
 import { useParams } from "react-router";
+import { useRef } from "react";
 
 export function FeaturesPanel() {
   const activePanel    = useEditorStore((s) => s.activePanel);
@@ -381,6 +382,79 @@ function UploadContent() {
   const [images, setImages] = useState<DemoImage[]>([]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { projectId } = useParams<{ projectId: string }>();
+
+  const createLayer = async (layer: any, projectId: string) => {
+    const res = await fetch(`http://localhost:3000/projects/${projectId}/layers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(layer),
+    });
+
+    if (!res.ok) throw new Error("Failed to create layer");
+
+    return res.json();
+  };
+
+  const uploadFile = async (file: File, projectId?: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    if (projectId) {
+      formData.append("projectId", projectId);
+    }
+
+    const res = await fetch("http://localhost:3000/files/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Upload failed");
+
+    return res.json();
+  };
+
+  const addImageLayer = useEditorStore((s) => s.addImageLayer);
+
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const uploaded = await uploadFile(file, projectId);
+
+    const newLayer = {
+      type: "image",
+      name: "Image Layer",
+      visible: true,
+      locked: false,
+      opacity: 100,
+      blendMode: "normal",
+
+      src: `http://localhost:3000${uploaded.url}`,
+      fileId: uploaded.id,
+      x: 100,
+      y: 100,
+      width: uploaded.width || 300,
+      height: uploaded.height || 300,
+    };
+
+    // 2. сохраняем в backend
+    const savedLayer = await createLayer(newLayer, projectId);
+
+    // 3. добавляем в Zustand (уже с ID из DB!)
+    addImageLayer({
+      id: savedLayer.id,
+      ...newLayer,
+    });
+
+    e.target.value = "";
+
+    pushHistory("Upload image");
+  };
 
   const loadImages = async () => {
     setIsLoadingImages(true);
@@ -399,7 +473,7 @@ function UploadContent() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <button
-        onClick={loadImages}
+        onClick={() => fileInputRef.current?.click()}
         style={{
           border: "2px dashed var(--border)",
           borderRadius: "var(--radius)",
@@ -410,11 +484,23 @@ function UploadContent() {
           fontSize: 12,
           background: "transparent",
         }}
-        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "var(--accent)")}
-        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "var(--border)")}
+        onMouseEnter={(e) =>
+          ((e.currentTarget as HTMLElement).style.borderColor = "var(--accent)")
+        }
+        onMouseLeave={(e) =>
+          ((e.currentTarget as HTMLElement).style.borderColor = "var(--border)")
+        }
       >
-        {isLoadingImages ? "Searching Unsplash..." : <>Drop image here<br />or click to browse</>}
+        Drop image here<br />or click to upload
       </button>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleFileUpload}
+      />
 
       <input
         value={query}

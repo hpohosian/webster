@@ -11,6 +11,8 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { User } from '../users/entities/user.entity';
 import { FileEntity } from '../files/entities/file.entity';
 import { ProjectVersion } from './entities/project-version.entity';
+import { BaseLayer } from '../layers/entities/base-layer.entity';
+import { BackgroundLayer } from '../layers/entities/background-layer.entity';
 
 type VersionGroup = {
   type: 'autosave' | 'manual';
@@ -32,6 +34,9 @@ export class ProjectsService {
 
     @InjectRepository(FileEntity)
     private readonly fileRepo: Repository<FileEntity>,
+
+    @InjectRepository(BaseLayer)
+    private readonly layerRepo: Repository<BaseLayer>,
   ) {}
 
   async create(dto: CreateProjectDto, userId: string) {
@@ -44,7 +49,30 @@ export class ProjectsService {
       user: { id: userId } as User,
     });
 
-    return await this.projectRepo.save(project);
+    const savedProject = await this.projectRepo.save(project);
+
+    const backgroundLayer = new BackgroundLayer();
+
+    backgroundLayer.projectId = savedProject.id;
+    backgroundLayer.name = 'Background';
+    backgroundLayer.visible = true;
+    backgroundLayer.locked = true;
+    backgroundLayer.opacity = 100;
+    backgroundLayer.blendMode = 'normal';
+
+    backgroundLayer.position = 0;
+
+    backgroundLayer.x = 0;
+    backgroundLayer.y = 0;
+    backgroundLayer.width = dto.canvas.width;
+    backgroundLayer.height = dto.canvas.height;
+
+    await this.layerRepo.save(backgroundLayer);
+
+    // console.log(savedProject);
+    // console.log(backgroundLayer);
+
+    return savedProject;
   }
 
   async findAll(userId: string) {

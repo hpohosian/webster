@@ -17,6 +17,9 @@ import { FilesModule } from './files/files.module';
 import { ElementsService } from './elements/elements.service';
 import { ElementsController } from './elements/elements.controller';
 import { ElementsModule } from './elements/elements.module';
+import { LayersController } from './layers/layers.controller';
+import { LayersService } from './layers/layers.service';
+import { LayersModule } from './layers/layers.module';
 
 @Module({
   imports: [
@@ -41,6 +44,7 @@ import { ElementsModule } from './elements/elements.module';
     ProjectsModule,
     FilesModule,
     ElementsModule,
+    LayersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
