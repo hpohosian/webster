@@ -64,7 +64,12 @@ export function ToolsPanel() {
         <button
           key={id}
           title={label}
-          onClick={() => setActivePanel(id)}  // Store-Action → togglet das Panel
+          onClick={() => {
+              setActivePanel(id);
+              if (id === "draw") setActiveTool("draw");
+              if (id === "text") setActiveTool("text");
+              if (id !== "draw" && id !== "text") setActiveTool("pointer");
+            }}  // Store-Action → togglet das Panel
           style={{
             width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer",
             background: activePanel === id ? "#1e1e3a" : "transparent",

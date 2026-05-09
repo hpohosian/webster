@@ -19,6 +19,7 @@ export function RightPanel() {
   const layers            = useEditorStore((s) => s.layers);
   const selectedLayerId   = useEditorStore((s) => s.selectedLayerId);
   const history           = useEditorStore((s) => s.history);
+  const historyIndex      = useEditorStore((s) => s.historyIndex);
 
   // Actions
   const setSelectedLayerId = useEditorStore((s) => s.setSelectedLayerId);
@@ -27,6 +28,7 @@ export function RightPanel() {
   const duplicateLayer     = useEditorStore((s) => s.duplicateLayer);
   const updateLayer        = useEditorStore((s) => s.updateLayer);
   const moveLayer          = useEditorStore((s) => s.moveLayer);
+  const runCanvasCommand  = useEditorStore((s) => s.runCanvasCommand);
 
   // Custom Selektor – gibt den aktuell selektierten Layer zurück
   const selectedLayer = useSelectedLayer();
@@ -212,16 +214,22 @@ export function RightPanel() {
         {tab === "history" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {/* Neueste Aktion oben */}
-            {[...history].reverse().map((item, i) => (
-              <div key={i} style={{
-                padding: "7px 10px", borderRadius: 5, fontSize: 12, cursor: "pointer",
-                background: i === 0 ? "#454fda20" : "#1a1a26",
-                color:      i === 0 ? "#aaa"      : "#666",
-                borderLeft: `2px solid ${i === 0 ? "#454fda" : "transparent"}`,
-              }}>
-                {item}
-              </div>
-            ))}
+            {[...history].reverse().map((item, i) => {
+              const originalIndex = history.length - 1 - i;
+              const isCurrent = originalIndex === historyIndex;
+              return (
+                <button key={originalIndex} onClick={() => runCanvasCommand({ type: "restore-history", index: originalIndex })} style={{
+                  padding: "7px 10px", borderRadius: 5, fontSize: 12, cursor: "pointer",
+                  background: isCurrent ? "#454fda20" : "#1a1a26",
+                  color: isCurrent ? "#aaa" : "#666",
+                  border: "none",
+                  borderLeft: `2px solid ${isCurrent ? "#454fda" : "transparent"}`,
+                  textAlign: "left",
+                }}>
+                  {item}
+                </button>
+              );
+            })}
           </div>
         )}
 

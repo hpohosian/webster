@@ -1,4 +1,4 @@
-import { AuthHeader } from "../AuthHeader";
+import { AuthHeader } from "../../components/AuthHeader";
 import { Link } from "react-router";
 import "./HomePage.css";
 

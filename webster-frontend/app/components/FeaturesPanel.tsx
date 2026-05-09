@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 
 import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
-import type { Adjustments } from "../store/editorStore";
+import type { Adjustments, ShapeKind } from "../store/editorStore";
 import { getPalette, listFonts, searchImages } from "../lib/demoApi";
 import type { DemoColor, DemoFont, DemoImage } from "../lib/demoApi";
 
@@ -75,7 +75,6 @@ function AdjustmentsContent() {
   const adjustments    = useEditorStore((s) => s.adjustments);
   const setAdjustment  = useEditorStore((s) => s.setAdjustment);
   const resetAdjustments = useEditorStore((s) => s.resetAdjustments);
-  const pushHistory    = useEditorStore((s) => s.pushHistory);
 
   const fields: { key: keyof Adjustments; Icon: any; label: string }[] = [
     { key: "highlights",   Icon: Sun,       label: "Highlights" },
@@ -101,14 +100,13 @@ function AdjustmentsContent() {
             value={adjustments[key]}
             onChange={(e) => {
               setAdjustment(key, Number(e.target.value));
-              pushHistory(`Adjust ${label}`);
             }}
             style={{ width: "100%", accentColor: "#454fda" }}
           />
         </div>
       ))}
       <button
-        onClick={() => { resetAdjustments(); pushHistory("Reset Adjustments"); }}
+        onClick={resetAdjustments}
         style={{
           background: "#1a1a2a", border: "1px solid #2a2a3a", color: "#888",
           borderRadius: 6, padding: "6px", fontSize: 12, cursor: "pointer",
@@ -203,11 +201,10 @@ function DrawContent() {
 
 // ─── Filter ───────────────────────────────────────────────────────────────────
 function FilterContent() {
-  const pushHistory = useEditorStore((s) => s.pushHistory);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       {["Grayscale", "Blur", "Sharpen", "Sepia", "Vintage", "HDR", "Vignette", "Matte"].map((f) => (
-        <button key={f} onClick={() => pushHistory(`Apply ${f}`)} style={panelBtnStyle}
+        <button key={f} onClick={() => undefined} style={panelBtnStyle}
           onMouseEnter={(e) => (e.currentTarget.style.background = "#454fda20")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "#1a1a2a")}
         >{f}</button>
@@ -218,8 +215,17 @@ function FilterContent() {
 
 // ─── Text ─────────────────────────────────────────────────────────────────────
 function TextContent() {
+  const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
+  const brushColor = useEditorStore((s) => s.brushColor);
   const [fonts, setFonts] = useState<DemoFont[]>([]);
   const [isLoadingFonts, setIsLoadingFonts] = useState(false);
+  const [textValue, setTextValue] = useState("Your headline");
+  const [selectedFont, setSelectedFont] = useState("Arial");
+  const [fontSize, setFontSize] = useState(48);
+  const [textColor, setTextColor] = useState(brushColor);
+  const [isBold, setIsBold] = useState(true);
+  const [isItalic, setIsItalic] = useState(false);
+  const [isUnderline, setIsUnderline] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -227,7 +233,9 @@ function TextContent() {
 
     listFonts()
       .then((loadedFonts) => {
-        if (isActive) setFonts(loadedFonts);
+        if (!isActive) return;
+        setFonts(loadedFonts);
+        if (loadedFonts[0]?.family) setSelectedFont(loadedFonts[0].family);
       })
       .catch(() => {
         if (isActive) setFonts([]);
@@ -248,39 +256,71 @@ function TextContent() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div>
+        <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Text</label>
+        <input value={textValue} onChange={(e) => setTextValue(e.target.value)} style={inputStyle} />
+      </div>
+      <div>
         <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>
           Font {isLoadingFonts && <span style={{ color: "#555" }}>· loading Google Fonts</span>}
         </label>
-        <select style={selectStyle}>
+        <select value={selectedFont} onChange={(e) => setSelectedFont(e.target.value)} style={selectStyle}>
           {fontOptions.map((font) => (
             <option key={font.family} value={font.family}>{font.family}</option>
           ))}
         </select>
       </div>
       <div>
+        <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Color</label>
+        <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} style={{ width: "100%", height: 34, borderRadius: 6, cursor: "pointer", border: "1px solid #2a2a3a" }} />
+      </div>
+      <div>
         <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Size (px)</label>
-        <input type="number" defaultValue={16} style={inputStyle} />
+        <input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value) || 16)} style={inputStyle} />
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        {[["B", "bold", "normal"], ["I", "normal", "italic"], ["U", "normal", "normal"]].map(([s, fw, fs]) => (
-          <button key={s} style={{ ...panelBtnStyle, flex: 1, fontWeight: fw as any, fontStyle: fs as any,
-            textDecoration: s === "U" ? "underline" : "none" }}>{s}</button>
-        ))}
+        <button onClick={() => setIsBold((v) => !v)} style={{ ...panelBtnStyle, flex: 1, fontWeight: "bold", background: isBold ? "#454fda" : "#1a1a2a" }}>B</button>
+        <button onClick={() => setIsItalic((v) => !v)} style={{ ...panelBtnStyle, flex: 1, fontStyle: "italic", background: isItalic ? "#454fda" : "#1a1a2a" }}>I</button>
+        <button onClick={() => setIsUnderline((v) => !v)} style={{ ...panelBtnStyle, flex: 1, textDecoration: "underline", background: isUnderline ? "#454fda" : "#1a1a2a" }}>U</button>
       </div>
+      <button
+        onClick={() => runCanvasCommand({
+          type: "add-text",
+          text: textValue,
+          fontFamily: selectedFont,
+          fontSize,
+          fill: textColor,
+          fontWeight: isBold ? "bold" : "normal",
+          fontStyle: isItalic ? "italic" : "normal",
+          underline: isUnderline,
+        })}
+        style={{ ...panelBtnStyle, background: "#454fda", color: "#fff", justifyContent: "center" }}
+      >
+        Add Text
+      </button>
     </div>
   );
 }
 
 // ─── Shapes ───────────────────────────────────────────────────────────────────
 function ShapesContent() {
-  const pushHistory = useEditorStore((s) => s.pushHistory);
+  const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
+  const shapes: { label: string; shape: ShapeKind }[] = [
+    { label: "Rectangle", shape: "rectangle" },
+    { label: "Rounded Rect", shape: "rounded-rect" },
+    { label: "Circle", shape: "circle" },
+    { label: "Line", shape: "line" },
+    { label: "Arrow", shape: "arrow" },
+    { label: "Triangle", shape: "triangle" },
+    { label: "Star", shape: "star" },
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      {["Rectangle", "Rounded Rect", "Circle", "Line", "Arrow", "Triangle", "Star"].map((s) => (
-        <button key={s} onClick={() => pushHistory(`Add ${s}`)} style={panelBtnStyle}
+      {shapes.map((item) => (
+        <button key={item.shape} onClick={() => runCanvasCommand({ type: "add-shape", shape: item.shape })} style={panelBtnStyle}
           onMouseEnter={(e) => (e.currentTarget.style.background = "#454fda20")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "#1a1a2a")}
-        >{s}</button>
+        >{item.label}</button>
       ))}
     </div>
   );
@@ -288,40 +328,50 @@ function ShapesContent() {
 
 // ─── Resize ───────────────────────────────────────────────────────────────────
 function ResizeContent() {
-  const pushHistory    = useEditorStore((s) => s.pushHistory);
-  const setCanvasSize  = useEditorStore((s) => s.setCanvasSize);
+  const setCanvasSize = useEditorStore((s) => s.setCanvasSize);
+  const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
+  const canvasSize = useEditorStore((s) => s.canvasSize);
+  const [width, setWidth] = useState(canvasSize.w);
+  const [height, setHeight] = useState(canvasSize.h);
 
-  const applyPreset = (w: number, h: number, name: string) => {
+  const applyPreset = (w: number, h: number) => {
+    setWidth(w);
+    setHeight(h);
     setCanvasSize({ w, h });
-    pushHistory(`Resize: ${name}`);
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-        <input type="number" defaultValue={800} placeholder="W" style={{ ...inputStyle, flex: 1 }} />
+        <input type="number" value={width} onChange={(e) => setWidth(Number(e.target.value) || 1)} placeholder="W" style={{ ...inputStyle, flex: 1 }} />
         <span style={{ color: "#555" }}>×</span>
-        <input type="number" defaultValue={600} placeholder="H" style={{ ...inputStyle, flex: 1 }} />
+        <input type="number" value={height} onChange={(e) => setHeight(Number(e.target.value) || 1)} placeholder="H" style={{ ...inputStyle, flex: 1 }} />
       </div>
+      <button onClick={() => setCanvasSize({ w: width, h: height })} style={{ ...panelBtnStyle, background: "#454fda", color: "#fff", justifyContent: "center" }}>
+        Apply Size
+      </button>
       {([
         ["Instagram Post", 1080, 1080],
-        ["Story",          1080, 1920],
-        ["YouTube",        1280, 720],
-        ["Twitter",        1200, 675],
-        ["Banner",         970,  250],
+        ["Story", 1080, 1920],
+        ["YouTube", 1280, 720],
+        ["Twitter", 1200, 675],
+        ["Banner", 970, 250],
       ] as [string, number, number][]).map(([name, w, h]) => (
-        <button key={name} onClick={() => applyPreset(w, h, name)} style={panelBtnStyle}>
+        <button key={name} onClick={() => applyPreset(w, h)} style={panelBtnStyle}>
           <span>{name}</span>
           <span style={{ color: "#555", fontSize: 11 }}>{w}×{h}</span>
         </button>
       ))}
+      <button onClick={() => runCanvasCommand({ type: "create-empty-canvas" })} style={panelBtnStyle}>
+        Clear Canvas
+      </button>
     </div>
   );
 }
 
 // ─── Upload ───────────────────────────────────────────────────────────────────
 function UploadContent() {
-  const pushHistory = useEditorStore((s) => s.pushHistory);
+  const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const [query, setQuery] = useState("social media");
   const [images, setImages] = useState<DemoImage[]>([]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
@@ -334,7 +384,6 @@ function UploadContent() {
     try {
       const results = await searchImages(query);
       setImages(results);
-      pushHistory("Search images: " + query);
     } catch {
       setError("Image search is unavailable");
     } finally {
@@ -375,7 +424,7 @@ function UploadContent() {
             <button
               key={image.id}
               title={image.alt}
-              onClick={() => pushHistory("Add image: " + image.alt)}
+              onClick={() => runCanvasCommand({ type: "add-image", url: image.regular, alt: image.alt })}
               style={{
                 overflow: "hidden",
                 borderRadius: 8,
@@ -395,7 +444,7 @@ function UploadContent() {
         </div>
       )}
 
-      <button onClick={() => pushHistory("Create Empty Canvas")} style={panelBtnStyle}>
+      <button onClick={() => runCanvasCommand({ type: "create-empty-canvas" })} style={panelBtnStyle}>
         Create Empty Canvas
       </button>
     </div>
@@ -404,15 +453,35 @@ function UploadContent() {
 
 // ─── Templates ────────────────────────────────────────────────────────────────
 function TemplatesContent() {
-  const pushHistory = useEditorStore((s) => s.pushHistory);
+  const setCanvasSize = useEditorStore((s) => s.setCanvasSize);
+  const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
+  const templates: { name: string; size: { w: number; h: number } }[] = [
+    { name: "Instagram Post", size: { w: 1080, h: 1080 } },
+    { name: "Instagram Story", size: { w: 1080, h: 1920 } },
+    { name: "Facebook Cover", size: { w: 820, h: 312 } },
+    { name: "YouTube Thumbnail", size: { w: 1280, h: 720 } },
+    { name: "Business Card", size: { w: 1050, h: 600 } },
+    { name: "Flyer", size: { w: 816, h: 1056 } },
+    { name: "Poster", size: { w: 1080, h: 1350 } },
+    { name: "Mood Board", size: { w: 1400, h: 1000 } },
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      {["Instagram Post", "Instagram Story", "Facebook Cover", "YouTube Thumbnail",
-        "Business Card", "Flyer", "Poster", "Mood Board"].map((t) => (
-        <button key={t} onClick={() => pushHistory(`Template: ${t}`)} style={panelBtnStyle}
+      {templates.map((template) => (
+        <button
+          key={template.name}
+          onClick={() => {
+            setCanvasSize(template.size);
+            runCanvasCommand({ type: "create-empty-canvas" });
+          }}
+          style={panelBtnStyle}
           onMouseEnter={(e) => (e.currentTarget.style.background = "#454fda20")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "#1a1a2a")}
-        >{t}</button>
+        >
+          <span>{template.name}</span>
+          <span style={{ color: "#555", fontSize: 11 }}>{template.size.w}×{template.size.h}</span>
+        </button>
       ))}
     </div>
   );
