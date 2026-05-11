@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import {AuthHeader} from '../../components/AuthHeader';
 import './EditUserPage.css';
-import { userProfile } from '../UserPage/userLogik';
+import { userProfile } from '../ProjectPage/userLogik';
 import type {
   ProfileFormKey,
   Tab,

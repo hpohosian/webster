@@ -1,29 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import "./ProjectPage.css"
+import { userProfile, useProjects,
+        type SortKey, type Project } from "./userLogik";
 
-type ProjectType = "photo" | "logo";
-type SortKey = "recent" | "name" | "type";
-
-interface Project {
-  id: string;
-  name: string;
-  type: ProjectType;
-  updatedAt: string;
-  thumb?: string; // optional data-url or url
-}
-
-// ─── Mock data (replace with real API fetch) ──────────────────────────────────
-const MOCK_PROJECTS: Project[] = [
-  { id: "1", name: "Summer Campaign", type: "photo", updatedAt: "2026-05-04" },
-  { id: "2", name: "Brand Identity v2", type: "logo", updatedAt: "2026-05-03" },
-  { id: "3", name: "Mountain Series", type: "photo", updatedAt: "2026-04-29" },
-  { id: "4", name: "Prismat Logo", type: "logo", updatedAt: "2026-04-27" },
-  { id: "5", name: "Product Launch", type: "photo", updatedAt: "2026-04-20" },
-  { id: "6", name: "Icon Set", type: "logo", updatedAt: "2026-04-15" },
-];
-
-// ─── Helpers 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric", month: "short", year: "numeric",
@@ -38,7 +18,7 @@ function sortProjects(projects: Project[], key: SortKey) {
   });
 }
 
-// ─── Project card thumbnail ───────────────────────────────────────────────────
+// ─── Project card thumbnail 
 function ProjectThumb({ project }: { project: Project }) {
   const isLogo = project.type === "logo";
   return (
@@ -53,7 +33,6 @@ function ProjectThumb({ project }: { project: Project }) {
       overflow: "hidden",
       position: "relative",
     }}>
-      {/* Spectrum accent on hover (CSS handles it) */}
       <div className="thumb-shimmer" />
 
       {isLogo ? (
@@ -75,7 +54,6 @@ function ProjectThumb({ project }: { project: Project }) {
           </div>
         </div>
       ) : (
-        // Photo placeholder — crosshair like VSCO empty state
         <div style={{
           width: 48, height: 48, borderRadius: "50%",
           border: "1.5px solid #ccc",
@@ -91,8 +69,8 @@ function ProjectThumb({ project }: { project: Project }) {
   );
 }
 
-// ─── Type badge ───────────────────────────────────────────────────────────────
-function TypeBadge({ type }: { type: ProjectType }) {
+// ─── Type badge 
+function TypeBadge({ type }: { type: Project }) {
   const isLogo = type === "logo";
   return (
     <span style={{
@@ -112,7 +90,7 @@ function TypeBadge({ type }: { type: ProjectType }) {
   );
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// ─── Empty state 
 function EmptyState() {
   return (
     <div style={{
@@ -144,18 +122,20 @@ function EmptyState() {
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Main page 
 export default function MyProjectsPage() {
-  const [filter, setFilter] = useState<"all" | ProjectType>("all");
+  const [filter, setFilter] = useState<"all" | Project>("all");
   const [sort, setSort] = useState<SortKey>("recent");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
-
+  const { profile } = userProfile();
+  const { projects, loading } = useProjects();
+  
   // Filter + sort
   const visible = sortProjects(
-    MOCK_PROJECTS.filter((p) => {
-      const matchType = filter === "all" || p.type === filter;
+    projects.filter((p) => {
+      const matchType = filter === "all" || p?.type === filter;
       const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
       return matchType && matchSearch;
     }),
@@ -171,7 +151,7 @@ export default function MyProjectsPage() {
         background: "f0f0f0"
       }}>
 
-        {/* ── TOP BAR ── */}
+        {/*TOP BAR*/}
         <div style={{
           borderBottom: "1px solid #e8e8e8",
           background: "#f7f7f7",
@@ -181,38 +161,49 @@ export default function MyProjectsPage() {
           gap: 16,
           position: "sticky", top: 0, zIndex: 10,
         }}>
-          {/* Left: user identity (mirrors VSCO username + avatar) */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* Avatar */}
-            <div style={{
+            <Link to={`/profile/${profile?.id}/edit`} style={{
               width: 46, height: 46, borderRadius: "50%",
               background: "#e4e4e4",
               border: "1.5px solid #d0d0d0",
               display: "flex", alignItems: "center", justifyContent: "center",
               flexShrink: 0,
             }}>
+              { profile?.profilePicture && !profile.profilePicture.includes('default.png') ? 
+              ( <img src={`http://localhost:3000/${profile.profilePicture}`} alt="avatar" />)
+              :(
               <svg width="22" height="22" fill="none" stroke="#bbb" strokeWidth="1.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
-            </div>
+              )}
+            </Link>
+
             <div>
               <h1 style={{
                 fontSize: 22, fontWeight: 600,
                 color: "#1a1a1a", letterSpacing: "-0.02em",
                 lineHeight: 1.1,
               }}>
-                My Projects
+                {profile?.username}
               </h1>
+              <h2 style={{
+                fontSize: 22, fontWeight: 600,
+                color: "#1a1a1a", letterSpacing: "-0.02em",
+                lineHeight: 1.1,
+              }}>
+                My Projects
+              </h2>
               <p style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>
-                {MOCK_PROJECTS.length} projects
+                {projects.length} projects
               </p>
             </div>
           </div>
 
           {/* Right: action buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link to="/studio">
+            <Link to="/chose-photo">
               <button className="new-btn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                   <line x1="12" y1="5" x2="12" y2="19"/>
@@ -234,7 +225,7 @@ export default function MyProjectsPage() {
         </div>
 
         {/* ── SPECTRUM ACCENT ── */}
-        <div className="spectrum-bar" style={{ margin: "0 36px", borderRadius: 0 }} />
+        {/* <div className="spectrum-bar" style={{ margin: "0 36px", borderRadius: 0 }} /> */}
 
         {/* ── CONTROLS ROW ── */}
         <div style={{
@@ -320,7 +311,7 @@ export default function MyProjectsPage() {
           </div>
         </div>
 
-        {/* ── CONTENT ── */}
+        {/* CONTENT */}
         <div style={{ padding: "24px 36px 48px", flex: 1 }}>
           {visible.length === 0 ? (
             <EmptyState />
@@ -346,7 +337,7 @@ export default function MyProjectsPage() {
                         color: "#1a1a1a", lineHeight: 1.3,
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }}>
-                        {project.name}
+                        {project.title}
                       </span>
                       <TypeBadge type={project.type} />
                     </div>
@@ -419,7 +410,7 @@ export default function MyProjectsPage() {
                     flex: 1, fontSize: 14, fontWeight: 500, color: "#1a1a1a",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
-                    {project.name}
+                    {project.title}
                   </span>
 
                   {/* Type badge */}

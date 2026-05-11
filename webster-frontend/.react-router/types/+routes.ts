@@ -31,11 +31,6 @@ type Pages = {
       "token": string;
     };
   };
-  "/profile/:userId": {
-    params: {
-      "userId": string;
-    };
-  };
   "/profile/:userId/edit": {
     params: {
       "userId": string;
@@ -59,7 +54,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/projects/:userId" | "/logo-maker" | "/edit-page/:projectId";
+    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId/edit" | "/projects/:userId" | "/logo-maker" | "/edit-page/:projectId";
   };
   "routes/WelcomePage/WelcomePage.tsx": {
     id: "routes/WelcomePage/WelcomePage";
@@ -67,7 +62,7 @@ type RouteFiles = {
   };
   "routes/Auth/HomePagelayout.tsx": {
     id: "routes/Auth/HomePagelayout";
-    page: "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId" | "/profile/:userId/edit" | "/projects/:userId";
+    page: "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId/edit" | "/projects/:userId";
   };
   "routes/Auth/Login.tsx": {
     id: "routes/Auth/Login";
@@ -88,10 +83,6 @@ type RouteFiles = {
   "routes/Auth/PasswordReset.tsx": {
     id: "routes/Auth/PasswordReset";
     page: "/password-reset/:token";
-  };
-  "routes/UserPage/UserPage.tsx": {
-    id: "routes/UserPage/UserPage";
-    page: "/profile/:userId";
   };
   "routes/UserEditPage/EditUserPage.tsx": {
     id: "routes/UserEditPage/EditUserPage";
@@ -120,7 +111,6 @@ type RouteModules = {
   "routes/Auth/EmailVerif": typeof import("./app/routes/Auth/EmailVerif.tsx");
   "routes/Auth/Callback": typeof import("./app/routes/Auth/Callback.tsx");
   "routes/Auth/PasswordReset": typeof import("./app/routes/Auth/PasswordReset.tsx");
-  "routes/UserPage/UserPage": typeof import("./app/routes/UserPage/UserPage.tsx");
   "routes/UserEditPage/EditUserPage": typeof import("./app/routes/UserEditPage/EditUserPage.tsx");
   "routes/ProjectPage/ProjectPage": typeof import("./app/routes/ProjectPage/ProjectPage.tsx");
   "routes/LogoMakerPage": typeof import("./app/routes/LogoMakerPage.tsx");
