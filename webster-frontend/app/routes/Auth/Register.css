@@ -13,7 +13,7 @@
 }
 
 
-/* ── Form ────────────────────────────────────── */
+/* ── Form  */
 .form {
   display: flex;
   flex-direction: column;
@@ -67,7 +67,7 @@
 }
 
 
-/* ── Submit button ───────────────────────────── */
+/* ── Submit button  */
 .submit-btn {
   margin-top: 8px;
   width: 100%;
@@ -110,10 +110,6 @@
   cursor: not-allowed;
 }
 
-/* ── Error banner ────────────────────────────── */
-/* (inline styles in the component are overridden here for consistency) */
-
-/* ── Responsive ──────────────────────────────── */
 @media (max-width: 768px) {
   .left-bg::after {
     display: none;

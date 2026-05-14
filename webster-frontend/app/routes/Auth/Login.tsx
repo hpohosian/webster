@@ -47,7 +47,6 @@ export default function LoginPage() {
       if (data.error) {
         setError(data.message || "Login failed.");
       } else {
-        // navigate("/edit-page");
         navigate(`projects/${data.user.id}`);
       }
     } catch {

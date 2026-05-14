@@ -90,6 +90,7 @@ export function userProfile() {
   
   return { profile, loading, error };
 }
+
 // Project
 export async function fetchProjects(): Promise<Project[]> {
   const res = await fetch(`${API}/projects`, {
