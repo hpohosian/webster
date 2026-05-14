@@ -18,6 +18,41 @@ function sortProjects(projects: Project[], key: SortKey) {
   });
 }
 
+const createProject = async () => {
+  try {
+    const me = await fetch("http://localhost:3000/auth/me", {
+      credentials: "include",
+    });
+
+    const meData = await me.json();
+
+    if (!meData.user) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const res = await fetch("http://localhost:3000/projects", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "My project",
+        canvas: {
+          width: 800,
+          height: 600,
+          background: "#ffffff",
+        },
+      }),
+    });
+
+    const project = await res.json();
+
+    window.location.href = `/edit-page/${project.id}`;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 // ─── Project card thumbnail 
 function ProjectThumb({ project }: { project: Project }) {
   const isLogo = project.type === "logo";
@@ -203,15 +238,13 @@ export default function MyProjectsPage() {
 
           {/* Right: action buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link to="/chose-photo">
-              <button className="new-btn">
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                New Photo Edit
-              </button>
-            </Link>
+            <button className="new-btn" onClick={createProject}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              New Photo Edit
+            </button>
             <Link to="/canvas">
               <button className="new-btn" style={{ background: "#5ab6d4" }}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -325,7 +358,7 @@ export default function MyProjectsPage() {
               {visible.map((project, i) => (
                 <Link
                   key={project.id}
-                  to={`/projects/${project.id}`}
+                  to={`/edit-page/${project.id}`}
                   className="project-card fade-in"
                   style={{ animationDelay: `${i * 0.05}s`, display: "block" }}
                 >
@@ -349,8 +382,8 @@ export default function MyProjectsPage() {
               ))}
 
               {/* "New project" card */}
-              <Link
-                to="/studio"
+              <button
+                onClick={createProject}
                 className="project-card fade-in"
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "center",
@@ -375,7 +408,7 @@ export default function MyProjectsPage() {
                   </div>
                   <span style={{ fontSize: 12, color: "#bbb", fontWeight: 500 }}>New project</span>
                 </div>
-              </Link>
+              </button>
             </div>
           ) : (
             /* List */
@@ -383,7 +416,7 @@ export default function MyProjectsPage() {
               {visible.map((project, i) => (
                 <Link
                   key={project.id}
-                  to={`/projects/${project.id}`}
+                  to={`/edit-page/${project.id}`}
                   className="list-row fade-in"
                   style={{ animationDelay: `${i * 0.04}s` }}
                 >
