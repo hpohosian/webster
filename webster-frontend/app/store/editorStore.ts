@@ -1,76 +1,68 @@
-/**
- * ZUSTAND STORE – WIE FUNKTIONIERT DAS?
- * ─────────────────────────────────────
- * Ein Store ist wie ein globales "Gedächtnis" für deine App.
- * Statt useState() in jeder Komponente zu haben, gibt es EINEN
- * zentralen Ort wo alle Daten leben.
- *
- * Jede Komponente kann:
- *   1. Daten LESEN  → useEditorStore(s => s.zoom)
- *   2. Daten ÄNDERN → useEditorStore(s => s.zoomIn)
- *
- * Wenn sich ein Wert ändert, re-rendert NUR die Komponente
- * die diesen Wert abonniert hat – nicht der ganze Baum.
- */
-
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-// ─── TypeScript Typen ────────────────────────────────────────────────────────
-// Typen sind Schablonen – sie sagen TypeScript welche Form ein Objekt hat.
-// Wenn du später einen Tippfehler machst, zeigt TypeScript einen Fehler.
+export type ShapeKind = "rectangle" | "rounded-rect" | "circle" | "line" | "arrow" | "triangle" | "star";
 
-// export interface Layer {
-//   id: string;
-//   name: string;
-//   visible: boolean;
-//   locked: boolean;
-//   opacity: number;        // 0–100
-//   blendMode: string;
-// }
-
-type BaseLayer = {
+export interface Layer {
   id: string;
-  type: "background" | "image" | "text" | "shape";
+  name: string;
+  type: "background" | "image" | "text" | "shape" | string;
   visible: boolean;
   locked: boolean;
   opacity: number;
   blendMode: string;
-};
-
-type ImageLayer = BaseLayer & {
-  type: "image";
-  src: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
+  src?: string;
+  fileId?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  text?: string;
+  fontSize?: number;
+  color?: string;
+  shapeType?: string;
+  fill?: string;
+}
 
 export interface Adjustments {
-  highlights: number;     // -100 bis 100
+  highlights: number;
   contrast: number;
   colorBalance: number;
   light: number;
   shadow: number;
 }
 
-// Das ist der "Bauplan" des gesamten Stores.
-// State = Daten, Actions = Funktionen die Daten ändern
-export interface EditorStore {
-  // ── STATE (die eigentlichen Daten) ──────────────────────────────────────
+export type CanvasCommand =
+  | { id: number; type: "add-text"; text: string; fontFamily: string; fontSize: number; fill: string; fontWeight: "normal" | "bold"; fontStyle: "normal" | "italic"; underline: boolean }
+  | { id: number; type: "add-shape"; shape: ShapeKind }
+  | { id: number; type: "add-image"; url: string; alt: string; objectId?: string; name?: string; fileId?: string; x?: number; y?: number; width?: number; height?: number }
+  | { id: number; type: "create-empty-canvas" }
+  | { id: number; type: "duplicate-selected" }
+  | { id: number; type: "delete-selected" }
+  | { id: number; type: "bring-forward" }
+  | { id: number; type: "send-backward" }
+  | { id: number; type: "undo" }
+  | { id: number; type: "redo" }
+  | { id: number; type: "restore-history"; index: number };
 
+export type CanvasCommandInput = CanvasCommand extends infer T
+  ? T extends { id: number }
+    ? Omit<T, "id">
+    : never
+  : never;
+
+export interface EditorStore {
   activeTool: "pointer" | "hand" | "draw" | "text";
   activePanel: "upload" | "resize" | "adjustments" | "filter" | "text" | "draw" | "shapes" | "templates" | null;
 
   zoom: number;
   offset: { x: number; y: number };
 
-  // layers: Layer[];
-  layers: (BaseLayer | ImageLayer)[];
+  layers: Layer[];
   selectedLayerId: string;
 
   history: string[];
+  historyIndex: number;
 
   adjustments: Adjustments;
 
@@ -79,9 +71,7 @@ export interface EditorStore {
   brushOpacity: number;
 
   canvasSize: { w: number; h: number };
-
-  // ── ACTIONS (Funktionen die State ändern) ───────────────────────────────
-  // Naming-Convention: Verben wie set..., add..., delete..., toggle...
+  canvasCommand: CanvasCommand | null;
 
   resizeCanvas: (width: number, height: number) => void;
 
@@ -97,14 +87,13 @@ export interface EditorStore {
   addLayer: () => void;
   deleteLayer: (id: string) => void;
   duplicateLayer: (id: string) => void;
-  updateLayer: (
-    id: string,
-    patch: Partial<BaseLayer | ImageLayer>
-  ) => void;
+  updateLayer: (id: string, patch: Partial<Layer>) => void;
   moveLayer: (id: string, dir: "up" | "down") => void;
   setSelectedLayerId: (id: string) => void;
+  setLayers: (layers: Layer[], selectedLayerId?: string) => void;
 
   pushHistory: (label: string) => void;
+  setHistory: (history: string[], historyIndex: number) => void;
 
   setAdjustment: (key: keyof Adjustments, value: number) => void;
   resetAdjustments: () => void;
@@ -114,7 +103,6 @@ export interface EditorStore {
   setBrushOpacity: (opacity: number) => void;
 
   setCanvasSize: (size: { w: number; h: number }) => void;
-
   addImageLayer: (layer: {
     id: string;
     type: "image";
@@ -124,12 +112,12 @@ export interface EditorStore {
     y: number;
     width: number;
     height: number;
+    name?: string;
   }) => void;
-
-  setLayers: (layers: (BaseLayer | ImageLayer)[]) => void;
+  runCanvasCommand: (command: CanvasCommandInput) => void;
+  consumeCanvasCommand: (id: number) => void;
 }
 
-// ─── Default Werte ───────────────────────────────────────────────────────────
 const DEFAULT_ADJUSTMENTS: Adjustments = {
   highlights: 0,
   contrast: 0,
@@ -138,35 +126,22 @@ const DEFAULT_ADJUSTMENTS: Adjustments = {
   shadow: 0,
 };
 
-// ─── Store erstellen ─────────────────────────────────────────────────────────
-/**
- * create() nimmt eine Funktion die (set, get) bekommt:
- *   set() → ändert den State (nur die Felder die du angibst)
- *   get() → liest den aktuellen State innerhalb von Actions
- *
- * devtools() wrapper = du siehst alle State-Änderungen
- * in den Redux DevTools im Browser (Chrome Extension).
- */
+let commandId = 0;
+
 export const useEditorStore = create<EditorStore>()(
   devtools(
     (set, get) => ({
-      // ── Startwerte ──────────────────────────────────────────────────────
-
       activeTool: "pointer",
       activePanel: null,
 
       zoom: 100,
       offset: { x: 0, y: 0 },
 
-      // layers: [
-      //   { id: "bg", name: "Background", visible: true, locked: false, opacity: 100, blendMode: "Normal" },
-      //   { id: "l1", name: "Layer 1",    visible: true, locked: false, opacity: 100, blendMode: "Normal" },
-      // ],
       layers: [],
-      // selectedLayerId: "bg",
       selectedLayerId: "",
 
       history: ["Canvas Created"],
+      historyIndex: 0,
 
       adjustments: { ...DEFAULT_ADJUSTMENTS },
 
@@ -175,12 +150,10 @@ export const useEditorStore = create<EditorStore>()(
       brushOpacity: 100,
 
       canvasSize: { w: 800, h: 600 },
-
-      // ── Tool & Panel ────────────────────────────────────────────────────
+      canvasCommand: null,
 
       setActiveTool: (tool) => set({ activeTool: tool }, false, "setActiveTool"),
 
-      // Wenn du dasselbe Panel nochmal klickst → schließen (toggle)
       setActivePanel: (panel) =>
         set(
           (s) => ({ activePanel: s.activePanel === panel ? null : panel }),
@@ -188,168 +161,82 @@ export const useEditorStore = create<EditorStore>()(
           "setActivePanel"
         ),
 
-      // ── Zoom & Pan ──────────────────────────────────────────────────────
-      // set(s => ...) gibt dir den aktuellen State als 's'
-      // so kannst du auf den alten Wert zugreifen und ihn verändern
-
-      zoomIn:  () => set((s) => ({ zoom: Math.min(400, s.zoom + 10) }), false, "zoomIn"),
-      zoomOut: () => set((s) => ({ zoom: Math.max(10,  s.zoom - 10) }), false, "zoomOut"),
+      zoomIn: () => set((s) => ({ zoom: Math.min(400, s.zoom + 10) }), false, "zoomIn"),
+      zoomOut: () => set((s) => ({ zoom: Math.max(10, s.zoom - 10) }), false, "zoomOut"),
       setZoom: (zoom) => set({ zoom }, false, "setZoom"),
       resetView: () => set({ zoom: 100, offset: { x: 0, y: 0 } }, false, "resetView"),
       setOffset: (offset) => set({ offset }, false, "setOffset"),
 
-      // ── Layer Actions ───────────────────────────────────────────────────
-
-      addLayer: () => {
-        // get() holt den aktuellen State INNERHALB einer Action
-        const { layers, pushHistory } = get();
-        const newId = `l${Date.now()}`;
-        const num = layers.length + 1;
-        set(
-          {
-            layers: [
-              ...layers,
-              { id: newId, name: `Layer ${num}`, visible: true, locked: false, opacity: 100, blendMode: "Normal" },
-            ],
-            selectedLayerId: newId,
-          },
-          false,
-          "addLayer"
-        );
-        pushHistory(`Add Layer ${num}`);
-      },
-
+      addLayer: () => get().runCanvasCommand({ type: "add-shape", shape: "rectangle" }),
       deleteLayer: (id) => {
-        const { layers, selectedLayerId, pushHistory } = get();
-        if (layers.length <= 1) return; // mind. 1 Layer immer behalten
-        const fallback = layers.find((l) => l.id !== id)!.id;
-        set(
-          {
-            layers: layers.filter((l) => l.id !== id),
-            // wenn der gelöschte Layer gerade selektiert war → anderen nehmen
-            selectedLayerId: selectedLayerId === id ? fallback : selectedLayerId,
-          },
-          false,
-          "deleteLayer"
-        );
-        pushHistory("Delete Layer");
+        set({ selectedLayerId: id }, false, "selectLayerBeforeDelete");
+        get().runCanvasCommand({ type: "delete-selected" });
       },
-
       duplicateLayer: (id) => {
-        const { layers, pushHistory } = get();
-        const src = layers.find((l) => l.id === id);
-        if (!src) return;
-        const newId = `l${Date.now()}`;
-        const idx = layers.findIndex((l) => l.id === id);
-        const next = [...layers];
-        // splice(position, deleteCount, newItem) → einfügen nach dem Original
-        next.splice(idx + 1, 0, { ...src, id: newId, name: `${src.name} Copy` });
-        set({ layers: next, selectedLayerId: newId }, false, "duplicateLayer");
-        pushHistory(`Duplicate ${src.name}`);
+        set({ selectedLayerId: id }, false, "selectLayerBeforeDuplicate");
+        get().runCanvasCommand({ type: "duplicate-selected" });
       },
-
-      // Partial<Layer> = nicht alle Felder nötig, nur was du ändern willst
       updateLayer: (id, patch) =>
         set(
           (s) => ({ layers: s.layers.map((l) => (l.id === id ? { ...l, ...patch } : l)) }),
           false,
           "updateLayer"
         ),
-
-      setLayers: (layers) =>
+      moveLayer: (id, dir) => {
+        set({ selectedLayerId: id }, false, "selectLayerBeforeMove");
+        get().runCanvasCommand({ type: dir === "up" ? "bring-forward" : "send-backward" });
+      },
+      setSelectedLayerId: (id) => set({ selectedLayerId: id }, false, "setSelectedLayerId"),
+      setLayers: (layers, selectedLayerId) =>
         set(
-          {
+          (s) => ({
             layers,
-            selectedLayerId: layers.length ? layers[0].id : "",
-          },
+            selectedLayerId:
+              selectedLayerId ??
+              (layers.some((l) => l.id === s.selectedLayerId)
+                ? s.selectedLayerId
+                : layers[layers.length - 1]?.id ?? ""),
+          }),
           false,
           "setLayers"
         ),
 
-      moveLayer: (id, dir) => {
-        const { layers } = get();
-        const idx = layers.findIndex((l) => l.id === id);
-        const target = dir === "up" ? idx + 1 : idx - 1;
-        if (target < 0 || target >= layers.length) return;
-        const next = [...layers];
-        [next[idx], next[target]] = [next[target], next[idx]];
-        set({ layers: next }, false, "moveLayer");
-      },
-
-      setSelectedLayerId: (id) => set({ selectedLayerId: id }, false, "setSelectedLayerId"),
-
-      // ── History ─────────────────────────────────────────────────────────
-
       pushHistory: (label) =>
-        set((s) => ({ history: [...s.history, label] }), false, "pushHistory"),
-
-      // ── Adjustments ─────────────────────────────────────────────────────
-      // Ein einzelnes Adjustment-Feld ändern ohne die anderen zu überschreiben
+        set((s) => ({ history: [...s.history, label], historyIndex: s.history.length }), false, "pushHistory"),
+      setHistory: (history, historyIndex) => set({ history, historyIndex }, false, "setHistory"),
 
       setAdjustment: (key, value) =>
-        set(
-          (s) => ({ adjustments: { ...s.adjustments, [key]: value } }),
-          false,
-          "setAdjustment"
-        ),
+        set((s) => ({ adjustments: { ...s.adjustments, [key]: value } }), false, "setAdjustment"),
+      resetAdjustments: () => set({ adjustments: { ...DEFAULT_ADJUSTMENTS } }, false, "resetAdjustments"),
 
-      resetAdjustments: () =>
-        set({ adjustments: { ...DEFAULT_ADJUSTMENTS } }, false, "resetAdjustments"),
-
-      // ── Brush ───────────────────────────────────────────────────────────
-
-      setBrushColor:   (brushColor)   => set({ brushColor },   false, "setBrushColor"),
-      setBrushSize:    (brushSize)    => set({ brushSize },    false, "setBrushSize"),
+      setBrushColor: (brushColor) => set({ brushColor }, false, "setBrushColor"),
+      setBrushSize: (brushSize) => set({ brushSize }, false, "setBrushSize"),
       setBrushOpacity: (brushOpacity) => set({ brushOpacity }, false, "setBrushOpacity"),
 
-      // ── Canvas ──────────────────────────────────────────────────────────
-
       setCanvasSize: (canvasSize) => set({ canvasSize }, false, "setCanvasSize"),
-
+      resizeCanvas: (width, height) => set({ canvasSize: { w: width, h: height } }, false, "resizeCanvas"),
       addImageLayer: (layer) =>
-        set(
-          (state) => ({
-          layers: [
-            ...state.layers,
-            {
-              name: "Image Layer",
-              visible: true,
-              locked: false,
-              opacity: 100,
-              blendMode: "Normal",
-              ...layer,
-            },
-          ],
-          }),
-          false,
-          "addImageLayer"
-        ),
-
-      resizeCanvas: (width, height) =>
-        set(
-          (state) => ({
-            canvasSize: { w: width, h: height },
-            history: [
-              ...state.history,
-              `Resize canvas to ${width}x${height}`,
-            ],
-          }),
-          false,
-          "resizeCanvas"
-        ),
+        get().runCanvasCommand({
+          type: "add-image",
+          url: layer.src,
+          alt: layer.name || "Image Layer",
+          objectId: layer.id,
+          name: layer.name || "Image Layer",
+          fileId: layer.fileId,
+          x: layer.x,
+          y: layer.y,
+          width: layer.width,
+          height: layer.height,
+        }),
+      runCanvasCommand: (command) =>
+        set({ canvasCommand: { ...command, id: ++commandId } as CanvasCommand }, false, "runCanvasCommand"),
+      consumeCanvasCommand: (id) =>
+        set((s) => ({ canvasCommand: s.canvasCommand?.id === id ? null : s.canvasCommand }), false, "consumeCanvasCommand"),
     }),
-    { name: "EditorStore" } // Name in den DevTools
+    { name: "EditorStore" }
   )
 );
 
-// ─── Selektoren (optional aber empfohlen) ────────────────────────────────────
-/**
- * Selektoren sind Hilfsfunktionen die du in Komponenten benutzt.
- * Statt: useEditorStore(s => s.layers.find(l => l.id === s.selectedLayerId))
- * Einfach: useSelectedLayer()
- *
- * Das hält Komponenten sauber und du änderst die Logik nur an einem Ort.
- */
 export const useSelectedLayer = () =>
   useEditorStore((s) => s.layers.find((l) => l.id === s.selectedLayerId));
 

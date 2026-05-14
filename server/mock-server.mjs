@@ -3,7 +3,14 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(process.cwd());
-const env = loadEnv([".env.example", ".env", ".env.local"]);
+const env = loadEnv([
+  "webster-frontend/.env.example",
+  ".env.example",
+  "webster-frontend/.env",
+  ".env",
+  "webster-frontend/.env.local",
+  ".env.local",
+]);
 const port = Number(process.env.MOCK_API_PORT || env.MOCK_API_PORT || 8787);
 
 const unsplashAccessKey =
