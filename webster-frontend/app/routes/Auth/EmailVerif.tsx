@@ -86,7 +86,7 @@ export default function VerifyEmail() {
         return;
       }
       setError("");
-      navigate(`/profile/${meData.user.id}`);
+      navigate(`/projects/${meData.user.id}`);
     }catch{
       setError('Network error. Please try again.');
     }

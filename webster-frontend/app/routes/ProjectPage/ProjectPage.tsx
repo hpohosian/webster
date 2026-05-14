@@ -136,7 +136,7 @@ export default function MyProjectsPage() {
   const visible = sortProjects(
     projects.filter((p) => {
       const matchType = filter === "all" || p?.type === filter;
-      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
       return matchType && matchSearch;
     }),
     sort
