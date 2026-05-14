@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
-import {AuthHeader} from '../../components/AuthHeader';
 import './EditUserPage.css';
 import { userProfile } from '../ProjectPage/userLogik';
 import type {
   ProfileFormKey,
-  Tab,
   ToastState,
   FormErrors,
   ProfileForm,
-} from './EditUserComponents';
-import { NavItem, SectionCard, Field } from './EditUserComponents';
+} from './EditUserFunctions';
+import { SectionCard, Field } from './EditUserFunctions';
 import { handleDelete, handleUpdate } from './EditUserFunctions';
 
 const API = import.meta.env.VITE_API;
@@ -21,13 +19,10 @@ export default function UserEditPage() {
 
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [saving, setSaving] = useState<boolean>(false);
   const [toast, setToast] = useState<ToastState | null>(null);
 
   const [form, setForm] = useState<ProfileForm>({
-    firstName: '',
-    lastName: '',
     username: '',
     email: '',
   });
@@ -38,8 +33,6 @@ export default function UserEditPage() {
   useEffect(() => {
     if (profile) {
       setForm({
-        firstName: profile.fullName.split(' ')[0] ?? '',
-        lastName: profile.fullName.split(' ')[1] ?? '',
         username: profile.username ?? '',
         email: profile.email ?? '',
       });
@@ -60,14 +53,6 @@ export default function UserEditPage() {
 
   const validate = (): FormErrors => {
     const errs: FormErrors = {};
-
-    if (!form.firstName.trim()) {
-      errs.firstName = 'First name is required';
-    }
-
-    if (!form.lastName.trim()) {
-      errs.lastName = 'Last name is required';
-    }
 
     if (!form.username.trim()) {
       errs.username = 'Username is required';
@@ -123,8 +108,6 @@ export default function UserEditPage() {
     return <div>Failed to load profile</div>;
   }
 
-  // console.log("profile?.avatarLetter", profile?.avatarLetter);
-  
   return (
     <form
       onSubmit={(e) =>
@@ -141,9 +124,7 @@ export default function UserEditPage() {
         })
       }
     >
-
       <div className="ep-page">
-        <AuthHeader/>
 
         <div className="ep-body">
           {/* ── Sidebar ── */}
@@ -151,13 +132,12 @@ export default function UserEditPage() {
             <div className="ep-avatar-card">
               <div className="ep-avatar-wrap">
                 <div className="ep-avatar">
-                  {avatarPreview && !avatarPreview.includes('default.png') ? (
-                    <img src={avatarPreview} alt="avatar" />
-                  ) : profile?.avatarLetter ? (
-                    <div className="ep-avatar-letter">{profile.avatarLetter}</div>
-                  ) : (
-                    <div className="ep-avatar-letter">U</div>
-                  )}
+                  {/* {avatarPreview && !avatarPreview.includes('default.png') ? (
+                    <img src={avatarPreview} alt="avatar" />)
+                    :(
+                      <img src={avatarPreview} alt="avatar" />
+                    )} */}
+                   <img src={avatarPreview} alt="avatar" />
                 </div>
                 <button
                   className="ep-avatar-edit-btn"
@@ -179,24 +159,9 @@ export default function UserEditPage() {
                 />
               </div>
 
-              <div className="ep-avatar-name">{profile?.firstName} {profile?.lastName}</div>
               <div className="ep-avatar-email">{profile?.email}</div>
 
               <div className="ep-divider" />
-
-              <nav className="ep-nav-list">
-                <NavItem
-                  active={activeTab === 'profile'}
-                  onClick={() => setActiveTab('profile')}
-                  label="Profile"
-                  icon={
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
-                    </svg>
-                  }
-                />
-               
-              </nav>
             </div>
 
             {/* Danger zone */}
@@ -211,17 +176,8 @@ export default function UserEditPage() {
 
           {/* ── Main ── */}
           <main className="ep-content">
-
-            {/* ── PROFILE TAB ── */}
-            {activeTab === 'profile' && (
               <SectionCard title="Personal info" subtitle="How others see you" delay={0.04}>
                 <div className="ep-form-grid">
-                  <Field label="First name" error={errors.firstName}>
-                    <input {...field('firstName')} placeholder={profile?.firstName}/>
-                  </Field>
-                  <Field label="Last name" error={errors.lastName}>
-                    <input {...field('lastName')} placeholder={profile?.lastName} />
-                  </Field>
                   <Field label="Username" error={errors.username}>
                     <div className="ep-input-wrap">
                       <span className="ep-input-icon">
@@ -255,27 +211,6 @@ export default function UserEditPage() {
                     </div>
                   </Field>
 
-                  <Field label="Privacy" full>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      fontSize: 14,
-                      cursor: 'pointer',
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={form.hideFromAttendees}
-                        onChange={(e) =>
-                          setForm((prev) => ({ ...prev, hideFromAttendees: e.target.checked }))
-                        }
-                      />
-                      Hide me from event attendee lists by default
-                    </label>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                      You can still override this per event after registering.
-                    </div>
-                  </Field>
                 </div>
 
                 <div className="ep-action-bar">
@@ -285,8 +220,6 @@ export default function UserEditPage() {
                   </button>
                 </div>
               </SectionCard>
-            
-            )}
           </main>
         </div>
 

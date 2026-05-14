@@ -1,71 +1,63 @@
 import { useNavigate } from 'react-router';
-import { useState } from 'react';
-import { AuthHeader } from '../../components/AuthHeader'
-// import Footer from '../Footer';
-// import './EmailVerif.css';
+import { useState, useRef } from 'react';
 
 const API = import.meta.env.VITE_API;
 
 export default function VerifyEmail() {
-  const [otp, setOtp]     = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+  const [resendSent, setResendSent] = useState(false);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
 
-  // OTP input handlers
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>, index: number) {
-    const value = event.target.value.replace(/[^0-9]/g, "");
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>, index: number) {
+    const value = e.target.value.replace(/[^0-9]/g, '');
     const newOtp = [...otp];
 
     if (value) {
       newOtp[index] = value[0];
       setOtp(newOtp);
-      const next = event.target.nextSibling as HTMLInputElement | null;
-      if (next) next.focus();
+      if (index < 5) inputRefs.current[index + 1]?.focus();
     } else {
-      newOtp[index] = "";
+      newOtp[index] = '';
       setOtp(newOtp);
-      const prev = event.target.previousSibling as HTMLInputElement | null;
-      if (prev) prev.focus();
     }
   }
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>, index: number) {
-    // Allow backspace to move backwards even when field is already empty
-    if (event.key === 'Backspace' && !otp[index]) {
-      const prev = event.currentTarget.previousSibling as HTMLInputElement | null;
-      if (prev) prev.focus();
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>, index: number) {
+    if (e.key === 'Backspace') {
+      if (otp[index]) {
+        const newOtp = [...otp];
+        newOtp[index] = '';
+        setOtp(newOtp);
+      } else if (index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
     }
   }
 
-  function handlePaste(event: React.ClipboardEvent<HTMLInputElement>) {
-    event.preventDefault();
-    const paste = event.clipboardData.getData('text').replace(/[^0-9]/g, '');
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    e.preventDefault();
+    const paste = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
     if (!paste) return;
-
-    const newOtp = Array.from({ length: 6 }, (_, i) => paste[i] ?? "");
+    const newOtp = Array.from({ length: 6 }, (_, i) => paste[i] ?? '');
     setOtp(newOtp);
-
     const lastIndex = Math.min(paste.length, 6) - 1;
-    const inputs = (event.currentTarget.closest('form') as HTMLFormElement)
-      .querySelectorAll<HTMLInputElement>('input');
-    if (inputs[lastIndex]) inputs[lastIndex].focus();
+    inputRefs.current[lastIndex]?.focus();
   }
 
-  // Submit
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    const code = otp.join("");
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const code = otp.join('');
     if (code.length < 6) return;
-    try{
-      const me = await fetch("http://localhost:3000/auth/me", {
-        credentials: "include",
-      });
 
+    try {
+      const me = await fetch(`${API}/auth/me`, { credentials: 'include' });
       const meData = await me.json();
 
       if (!meData.user) {
-        window.location.href = "/login";
+        window.location.href = '/login';
         return;
       }
 
@@ -74,70 +66,147 @@ export default function VerifyEmail() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ code }),
-      })
-        const data = await res.json();
+      });
+      const data = await res.json();
 
-        console.log(data);
-        
-  
-      // сервер вернул ошибку
       if (!res.ok || data.error) {
-        setError(data.error || "Verification failed");
+        setError(data.error || 'Verification failed');
         return;
       }
-      setError("");
-      navigate(`/profile/${meData.user.id}`);
-    }catch{
+
+      setError('');
+      navigate(`/projects/${meData.user.id}`);
+    } catch {
       setError('Network error. Please try again.');
     }
   }
 
-  //  Resend code 
   async function handleResend() {
-    if (resendTimer > 1) return;
+    if (resendTimer > 0) return;
+
     try {
       const res = await fetch(`${API}/auth/resend-verification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include"
-      })
-      if (!res.ok){
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
         setError(res.statusText);
+        return;
       }
-    } catch{
-      setError("Network error. Please try again.");
+
+      setResendSent(true);
+      setTimeout(() => setResendSent(false), 4000);
+
+      setResendTimer(30);
+      const interval = setInterval(() => {
+        setResendTimer(prev => {
+          if (prev <= 1) { clearInterval(interval); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch {
+      setError('Network error. Please try again.');
     }
   }
 
-  const isComplete = otp.every(d => d !== "");
+  const isComplete = otp.every(d => d !== '');
+
+  const inputStyle = (index: number): React.CSSProperties => ({
+    width: 48,
+    height: 56,
+    borderRadius: 10,
+    border: `1.5px solid ${otp[index] ? '#b5e4f2' : '#e0e0e0'}`,
+    background: otp[index] ? '#f8fdff' : '#f4f4f4',
+    fontSize: 22,
+    fontWeight: 600,
+    textAlign: 'center',
+    color: otp[index] ? '#1a5e73' : '#1a1a1a',
+    outline: 'none',
+    transition: 'all 0.18s ease',
+    caretColor: '#7ec8e3',
+    fontFamily: "'DM Sans', monospace",
+  });
 
   return (
-    <>
-      <AuthHeader />
+    <div style={{
+      minHeight: '100vh',
+      background: '#f7f7f5',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem',
+      fontFamily: "'DM Sans', 'Elms Sans', sans-serif",
+    }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
 
-      <div className="centerContainer page">
-        <div className="card">
+        {/* Card */}
+        <div style={{
+          background: '#fff',
+          borderRadius: 16,
+          padding: '48px 44px 40px',
+          border: '1px solid #e8e8e8',
+        }}>
+
+          {/* Spectrum bar */}
+          <div style={{
+            height: 3,
+            width: 48,
+            background: 'linear-gradient(90deg, #7ec8e3, #b5e4f2)',
+            borderRadius: 2,
+            marginBottom: 28,
+          }} />
 
           {/* Icon */}
-          <div className="iconWrap">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e97f67" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: 12,
+            background: '#f0f9fc',
+            border: '1px solid #d4eef5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 20,
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7ec8e3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
             </svg>
           </div>
 
           {/* Heading */}
-          <h1 className="title">Email Verification</h1>
-          <p className="subtitle">
+          <h2 style={{
+            fontSize: 22,
+            fontWeight: 600,
+            color: '#1a1a1a',
+            margin: '0 0 6px',
+            letterSpacing: '-0.01em',
+          }}>
+            Email Verification
+          </h2>
+          <p style={{
+            fontSize: 13,
+            color: '#888',
+            margin: '0 0 24px',
+            lineHeight: 1.55,
+          }}>
             Enter the 6-digit code sent to your email address.
           </p>
 
           {/* OTP form */}
           <form onSubmit={handleSubmit}>
-            <div className="otpRow">
+            <div style={{
+              display: 'flex',
+              gap: 10,
+              marginBottom: 24,
+              justifyContent: 'center',
+            }}>
               {otp.map((digit, i) => (
                 <input
                   key={i}
+                  ref={el => { inputRefs.current[i] = el; }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
@@ -145,48 +214,115 @@ export default function VerifyEmail() {
                   onChange={e => handleChange(e, i)}
                   onKeyDown={e => handleKeyDown(e, i)}
                   onPaste={handlePaste}
-                  className={`otpInput${digit ? ' filled' : ''}`}
+                  onFocus={e => {
+                    e.target.style.borderColor = '#7ec8e3';
+                    e.target.style.background = '#fff';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(126,200,227,0.15)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = digit ? '#b5e4f2' : '#e0e0e0';
+                    e.target.style.background = digit ? '#f8fdff' : '#f4f4f4';
+                    e.target.style.boxShadow = 'none';
+                  }}
                   autoFocus={i === 0}
+                  style={inputStyle(i)}
                 />
               ))}
             </div>
 
             <button
               type="submit"
-              className="submitBtn"
               disabled={!isComplete}
+              style={{
+                width: '100%',
+                padding: '13px 16px',
+                background: isComplete ? '#1a1a1a' : '#ccc',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: isComplete ? 'pointer' : 'not-allowed',
+                transition: 'background 0.18s ease',
+                fontFamily: "'DM Sans', sans-serif",
+                letterSpacing: '0.01em',
+              }}
+              onMouseEnter={e => {
+                if (isComplete) (e.currentTarget as HTMLButtonElement).style.background = '#333';
+              }}
+              onMouseLeave={e => {
+                if (isComplete) (e.currentTarget as HTMLButtonElement).style.background = '#1a1a1a';
+              }}
             >
               Verify account
             </button>
           </form>
 
-          {/* Resend */}
-          <p className="resendRow">
+          {/* Resend row */}
+          <p style={{
+            marginTop: 20,
+            fontSize: 12,
+            color: '#999',
+            textAlign: 'center',
+          }}>
             Didn't receive the code?{' '}
             <button
-              className="resendLink"
               onClick={handleResend}
               disabled={resendTimer > 0}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: resendTimer > 0 ? '#ccc' : '#7ec8e3',
+                fontWeight: 500,
+                cursor: resendTimer > 0 ? 'not-allowed' : 'pointer',
+                fontSize: 12,
+                fontFamily: "'DM Sans', sans-serif",
+                padding: 0,
+              }}
             >
               {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend'}
             </button>
           </p>
+
+          {/* Resend confirmation */}
+          {resendSent && (
+            <div style={{
+              marginTop: 12,
+              padding: '10px 14px',
+              background: '#f0fff4',
+              border: '1px solid #b7ebc8',
+              borderRadius: 8,
+              fontSize: 13,
+              color: '#2a7a4a',
+            }}>
+              Code resent! Check your inbox.
+            </div>
+          )}
         </div>
 
         {/* Error */}
         {error && (
-          <div className="errorMsg">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 14px',
+            background: '#fff0f0',
+            border: '1px solid #fdd',
+            borderRadius: 8,
+            fontSize: 13,
+            color: '#c44',
+            marginTop: 12,
+          }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             {error}
           </div>
         )}
       </div>
-
-      {/* <Footer /> */}
-    </>
+    </div>
   );
 }

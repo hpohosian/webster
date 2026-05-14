@@ -2,19 +2,19 @@
 
 /* ── Design tokens ── */
 :root {
-  --text: #6b6375;
+  --text: #2a2a2a;
   --text-h: #08060d;
   --bg: #fff;
   --bg-muted: #f4f3ec;
   --border: #e5e4e7;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.08);
-  --accent-border: rgba(170, 59, 255, 0.35);
-  --accent-shadow: rgba(170, 59, 255, 0.18);
-  --accent-hover: #9528e8;
-  --danger: #dc3545;
-  --danger-bg: rgba(220, 53, 69, 0.05);
-  --danger-border: rgba(220, 53, 69, 0.25);
+  --accent: #b0cbd5;
+  --accent-bg: rgba(5, 36, 65, 0.08);
+  --accent-border: rgba(9, 68, 124, 0.08);
+  --accent-shadow: rgba(5, 36, 65, 0.08);
+  --accent-hover: #bdd6df;
+  --danger: #d15662;
+  --danger-bg: rgba(201, 67, 80, 0.05);
+  --danger-border: rgba(209, 85, 97, 0.25);
   --shadow:
     rgba(0, 0, 0, 0.08) 0 4px 16px,
     rgba(0, 0, 0, 0.04) 0 1px 4px;
@@ -263,34 +263,6 @@ a {
   gap: 24px;
 }
 
-/* breadcrumb */
-.ep-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  animation: fadeUp 0.35s ease both;
-}
-
-.ep-breadcrumb a {
-  color: var(--text);
-  transition: color .15s;
-}
-
-.ep-breadcrumb a:hover {
-  color: var(--accent);
-}
-
-.ep-breadcrumb-sep {
-  opacity: .4;
-}
-
-.ep-breadcrumb-current {
-  color: var(--text-h);
-  font-weight: 600;
-}
 
 /* section card */
 .ep-section-card {
