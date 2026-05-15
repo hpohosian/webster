@@ -73,10 +73,9 @@ export default function VerifyEmail() {
         setError(data.error || 'Verification failed');
         return;
       }
-
       setError('');
       navigate(`/projects/${meData.user.id}`);
-    } catch {
+    }catch{
       setError('Network error. Please try again.');
     }
   }
