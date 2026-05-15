@@ -73,6 +73,8 @@ export interface EditorStore {
   canvasSize: { w: number; h: number };
   canvasCommand: CanvasCommand | null;
 
+  canvasJSON: null;
+
   resizeCanvas: (width: number, height: number) => void;
 
   setActiveTool: (tool: EditorStore["activeTool"]) => void;
@@ -116,6 +118,8 @@ export interface EditorStore {
   }) => void;
   runCanvasCommand: (command: CanvasCommandInput) => void;
   consumeCanvasCommand: (id: number) => void;
+
+  setCanvasJSON: (json: any) => void;
 }
 
 const DEFAULT_ADJUSTMENTS: Adjustments = {
@@ -151,6 +155,8 @@ export const useEditorStore = create<EditorStore>()(
 
       canvasSize: { w: 800, h: 600 },
       canvasCommand: null,
+
+      canvasJSON: null,
 
       setActiveTool: (tool) => set({ activeTool: tool }, false, "setActiveTool"),
 
@@ -232,6 +238,8 @@ export const useEditorStore = create<EditorStore>()(
         set({ canvasCommand: { ...command, id: ++commandId } as CanvasCommand }, false, "runCanvasCommand"),
       consumeCanvasCommand: (id) =>
         set((s) => ({ canvasCommand: s.canvasCommand?.id === id ? null : s.canvasCommand }), false, "consumeCanvasCommand"),
+      setCanvasJSON: (json) =>
+        set({ canvasJSON: json }, false, "setCanvasJSON"),
     }),
     { name: "EditorStore" }
   )

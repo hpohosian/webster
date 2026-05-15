@@ -16,6 +16,7 @@ import {
 } from "fabric";
 import { useEditorStore } from "../store/editorStore";
 import type { CanvasCommand, Layer, ShapeKind } from "../store/editorStore";
+import { useParams } from "react-router-dom";
 
 type EngineObject = FabricObject & {
   id?: string;
@@ -46,6 +47,7 @@ export function Canvas() {
   const selectedLayerId = useEditorStore((s) => s.selectedLayerId);
   const layers = useEditorStore((s) => s.layers);
   const command = useEditorStore((s) => s.canvasCommand);
+  const canvasJSON = useEditorStore((s) => s.canvasJSON);
 
   const zoomIn = useEditorStore((s) => s.zoomIn);
   const zoomOut = useEditorStore((s) => s.zoomOut);
@@ -57,11 +59,67 @@ export function Canvas() {
   const setHistory = useEditorStore((s) => s.setHistory);
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const consumeCanvasCommand = useEditorStore((s) => s.consumeCanvasCommand);
+  
 
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [showCtxMenu, setShowCtxMenu] = useState(false);
   const [ctxPos, setCtxPos] = useState({ x: 0, y: 0 });
+
+  const isCanvasReadyRef = useRef(false);
+  const pendingJSONRef = useRef<any>(null); 
+
+  useEffect(() => {
+    const element = canvasElementRef.current;
+    if (!element) return;
+
+    const canvas = new FabricCanvas(element, {
+      width: canvasSize.w || 800,
+      height: canvasSize.h || 600,
+      backgroundColor: CANVAS_BACKGROUND,
+      preserveObjectStacking: true,
+      selection: true,
+    });
+
+    fabricRef.current = canvas;
+    isCanvasReadyRef.current = true;
+
+    canvas.requestRenderAll();
+
+    // 🔥 если JSON уже пришёл раньше — применяем его
+    if (pendingJSONRef.current) {
+      canvas.loadFromJSON(pendingJSONRef.current, () => {
+        canvas.requestRenderAll();
+        pendingJSONRef.current = null;
+      });
+    }
+
+    return () => {
+      isCanvasReadyRef.current = false;
+      canvas.dispose();
+      fabricRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!canvasJSON) return;
+
+    const canvas = fabricRef.current;
+
+    // ⛔ canvas ещё не готов → кладём в очередь
+    if (!canvas || !isCanvasReadyRef.current) {
+      pendingJSONRef.current = canvasJSON;
+      return;
+    }
+
+    isRestoringRef.current = true;
+
+    canvas.loadFromJSON(canvasJSON, () => {
+      canvas.requestRenderAll();
+      recordSnapshot("Load Project");
+      isRestoringRef.current = false;
+    });
+  }, [canvasJSON]);
 
   const syncLayers = useCallback((selectedId?: string) => {
     const canvas = fabricRef.current;
@@ -108,6 +166,36 @@ export function Canvas() {
     setHistory(next.map((item) => item.label), historyIndexRef.current);
     syncLayers();
   }, [setHistory, syncLayers]);
+
+  const { projectId } = useParams();
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    const autosave = async () => {
+      const canvas = fabricRef.current;
+      if (!canvas) return;
+
+      const payload = {
+        canvas: {
+          width: canvas.getWidth(),
+          height: canvas.getHeight(),
+          background: "#ffffff",
+        },
+        objects: canvas.toJSON(FABRIC_PROPS),
+      };
+
+      await fetch(`http://localhost:3000/projects/${projectId}/save`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ projectState: payload, isAutoSave: true }),
+      });
+    };
+
+    const interval = setInterval(autosave, 2000);
+    return () => clearInterval(interval);
+  }, [projectId]);
 
   const restoreSnapshot = useCallback(async (index: number) => {
     const canvas = fabricRef.current;

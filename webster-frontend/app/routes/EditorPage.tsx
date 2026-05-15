@@ -11,7 +11,7 @@ export default function EditorPage() {
   const { projectId } = useParams();
 
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize);
-  const setLayers = useEditorStore((s) => s.setLayers);
+  const setCanvasJSON = useEditorStore((s) => s.setCanvasJSON);
 
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +32,8 @@ export default function EditorPage() {
         h: project.projectData.canvas.height,
       });      
 
-      setLayers(project.layers || []);
+      setCanvasJSON(project.projectData.objects);
+      // setLayers(project.layers || []);
 
       setLoading(false);
     }

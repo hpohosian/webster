@@ -38,9 +38,9 @@ export class CreateLayerDto {
 
   @IsOptional()
   @IsNumber()
-  width?: number;
+  width?: number | undefined;
 
   @IsOptional()
   @IsNumber()
-  height?: number;
+  height?: number | undefined;
 }
