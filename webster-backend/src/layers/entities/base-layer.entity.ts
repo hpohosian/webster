@@ -41,4 +41,7 @@ export abstract class BaseLayer {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column()
+  type: string;
 }

@@ -64,8 +64,16 @@ export class ProjectsService {
 
     backgroundLayer.x = 0;
     backgroundLayer.y = 0;
-    backgroundLayer.width = dto.canvas.width;
-    backgroundLayer.height = dto.canvas.height;
+
+    backgroundLayer.type = 'background';
+
+    if (backgroundLayer.name === 'Background') {
+      backgroundLayer.width = undefined;
+      backgroundLayer.height = undefined;
+    } else {
+      backgroundLayer.width = dto.canvas.width;
+      backgroundLayer.height = dto.canvas.height;
+    }
 
     await this.layerRepo.save(backgroundLayer);
 

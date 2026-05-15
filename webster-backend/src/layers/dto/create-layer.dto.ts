@@ -6,7 +6,7 @@ export class CreateLayerDto {
 
   @IsOptional()
   @IsString()
-  type?: "image" | "text" | "shape";
+  type?: "image" | "text" | "shape" | "background";
 
   @IsOptional()
   @IsBoolean()
