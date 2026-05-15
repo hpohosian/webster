@@ -1,5 +1,4 @@
 import { MousePointer2, Hand, Type, Square, Wand2, LayoutTemplate } from "lucide-react";
-// import { PrismatLogo } from "./../assets/Logo" 
 export type PanelCategory = "text" | "icons" | "box" | "templates" | null;
 
 interface LogoToolsPanelProps {
@@ -23,7 +22,7 @@ export function LogoToolsPanel({
     <div className="w-13 bg-[#0f0f14] border-r border-border flex flex-col items-center py-3 gap-1 flex-shrink-0">
 
       {/* Divider */}
-      <div className="w-7 h-px bg-border my-1" />
+      {/* <div className="w-7 h-px bg-border my-1" /> */}
 
       {/* Panel categories */}
       {PANEL_CATEGORIES.map(({ id, Icon, label }) => (
