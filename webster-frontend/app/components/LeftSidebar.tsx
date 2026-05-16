@@ -3,6 +3,8 @@ import { useState } from "react";
 import "./LeftSidebar.css";
 import { PrismatLogo } from "./../assets/Logo";
 
+const API = import.meta.env?.VITE_API;
+
 const NAV_ITEMS = [
   {
     label: "Logo maker",
@@ -45,6 +47,7 @@ export default function LeftSidebar() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState<string | null>("profile");
+  const [error, setError] = useState("");
 
   // redirect to /login if not authenticated
   function handleNavClick(e: React.MouseEvent, item: (typeof NAV_ITEMS)[number]) {
@@ -56,9 +59,24 @@ export default function LeftSidebar() {
     setActiveNav(item.label);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    navigate("/login");
+
+    try {
+      const res = await fetch(`${API}/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.message || "Logout failed.");
+      } else {
+        navigate("/");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   }
 
   return (
