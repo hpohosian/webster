@@ -1,6 +1,6 @@
 import { Download, Undo2, Redo2 } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
-
+import { Link } from "react-router"
 export function Header() {
   const history     = useEditorStore((s) => s.history);
   const pushHistory = useEditorStore((s) => s.pushHistory);
@@ -14,9 +14,9 @@ export function Header() {
       padding: "0 16px", flexShrink: 0,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "var(--accent)", letterSpacing: "-0.5px" }}>
+        <Link to="/projects" style={{ fontWeight: 700, fontSize: 15, color: "var(--accent)", letterSpacing: "-0.5px" }}>
           Prismat
-        </span>
+        </Link>
         {["Save to projects", "Edit", "Image", "View"].map((m) => (
           <button key={m} style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
             {m}

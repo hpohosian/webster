@@ -19,7 +19,7 @@ export function LogoToolsPanel({
   onPanelSelect,
 }: LogoToolsPanelProps) {
   return (
-    <div className="w-13 bg-[#0f0f14] border-r border-border flex flex-col items-center py-3 gap-1 flex-shrink-0">
+    <div className="w-13 bg-[#0f0f14] h-100 border-r border-border flex flex-col items-center py-3 gap-1 flex-shrink-0">
 
       {/* Divider */}
       {/* <div className="w-7 h-px bg-border my-1" /> */}

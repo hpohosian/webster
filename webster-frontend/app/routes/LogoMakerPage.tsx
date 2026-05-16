@@ -109,7 +109,7 @@ export default function LogoMakerPage() {
           />
         )}
  
-        {/* <Canvas /> */}
+        <Canvas />
       </div>
     </div>
   );
