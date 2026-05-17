@@ -56,7 +56,7 @@ const createProject = async () => {
 // ─── Project card thumbnail 
 function ProjectThumb({ project }: { project: Project }) {
   const isLogo = project.type === "logo";
-  console.log("project.thumbnail", console.log(project.thumbnail));
+  // console.log("project.thumbnail", console.log(project.thumbnail));
   return (
     <div style={{
       width: "100%",

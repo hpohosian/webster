@@ -70,42 +70,65 @@ export function Canvas() {
   const isCanvasReadyRef = useRef(false);
   const pendingJSONRef = useRef<any>(null); 
 
-  useEffect(() => {
-    const element = canvasElementRef.current;
-    if (!element) return;
+  // useEffect(() => {
+  //   const element = canvasElementRef.current;
+  //   if (!element) return;
 
-    const canvas = new FabricCanvas(element, {
-      width: canvasSize.w || 800,
-      height: canvasSize.h || 600,
-      backgroundColor: CANVAS_BACKGROUND,
-      preserveObjectStacking: true,
-      selection: true,
+  //   const canvas = new FabricCanvas(element, {
+  //     width: canvasSize.w || 800,
+  //     height: canvasSize.h || 600,
+  //     backgroundColor: CANVAS_BACKGROUND,
+  //     preserveObjectStacking: true,
+  //     selection: true,
+  //   });
+
+  //   setFabricCanvas(canvas);
+
+  //   fabricRef.current = canvas;
+  //   isCanvasReadyRef.current = true;
+
+  //   canvas.requestRenderAll();
+
+  //   // 🔥 если JSON уже пришёл раньше — применяем его
+  //   if (pendingJSONRef.current) {
+  //     canvas.loadFromJSON(pendingJSONRef.current, () => {
+  //       canvas.backgroundColor = CANVAS_BACKGROUND;
+  //       canvas.requestRenderAll();
+  //       pendingJSONRef.current = null;
+  //     });
+  //   }
+
+  //   return () => {
+  //     isCanvasReadyRef.current = false;
+  //     canvas.dispose();
+  //     fabricRef.current = null;
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+
+    const descriptor = Object.getOwnPropertyDescriptor(canvas, "backgroundColor");
+
+    let currentValue = canvas.backgroundColor;
+
+    Object.defineProperty(canvas, "backgroundColor", {
+      get() {
+        return currentValue;
+      },
+      set(v) {
+        console.log("💥 backgroundColor CHANGED:", v, new Error().stack);
+        currentValue = v;
+      },
     });
 
-    setFabricCanvas(canvas);
-
-    fabricRef.current = canvas;
-    isCanvasReadyRef.current = true;
-
-    canvas.requestRenderAll();
-
-    // 🔥 если JSON уже пришёл раньше — применяем его
-    if (pendingJSONRef.current) {
-      canvas.loadFromJSON(pendingJSONRef.current, () => {
-        canvas.requestRenderAll();
-        pendingJSONRef.current = null;
-      });
-    }
-
-    return () => {
-      isCanvasReadyRef.current = false;
-      canvas.dispose();
-      fabricRef.current = null;
-    };
+    return () => {};
   }, []);
 
   useEffect(() => {
-    if (!canvasJSON) return;
+    console.log("LOADING JSON", canvasJSON);
+    // if (!canvasJSON) return;
 
     const canvas = fabricRef.current;
 
@@ -117,10 +140,16 @@ export function Canvas() {
 
     isRestoringRef.current = true;
 
+    console.log("LOADING JSON after", canvasJSON);
+
     canvas.loadFromJSON(canvasJSON, () => {
+      canvas.backgroundColor = CANVAS_BACKGROUND;
       canvas.requestRenderAll();
       recordSnapshot("Load Project");
       isRestoringRef.current = false;
+
+      console.log('canvasJSON', canvasJSON);
+      
     });
   }, [canvasJSON]);
 
@@ -152,6 +181,43 @@ export function Canvas() {
     setLayers(nextLayers, activeId);
   }, [setLayers]);
 
+  const { projectId } = useParams();
+
+  const saveProject = useCallback(async () => {
+    const canvas = fabricRef.current;
+    if (!canvas || !projectId) return;
+
+    const payload = {
+      canvas: {
+        width: canvas.getWidth(),
+        height: canvas.getHeight(),
+        background: "#ffffff",
+      },
+      objects: canvas.toJSON(FABRIC_PROPS),
+    };
+
+    console.log(payload.objects);
+    
+
+    const thumbnail = canvas.toDataURL({
+      format: "png",
+      multiplier: 0.2,
+    });
+
+    await fetch(`http://localhost:3000/projects/${projectId}/save`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        projectState: payload,
+        isAutoSave: true,
+        thumbnail,
+      }),
+    });
+  }, [projectId]);
+
   const recordSnapshot = useCallback((label: string) => {
     const canvas = fabricRef.current;
     if (!canvas || isRestoringRef.current) return;
@@ -168,45 +234,42 @@ export function Canvas() {
     historyIndexRef.current = next.length - 1;
     setHistory(next.map((item) => item.label), historyIndexRef.current);
     syncLayers();
-  }, [setHistory, syncLayers]);
 
-  const { projectId } = useParams();
+    void saveProject();
+  }, [setHistory, syncLayers, saveProject]);
 
-  useEffect(() => {
-    if (!projectId) return;
+  // useEffect(() => {
+  //   if (!projectId) return;
 
-    const autosave = async () => {
-      const canvas = fabricRef.current;
-      if (!canvas) return;
+  //   const autosave = async () => {
+  //     const canvas = fabricRef.current;
+  //     if (!canvas) return;
 
-      const payload = {
-        canvas: {
-          width: canvas.getWidth(),
-          height: canvas.getHeight(),
-          background: "#ffffff",
-        },
-        objects: canvas.toJSON(FABRIC_PROPS),
-      };
+  //     const payload = {
+  //       canvas: {
+  //         width: canvas.getWidth(),
+  //         height: canvas.getHeight(),
+  //         background: "#ffffff",
+  //       },
+  //       objects: canvas.toJSON(FABRIC_PROPS),
+  //     };
 
-      const thumbnail = canvas.toDataURL({
-        format: "png",
-        multiplier: 0.2,
-      });
+  //     const thumbnail = canvas.toDataURL({
+  //       format: "png",
+  //       multiplier: 0.2,
+  //     });
 
-      console.log(thumbnail);
-      
+  //     await fetch(`http://localhost:3000/projects/${projectId}/save`, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       credentials: "include",
+  //       body: JSON.stringify({ projectState: payload, isAutoSave: true, thumbnail }),
+  //     });
+  //   };
 
-      await fetch(`http://localhost:3000/projects/${projectId}/save`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ projectState: payload, isAutoSave: true, thumbnail }),
-      });
-    };
-
-    const interval = setInterval(autosave, 2000);
-    return () => clearInterval(interval);
-  }, [projectId]);
+  //   const interval = setInterval(autosave, 2000);
+  //   return () => clearInterval(interval);
+  // }, [projectId]);
 
   const restoreSnapshot = useCallback(async (index: number) => {
     const canvas = fabricRef.current;
@@ -352,6 +415,18 @@ export function Canvas() {
     });
 
     fabricRef.current = canvas;
+    isCanvasReadyRef.current = true;
+
+    if (pendingJSONRef.current) {
+      canvas.loadFromJSON(pendingJSONRef.current, () => {
+        canvas.backgroundColor = CANVAS_BACKGROUND;
+        canvas.requestRenderAll();
+
+        recordSnapshot("Load Project");
+
+        pendingJSONRef.current = null;
+      });
+    }
 
     const markChanged = () => recordSnapshot("Canvas Changed");
     canvas.on("selection:created", () => syncLayers());
