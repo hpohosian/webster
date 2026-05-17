@@ -76,6 +76,8 @@ export interface EditorStore {
 
   canvasJSON: null;
 
+  canvasBackgroundColor: string;
+
   fabricCanvas: FabricCanvas | null;
 
   setFabricCanvas: (canvas: FabricCanvas | null) => void;
@@ -125,6 +127,7 @@ export interface EditorStore {
   consumeCanvasCommand: (id: number) => void;
 
   setCanvasJSON: (json: any) => void;
+  setCanvasBackgroundColor: (color: string) => void;
 }
 
 const DEFAULT_ADJUSTMENTS: Adjustments = {
@@ -162,6 +165,7 @@ export const useEditorStore = create<EditorStore>()(
       canvasCommand: null,
 
       canvasJSON: null,
+      canvasBackgroundColor: "#ffffff",
 
       fabricCanvas: null,
 
@@ -249,6 +253,8 @@ export const useEditorStore = create<EditorStore>()(
         set({ canvasJSON: json }, false, "setCanvasJSON"),
       setFabricCanvas: (canvas) =>
         set({ fabricCanvas: canvas }, false, "setFabricCanvas"),
+      setCanvasBackgroundColor: (color) =>
+        set({ canvasBackgroundColor: color }, false, "setCanvasBackgroundColor"),
     }),
     { name: "EditorStore" }
   )

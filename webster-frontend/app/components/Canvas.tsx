@@ -27,7 +27,7 @@ type EngineObject = FabricObject & {
 type Snapshot = { label: string; size: { w: number; h: number }; json: Record<string, unknown> };
 
 const FABRIC_PROPS = ["id", "name", "fileId", "imageUrl"];
-const CANVAS_BACKGROUND = "#ffffff";
+// const CANVAS_BACKGROUND = "#ffffff";
 
 export function Canvas() {
   const canvasElementRef = useRef<HTMLCanvasElement>(null);
@@ -48,6 +48,7 @@ export function Canvas() {
   const layers = useEditorStore((s) => s.layers);
   const command = useEditorStore((s) => s.canvasCommand);
   const canvasJSON = useEditorStore((s) => s.canvasJSON);
+  const canvasBackgroundColor = useEditorStore((s) => s.canvasBackgroundColor);
 
   const zoomIn = useEditorStore((s) => s.zoomIn);
   const zoomOut = useEditorStore((s) => s.zoomOut);
@@ -74,7 +75,7 @@ export function Canvas() {
     const canvas = new FabricCanvas(element, {
       width: canvasSize.w,
       height: canvasSize.h,
-      backgroundColor: CANVAS_BACKGROUND,
+      backgroundColor: canvasBackgroundColor,
       preserveObjectStacking: true,
       selection: true,
     });
@@ -86,7 +87,7 @@ export function Canvas() {
     // const json = canvasJSON;
     // if (json) {
     //   canvas.loadFromJSON(json, () => {
-    //     canvas.backgroundColor = CANVAS_BACKGROUND;
+    //     canvas.backgroundColor = canvasBackgroundColor;
     //     canvas.requestRenderAll();
     //   });
     // }
@@ -109,7 +110,7 @@ export function Canvas() {
 
     canvas.loadFromJSON(canvasJSON, () => {
       console.log("bg after load:", canvas.backgroundColor);
-      canvas.backgroundColor = CANVAS_BACKGROUND;
+      canvas.backgroundColor = canvasBackgroundColor;
       canvas.requestRenderAll();
     });
   }, [canvasJSON]);
@@ -322,7 +323,7 @@ export function Canvas() {
       }
       case "create-empty-canvas":
         canvas.clear();
-        canvas.backgroundColor = CANVAS_BACKGROUND;
+        canvas.backgroundColor = canvasBackgroundColor;
         canvas.requestRenderAll();
         recordSnapshot("Create Empty Canvas");
         break;

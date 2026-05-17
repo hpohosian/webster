@@ -12,6 +12,7 @@ export default function EditorPage() {
 
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize);
   const setCanvasJSON = useEditorStore((s) => s.setCanvasJSON);
+  const setCanvasBackgroundColor = useEditorStore((s) => s.setCanvasBackgroundColor);
 
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +32,8 @@ export default function EditorPage() {
         w: project.projectData.canvas.width,
         h: project.projectData.canvas.height,
       });      
+
+      setCanvasBackgroundColor(project.projectData.canvas.background)
 
       setCanvasJSON(project.projectData.objects);
       // setLayers(project.layers || []);
