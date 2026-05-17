@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import "./ProjectPage.css"
 import { userProfile, useProjects,
         type SortKey, type Project } from "./userLogik";
+import { Pencil, Trash2 } from "lucide-react";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
@@ -18,7 +19,7 @@ function sortProjects(projects: Project[], key: SortKey) {
   });
 }
 
-const createProject = async () => {
+const createProject = async (type: "photo" | "logo") => {
   try {
     const me = await fetch("http://localhost:3000/auth/me", {
       credentials: "include",
@@ -36,7 +37,8 @@ const createProject = async () => {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title: "My project",
+        title: type === "logo" ? "My logo" : "My project",
+        type,
         canvas: {
           width: 800,
           height: 600,
@@ -178,6 +180,46 @@ export default function MyProjectsPage() {
   const [searchFocused, setSearchFocused] = useState(false);
   const { profile } = userProfile();
   const { projects, loading } = useProjects();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
+  const renameProject = async (id: string) => {
+    try {
+      await fetch(`http://localhost:3000/projects/${id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: editingTitle,
+        }),
+      });
+
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteProject = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this project?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await fetch(`http://localhost:3000/projects/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+    }
+  };
   
   // Filter + sort
   const visible = sortProjects(
@@ -374,14 +416,109 @@ export default function MyProjectsPage() {
                 >
                   <ProjectThumb project={project} />
                   <div style={{ padding: "12px 14px 14px" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
-                      <span style={{
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                      {/* <span style={{
                         fontSize: 14, fontWeight: 600,
                         color: "#1a1a1a", lineHeight: 1.3,
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }}>
                         {project.title}
-                      </span>
+                      </span> */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: "#1a1a1a",
+                          gap: 6,
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
+                        {editingId === project.id ? (
+                          <input
+                            autoFocus
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onClick={(e) => e.preventDefault()}
+                            onKeyDown={async (e) => {
+                              if (e.key === "Enter") {
+                                await renameProject(project.id);
+                                setEditingId(null);
+                              }
+
+                              if (e.key === "Escape") {
+                                setEditingId(null);
+                              }
+                            }}
+                            onBlur={async () => {
+                              await renameProject(project.id);
+                              setEditingId(null);
+                            }}
+                            style={{
+                              border: "1px solid #ddd",
+                              borderRadius: 6,
+                              padding: "2px 6px",
+                              fontSize: 14,
+                              fontWeight: 600,
+                              width: "100%",
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <span
+                              style={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: "#1a1a1a",
+                                lineHeight: 1.3,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {project.title}
+                            </span>
+
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setEditingId(project.id);
+                                setEditingTitle(project.title);
+                              }}
+                              style={{
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                padding: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                color: "#aaa",
+                              }}
+                            >
+                              <Pencil size={13} />
+                            </button>
+
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                deleteProject(project.id);
+                              }}
+                              style={{
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                padding: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                color: "#d9534f",
+                                transition: "0.2s",
+                              }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                       <TypeBadge type={project.type} />
                     </div>
                     <div style={{ fontSize: 11, color: "#bbb", marginTop: 5 }}>
@@ -393,7 +530,7 @@ export default function MyProjectsPage() {
 
               {/* "New project" card */}
               <button
-                onClick={createProject}
+                onClick={() => createProject("photo")}
                 className="project-card fade-in"
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "center",

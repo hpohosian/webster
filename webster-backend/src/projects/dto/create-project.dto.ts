@@ -21,6 +21,12 @@ export class CreateProjectDto {
   @IsNotEmpty()
   title: string;
 
+  @ApiProperty({
+    example: 'photo',
+    enum: ['photo', 'logo'],
+  })
+  type: 'photo' | 'logo';
+
   @ApiProperty({ type: CanvasDto })
   @IsObject()
   canvas: CanvasDto;

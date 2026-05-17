@@ -65,10 +65,7 @@ export function Canvas() {
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [showCtxMenu, setShowCtxMenu] = useState(false);
-  const [ctxPos, setCtxPos] = useState({ x: 0, y: 0 });
-
-  console.log("переапуск");
-  
+  const [ctxPos, setCtxPos] = useState({ x: 0, y: 0 });  
 
   useEffect(() => {
     const element = canvasElementRef.current;

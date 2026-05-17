@@ -30,6 +30,13 @@ export class Project {
   @Column()
   title: string;
 
+  @Column({
+    type: 'enum',
+    enum: ['photo', 'logo'],
+    default: 'photo',
+  })
+  type: 'photo' | 'logo';
+
   @ApiProperty({
     description: 'Project data (canvas + objects)',
   })

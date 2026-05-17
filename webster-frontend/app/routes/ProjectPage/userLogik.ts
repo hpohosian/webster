@@ -13,7 +13,7 @@ export interface UserProfile {
 export interface Project {
   id: string;
   title: string;
-
+  type: "photo" | "logo";
   projectData: {
     canvas: {
       width: number;
