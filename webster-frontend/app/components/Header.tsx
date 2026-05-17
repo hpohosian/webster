@@ -7,6 +7,25 @@ export function Header() {
 
   const canUndo = history.length > 1;
 
+  const canvas = useEditorStore((s) => s.fabricCanvas);
+
+  function handleExport(format: "png" | "jpeg") {
+    if (!canvas) return;
+
+    const dataURL = canvas.toDataURL({
+      format,
+      quality: 1,
+      multiplier: 2,
+    });
+
+    const link = document.createElement("a");
+
+    link.href = dataURL;
+    link.download = `prismat-export.${format}`;
+
+    link.click();
+  }
+
   return (
     <header style={{
       height: 48, background: "#0d0d12", borderBottom: "1px solid #1e1e2a",
@@ -35,7 +54,15 @@ export function Header() {
         <button style={btnStyle} onClick={() => pushHistory("Redo")}>
           <Redo2 size={13} /> Redo
         </button>
-        <button style={{ ...btnStyle, background: "var(--accent)", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => handleExport("png")}
+          style={{
+            ...btnStyle,
+            background: "var(--accent)",
+            border: "none",
+            color: "#fff"
+          }}
+        >
           <Download size={13} /> Export
         </button>
       </div>

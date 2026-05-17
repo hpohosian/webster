@@ -24,6 +24,7 @@ export interface Project {
 
   createdAt: string;
   updatedAt: string;
+  thumbnail: string;
 }
 
 const API = import.meta.env.VITE_API;

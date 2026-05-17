@@ -148,6 +148,7 @@ export class ProjectsService {
     projectState: any,
     isAutoSave: boolean,
     userId: string,
+    thumbnail?: string,
   ) {
     const project = await this.projectRepo.findOne({
       where: { id: projectId, user: { id: userId } },
@@ -173,12 +174,16 @@ export class ProjectsService {
 
     project.currentVersionId = savedVersion.id;
     project.projectData = projectState;
+    if (thumbnail) {
+      project.thumbnail = thumbnail;
+    }
 
     await this.projectRepo.save(project);
 
     return {
       version: savedVersion,
       versionNumber: nextVersionNumber,
+      projectthumbnail: project.thumbnail,
     };
   }
 

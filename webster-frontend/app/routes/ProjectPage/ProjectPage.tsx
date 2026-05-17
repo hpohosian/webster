@@ -56,6 +56,7 @@ const createProject = async () => {
 // ─── Project card thumbnail 
 function ProjectThumb({ project }: { project: Project }) {
   const isLogo = project.type === "logo";
+  console.log("project.thumbnail", console.log(project.thumbnail));
   return (
     <div style={{
       width: "100%",
@@ -70,7 +71,7 @@ function ProjectThumb({ project }: { project: Project }) {
     }}>
       <div className="thumb-shimmer" />
 
-      {isLogo ? (
+      {/* {isLogo ? (
         // Logo placeholder
         <div style={{ textAlign: "center" }}>
           <div style={{
@@ -98,6 +99,17 @@ function ProjectThumb({ project }: { project: Project }) {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
+        </div>
+      )} */}
+
+      {project.thumbnail ? (
+        <img
+          src={project.thumbnail}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
+          No preview
         </div>
       )}
     </div>
@@ -238,24 +250,20 @@ export default function MyProjectsPage() {
 
           {/* Right: action buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link to="/edit-photo/">
-              <button className="new-btn">
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                New Photo Edit
-              </button>
-            </Link>
-            <Link to="/logo-maker">
-              <button className="new-btn" style={{ background: "#5ab6d4" }}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                New Logo
-              </button>
-            </Link>
+            <button className="new-btn" onClick={createProject}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              New Photo Edit
+            </button>
+            <button className="new-btn" style={{ background: "#5ab6d4" }}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              New Logo
+            </button>
           </div>
         </div>
 

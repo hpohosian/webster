@@ -66,4 +66,7 @@ export class Project {
 
   @Column({ nullable: true })
   currentVersionId: string;
+
+  @Column({ type: "text", nullable: true })
+  thumbnail: string;
 }

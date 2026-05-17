@@ -59,6 +59,7 @@ export function Canvas() {
   const setHistory = useEditorStore((s) => s.setHistory);
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const consumeCanvasCommand = useEditorStore((s) => s.consumeCanvasCommand);
+  const setFabricCanvas = useEditorStore((s) => s.setFabricCanvas);
   
 
   const [isPanning, setIsPanning] = useState(false);
@@ -80,6 +81,8 @@ export function Canvas() {
       preserveObjectStacking: true,
       selection: true,
     });
+
+    setFabricCanvas(canvas);
 
     fabricRef.current = canvas;
     isCanvasReadyRef.current = true;
@@ -185,11 +188,19 @@ export function Canvas() {
         objects: canvas.toJSON(FABRIC_PROPS),
       };
 
+      const thumbnail = canvas.toDataURL({
+        format: "png",
+        multiplier: 0.2,
+      });
+
+      console.log(thumbnail);
+      
+
       await fetch(`http://localhost:3000/projects/${projectId}/save`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ projectState: payload, isAutoSave: true }),
+        body: JSON.stringify({ projectState: payload, isAutoSave: true, thumbnail }),
       });
     };
 

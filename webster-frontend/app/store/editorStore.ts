@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import type { Canvas as FabricCanvas } from "fabric";
 
 export type ShapeKind = "rectangle" | "rounded-rect" | "circle" | "line" | "arrow" | "triangle" | "star";
 
@@ -74,6 +75,10 @@ export interface EditorStore {
   canvasCommand: CanvasCommand | null;
 
   canvasJSON: null;
+
+  fabricCanvas: FabricCanvas | null;
+
+  setFabricCanvas: (canvas: FabricCanvas | null) => void;
 
   resizeCanvas: (width: number, height: number) => void;
 
@@ -158,6 +163,8 @@ export const useEditorStore = create<EditorStore>()(
 
       canvasJSON: null,
 
+      fabricCanvas: null,
+
       setActiveTool: (tool) => set({ activeTool: tool }, false, "setActiveTool"),
 
       setActivePanel: (panel) =>
@@ -240,6 +247,8 @@ export const useEditorStore = create<EditorStore>()(
         set((s) => ({ canvasCommand: s.canvasCommand?.id === id ? null : s.canvasCommand }), false, "consumeCanvasCommand"),
       setCanvasJSON: (json) =>
         set({ canvasJSON: json }, false, "setCanvasJSON"),
+      setFabricCanvas: (canvas) =>
+        set({ fabricCanvas: canvas }, false, "setFabricCanvas"),
     }),
     { name: "EditorStore" }
   )
