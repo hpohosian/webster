@@ -567,45 +567,172 @@ export default function MyProjectsPage() {
                   className="list-row fade-in"
                   style={{ animationDelay: `${i * 0.04}s` }}
                 >
-                  {/* Thumb */}
+                  {/* Thumbnail */}
                   <div
                     className="list-thumb"
-                    style={{ background: project.type === "logo" ? "#1a1a1a" : "#ebebeb" }}
+                    style={{
+                      background: project.type === "logo" ? "#1a1a1a" : "#ebebeb",
+                      overflow: "hidden",
+                    }}
                   >
-                    {project.type === "logo" ? (
-                      <div style={{
-                        width: 18, height: 18, borderRadius: "50%",
-                        background: "linear-gradient(135deg, #7ec8e3, #b0e0f5)",
-                      }} />
+                    {project.thumbnail ? (
+                      <img
+                        src={project.thumbnail}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : project.type === "logo" ? (
+                      <div
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: "50%",
+                          background: "linear-gradient(135deg, #7ec8e3, #b0e0f5)",
+                        }}
+                      />
                     ) : (
-                      <svg width="18" height="18" fill="none" stroke="#ccc" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
+                      <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="#ccc"
+                        strokeWidth="1.5"
+                        viewBox="0 0 24 24"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
                       </svg>
                     )}
                   </div>
 
-                  {/* Name */}
-                  <span style={{
-                    flex: 1, fontSize: 14, fontWeight: 500, color: "#1a1a1a",
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    {project.title}
-                  </span>
+                  {/* Title + rename */}
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      minWidth: 0,
+                    }}
+                  >
+                    {editingId === project.id ? (
+                      <input
+                        autoFocus
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onClick={(e) => e.preventDefault()}
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter") {
+                            await renameProject(project.id);
+                            setEditingId(null);
+                          }
 
-                  {/* Type badge */}
+                          if (e.key === "Escape") {
+                            setEditingId(null);
+                          }
+                        }}
+                        onBlur={async () => {
+                          await renameProject(project.id);
+                          setEditingId(null);
+                        }}
+                        style={{
+                          border: "1px solid #ddd",
+                          borderRadius: 6,
+                          padding: "4px 8px",
+                          fontSize: 14,
+                          width: "100%",
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <span
+                          style={{
+                            flex: 1,
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: "#1a1a1a",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {project.title}
+                        </span>
+
+                        {/* Rename */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setEditingId(project.id);
+                            setEditingTitle(project.title);
+                          }}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            color: "#aaa",
+                          }}
+                        >
+                          <Pencil size={13} />
+                        </button>
+
+                        {/* Delete */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            deleteProject(project.id);
+                          }}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            color: "#d9534f",
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Type */}
                   <TypeBadge type={project.type} />
 
                   {/* Date */}
-                  <span style={{
-                    fontSize: 12, color: "#bbb", minWidth: 90, textAlign: "right",
-                  }}>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "#bbb",
+                      minWidth: 90,
+                      textAlign: "right",
+                    }}
+                  >
                     {formatDate(project.updatedAt)}
                   </span>
 
                   {/* Arrow */}
-                  <svg width="14" height="14" fill="none" stroke="#ccc" strokeWidth="1.8" viewBox="0 0 24 24">
-                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="#ccc"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M9 18l6-6-6-6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </Link>
               ))}
