@@ -67,89 +67,53 @@ export function Canvas() {
   const [showCtxMenu, setShowCtxMenu] = useState(false);
   const [ctxPos, setCtxPos] = useState({ x: 0, y: 0 });
 
-  const isCanvasReadyRef = useRef(false);
-  const pendingJSONRef = useRef<any>(null); 
-
-  // useEffect(() => {
-  //   const element = canvasElementRef.current;
-  //   if (!element) return;
-
-  //   const canvas = new FabricCanvas(element, {
-  //     width: canvasSize.w || 800,
-  //     height: canvasSize.h || 600,
-  //     backgroundColor: CANVAS_BACKGROUND,
-  //     preserveObjectStacking: true,
-  //     selection: true,
-  //   });
-
-  //   setFabricCanvas(canvas);
-
-  //   fabricRef.current = canvas;
-  //   isCanvasReadyRef.current = true;
-
-  //   canvas.requestRenderAll();
-
-  //   // 🔥 если JSON уже пришёл раньше — применяем его
-  //   if (pendingJSONRef.current) {
-  //     canvas.loadFromJSON(pendingJSONRef.current, () => {
-  //       canvas.backgroundColor = CANVAS_BACKGROUND;
-  //       canvas.requestRenderAll();
-  //       pendingJSONRef.current = null;
-  //     });
-  //   }
-
-  //   return () => {
-  //     isCanvasReadyRef.current = false;
-  //     canvas.dispose();
-  //     fabricRef.current = null;
-  //   };
-  // }, []);
+  console.log("переапуск");
+  
 
   useEffect(() => {
-    const canvas = fabricRef.current;
-    if (!canvas) return;
+    const element = canvasElementRef.current;
+    if (!element || fabricRef.current) return;
 
-    const descriptor = Object.getOwnPropertyDescriptor(canvas, "backgroundColor");
-
-    let currentValue = canvas.backgroundColor;
-
-    Object.defineProperty(canvas, "backgroundColor", {
-      get() {
-        return currentValue;
-      },
-      set(v) {
-        console.log("💥 backgroundColor CHANGED:", v, new Error().stack);
-        currentValue = v;
-      },
+    const canvas = new FabricCanvas(element, {
+      width: canvasSize.w,
+      height: canvasSize.h,
+      backgroundColor: CANVAS_BACKGROUND,
+      preserveObjectStacking: true,
+      selection: true,
     });
 
-    return () => {};
+    setFabricCanvas(canvas);
+
+    fabricRef.current = canvas;
+
+    // const json = canvasJSON;
+    // if (json) {
+    //   canvas.loadFromJSON(json, () => {
+    //     canvas.backgroundColor = CANVAS_BACKGROUND;
+    //     canvas.requestRenderAll();
+    //   });
+    // }
+
+    return () => {
+      canvas.dispose();
+      fabricRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
-    console.log("LOADING JSON", canvasJSON);
-    // if (!canvasJSON) return;
-
     const canvas = fabricRef.current;
+    if (!canvas || !canvasJSON) return;
 
-    // ⛔ canvas ещё не готов → кладём в очередь
-    if (!canvas || !isCanvasReadyRef.current) {
-      pendingJSONRef.current = canvasJSON;
-      return;
-    }
+    console.log("canvas.backgroundColor", canvas.backgroundColor);
+    console.log("canvasJSON", canvasJSON);
 
-    isRestoringRef.current = true;
-
-    console.log("LOADING JSON after", canvasJSON);
+    if (!canvas || !canvasJSON || Array.isArray(canvasJSON) || !canvasJSON.objects) return;
+    
 
     canvas.loadFromJSON(canvasJSON, () => {
+      console.log("bg after load:", canvas.backgroundColor);
       canvas.backgroundColor = CANVAS_BACKGROUND;
       canvas.requestRenderAll();
-      recordSnapshot("Load Project");
-      isRestoringRef.current = false;
-
-      console.log('canvasJSON', canvasJSON);
-      
     });
   }, [canvasJSON]);
 
@@ -235,41 +199,47 @@ export function Canvas() {
     setHistory(next.map((item) => item.label), historyIndexRef.current);
     syncLayers();
 
-    void saveProject();
-  }, [setHistory, syncLayers, saveProject]);
+    // void saveProject();
+  }, [setHistory, syncLayers]);
 
-  // useEffect(() => {
-  //   if (!projectId) return;
+  const isDirtyRef = useRef(false);
+  const markDirty = () => {
+    isDirtyRef.current = true;
+  };
 
-  //   const autosave = async () => {
-  //     const canvas = fabricRef.current;
-  //     if (!canvas) return;
+  useEffect(() => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
 
-  //     const payload = {
-  //       canvas: {
-  //         width: canvas.getWidth(),
-  //         height: canvas.getHeight(),
-  //         background: "#ffffff",
-  //       },
-  //       objects: canvas.toJSON(FABRIC_PROPS),
-  //     };
+    const mark = () => {
+      isDirtyRef.current = true;
+    };
 
-  //     const thumbnail = canvas.toDataURL({
-  //       format: "png",
-  //       multiplier: 0.2,
-  //     });
+    canvas.on("object:modified", mark);
+    canvas.on("object:added", mark);
+    canvas.on("object:removed", mark);
+    canvas.on("path:created", mark);
 
-  //     await fetch(`http://localhost:3000/projects/${projectId}/save`, {
-  //       method: "PUT",
-  //       headers: { "Content-Type": "application/json" },
-  //       credentials: "include",
-  //       body: JSON.stringify({ projectState: payload, isAutoSave: true, thumbnail }),
-  //     });
-  //   };
+    return () => {
+      canvas.off("object:modified", mark);
+      canvas.off("object:added", mark);
+      canvas.off("object:removed", mark);
+      canvas.off("path:created", mark);
+    };
+  }, []);
 
-  //   const interval = setInterval(autosave, 2000);
-  //   return () => clearInterval(interval);
-  // }, [projectId]);
+  useEffect(() => {
+    if (!projectId) return;
+
+    const interval = setInterval(() => {
+      if (!isDirtyRef.current) return;
+
+      isDirtyRef.current = false;
+      void saveProject();
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [projectId, saveProject]);
 
   const restoreSnapshot = useCallback(async (index: number) => {
     const canvas = fabricRef.current;
@@ -401,50 +371,6 @@ export function Canvas() {
         break;
     }
   }, [addObject, brushColor, recordSnapshot, restoreSnapshot]);
-
-  useEffect(() => {
-    const element = canvasElementRef.current;
-    if (!element || fabricRef.current) return;
-
-    const canvas = new FabricCanvas(element, {
-      width: canvasSize.w,
-      height: canvasSize.h,
-      backgroundColor: CANVAS_BACKGROUND,
-      preserveObjectStacking: true,
-      selection: true,
-    });
-
-    fabricRef.current = canvas;
-    isCanvasReadyRef.current = true;
-
-    if (pendingJSONRef.current) {
-      canvas.loadFromJSON(pendingJSONRef.current, () => {
-        canvas.backgroundColor = CANVAS_BACKGROUND;
-        canvas.requestRenderAll();
-
-        recordSnapshot("Load Project");
-
-        pendingJSONRef.current = null;
-      });
-    }
-
-    const markChanged = () => recordSnapshot("Canvas Changed");
-    canvas.on("selection:created", () => syncLayers());
-    canvas.on("selection:updated", () => syncLayers());
-    canvas.on("selection:cleared", () => syncLayers(""));
-    canvas.on("object:modified", markChanged);
-    canvas.on("path:created", () => recordSnapshot("Draw Stroke"));
-
-    snapshotsRef.current = [{ label: "Canvas Created", size: canvasSize, json: canvas.toObject(FABRIC_PROPS) }];
-    historyIndexRef.current = 0;
-    setHistory(["Canvas Created"], 0);
-    syncLayers();
-
-    return () => {
-      fabricRef.current = null;
-      void canvas.dispose();
-    };
-  }, []);
 
   useEffect(() => {
     const canvas = fabricRef.current;
