@@ -13,16 +13,12 @@ const PANEL_CATEGORIES = [
   { id: "templates" as const, Icon: LayoutTemplate,  label: "Templates" },
 ] satisfies { id: Exclude<PanelCategory, null>; Icon: React.FC<{ className?: string }>; label: string }[];
 
-// ── Component 
 export function LogoToolsPanel({
   activePanel,
   onPanelSelect,
 }: LogoToolsPanelProps) {
   return (
     <div className="w-13 bg-[#0f0f14] h-100 border-r border-border flex flex-col items-center py-3 gap-1 flex-shrink-0">
-
-      {/* Divider */}
-      {/* <div className="w-7 h-px bg-border my-1" /> */}
 
       {/* Panel categories */}
       {PANEL_CATEGORIES.map(({ id, Icon, label }) => (

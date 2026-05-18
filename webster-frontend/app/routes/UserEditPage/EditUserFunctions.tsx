@@ -43,7 +43,6 @@ export interface FieldProps {
 }
 
 // -- Sub-components 
-
 export const NavItem = ({ icon, label, active, onClick }: NavItemProps) => (
   <button className={`ep-nav-item${active ? ' active' : ''}`} onClick={onClick}>
     {icon}

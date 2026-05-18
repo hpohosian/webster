@@ -82,7 +82,7 @@ export default function LoginPage() {
     }
   };
 
-  // ── shared input style
+  // input style
   const inputBase = (field: string): React.CSSProperties => ({
     width: "100%",
     padding: "13px 16px",

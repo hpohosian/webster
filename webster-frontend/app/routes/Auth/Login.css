@@ -1,11 +1,10 @@
  
  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
  
- * {
+ /* * {
     box-sizing: border-box;
     margin: 0;
-    padding: 0;
-  }
+  } */
 
   html,
   body,
@@ -19,6 +18,8 @@
     font-family: 'Elms Sans', 'DM Sans', sans-serif;
     background: #f0f0f0;
     overflow: hidden;
+    box-sizing: border-box;
+    margin: 0;
   }
 
   .auth-main {

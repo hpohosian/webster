@@ -20,8 +20,6 @@ export default function EditorPage() {
     async function loadProject() {
       if (!projectId ) return;
 
-      
-
       const res = await fetch(`http://localhost:3000/projects/${projectId }`, {
         credentials: "include",
       });

@@ -1,6 +1,7 @@
 import { Download, Undo2, Redo2 } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
-import { Link } from "react-router"
+import { Link } from "react-router";
+
 export function Header() {
   const history     = useEditorStore((s) => s.history);
   const pushHistory = useEditorStore((s) => s.pushHistory);

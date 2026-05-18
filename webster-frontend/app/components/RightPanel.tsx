@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  Layers, History, ChevronRight, ChevronLeft,
-  Eye, EyeOff, Lock, Unlock,
-  Trash2, Copy, MoveUp, MoveDown,
+  Layers, History,
+  ChevronRight, ChevronLeft,
+  Eye, EyeOff,
+  Lock, Unlock,
+  Trash2, Copy,
+  MoveUp, MoveDown,
 } from "lucide-react";
 import { useParams } from "react-router";
 import { useEditorStore, useSelectedLayer } from "../store/editorStore";

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { AuthHeader } from "../../components/AuthHeader";
 import { useParams } from "react-router";
-import { IconEye, ClosedIconEye, CheckIcon, CrossIcon } from "../../assets/Icons";
+import { IconEye, ClosedIconEye, CheckIcon, IconX } from "../../assets/Icons";
 
 const RINGS = [
   { size: 300, top: -150, right: -150 },
@@ -91,7 +91,7 @@ export default function PasswordReset() {
           ))}
         </div>
 
-        {/* ── Right panel ── */}
+        {/* Right panel */}
         <div className="flex flex-1 items-center justify-center px-6 py-12 lg:w-1/2">
 
           {message ? (
@@ -198,7 +198,7 @@ export default function PasswordReset() {
                                 ok ? "text-[#34d399]" : "text-[var(--muted-foreground)]"
                               }`}
                             >
-                              {ok ? <CheckIcon /> : <CrossIcon />}
+                              {ok ? <CheckIcon /> : <IconX />}
                               {text}
                             </span>
                           ))}

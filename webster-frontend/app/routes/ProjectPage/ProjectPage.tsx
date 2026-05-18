@@ -55,7 +55,7 @@ const createProject = async (type: "photo" | "logo") => {
   }
 };
 
-// ─── Project card thumbnail 
+// Project card thumbnail 
 function ProjectThumb({ project }: { project: Project }) {
   const isLogo = project.type === "logo";
   // console.log("project.thumbnail", console.log(project.thumbnail));
@@ -120,7 +120,7 @@ function ProjectThumb({ project }: { project: Project }) {
 
 // ─── Type badge 
 function TypeBadge({ type }: { type: Project }) {
-  const isLogo = type === "logo";
+  const isLogo = (type === "logo");
   return (
     <span style={{
       display: "inline-block",
@@ -139,7 +139,7 @@ function TypeBadge({ type }: { type: Project }) {
   );
 }
 
-// ─── Empty state 
+// Empty state 
 function EmptyState() {
   return (
     <div style={{
@@ -170,8 +170,7 @@ function EmptyState() {
     </div>
   );
 }
-
-// ─── Main page 
+ 
 export default function MyProjectsPage() {
   const [filter, setFilter] = useState<"all" | Project>("all");
   const [sort, setSort] = useState<SortKey>("recent");

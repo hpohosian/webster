@@ -1,47 +1,41 @@
 import { useNavigate, Link } from 'react-router';
 import { useState } from "react";
-import "./LeftSidebar.css";
 import { PrismatLogo } from "./../assets/Logo";
+import {IconUser, Editor, Logomaker} from "./../assets/Icons"
+import "./LeftSidebar.css";
 
 const API = import.meta.env?.VITE_API;
 
 const NAV_ITEMS = [
   {
-    label: "Logo maker",
+    label: "Logo",
     icon: (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-        <rect x="3" y="3" width="8" height="8" rx="1" />
-        <rect x="13" y="3" width="8" height="8" rx="1" />
-        <rect x="3" y="13" width="8" height="8" rx="1" />
-        <rect x="13" y="13" width="8" height="8" rx="1" />
-      </svg>
-    ),
+      // <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      //   <rect x="3" y="3" width="8" height="8" rx="1" />
+      //   <rect x="13" y="3" width="8" height="8" rx="1" />
+      //   <rect x="3" y="13" width="8" height="8" rx="1" />
+      //   <rect x="13" y="13" width="8" height="8" rx="1" />
+      // </svg>
+
+       <Logomaker/>
+      ),
     path: "/logo-maker"
   },
   {
     label: "Editor",
     icon: (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-        <rect x="2" y="2" width="20" height="20" rx="2" />
-        <path d="M7 7h4M7 12h10M7 17h6" strokeLinecap="round" />
-      </svg>
+     <Editor/>
     ),
     path: "/edit-page"
   },
   {
     label: "Profile",
     icon: (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
-      </svg>
+     <IconUser/>
     ),
     path: "projects/:userId"
   },
 ];
-
-// Checks login
-
 
 export default function LeftSidebar() {
   const navigate = useNavigate();
@@ -49,14 +43,20 @@ export default function LeftSidebar() {
   const [activeNav, setActiveNav] = useState<string | null>("profile");
   const [error, setError] = useState("");
 
-  // redirect to /login if not authenticated
-  function handleNavClick(e: React.MouseEvent, item: (typeof NAV_ITEMS)[number]) {
-  //   if (!isAuthenticated()) {
-  //     e.preventDefault();
-  //     navigate("/login");
-  //     return;
-  //   }
-    setActiveNav(item.label);
+  async function handleNavClick(e: React.MouseEvent, item: (typeof NAV_ITEMS)[number]) {
+    try {
+      const me = await fetch("http://localhost:3000/auth/me", { credentials: "include" })
+        const meData = await me.json();
+
+        if (!meData.user) {
+          navigate("/login");
+          return;
+        }
+        setActiveNav(item.label);
+
+      } catch (err) {
+      console.error(err);
+    }
   }
 
   async function handleLogout() {

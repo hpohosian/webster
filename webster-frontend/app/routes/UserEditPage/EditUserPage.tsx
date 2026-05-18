@@ -3,10 +3,8 @@ import { Link, useNavigate } from 'react-router';
 import './EditUserPage.css';
 import { userProfile } from '../ProjectPage/userLogik';
 import type {
-  ProfileFormKey,
-  ToastState,
-  FormErrors,
-  ProfileForm,
+  ProfileFormKey, ToastState,
+  FormErrors, ProfileForm,
 } from './EditUserFunctions';
 import { SectionCard, Field } from './EditUserFunctions';
 import { handleDelete, handleUpdate } from './EditUserFunctions';
@@ -65,7 +63,6 @@ export default function UserEditPage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errs.email = 'Invalid email address';
     }
-
     return errs;
   };
 
@@ -223,7 +220,6 @@ export default function UserEditPage() {
           </main>
         </div>
 
-        {/* Toast */}
         {toast && (
           <div className={`ep-toast ${toast.type}`}>
             {toast.msg}
