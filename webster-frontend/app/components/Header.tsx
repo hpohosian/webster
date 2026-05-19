@@ -2,6 +2,7 @@ import { Download, Undo2, Redo2 } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
+import jsPDF from "jspdf";
 
 const API = import.meta.env?.VITE_API;
 
@@ -9,6 +10,7 @@ export function Header() {
   const history     = useEditorStore((s) => s.history);
   const pushHistory = useEditorStore((s) => s.pushHistory);
   const [userId, setId] = useState(null);
+  const [exportFormat, setExportFormat] = useState("png");
   
    useEffect(() => {
         fetch(`${API}/auth/me`, { credentials: "include" })
@@ -25,21 +27,90 @@ export function Header() {
 
   const canvas = useEditorStore((s) => s.fabricCanvas);
 
-  function handleExport(format: "png" | "jpeg") {
+  // function handleExport(format: "png" | "jpeg") {
+  //   if (!canvas) return;
+
+  //   const dataURL = canvas.toDataURL({
+  //     format,
+  //     quality: 1,
+  //     multiplier: 2,
+  //   });
+
+  //   const link = document.createElement("a");
+
+  //   link.href = dataURL;
+  //   link.download = `prismat-export.${format}`;
+
+  //   link.click();
+  // }
+
+  async function handleExport() {
     if (!canvas) return;
 
-    const dataURL = canvas.toDataURL({
-      format,
-      quality: 1,
-      multiplier: 2,
-    });
+    // PNG / JPEG
+    if (exportFormat === "png" || exportFormat === "jpeg") {
+      const dataURL = canvas.toDataURL({
+        format: exportFormat,
+        quality: 1,
+        multiplier: 2,
+      });
 
-    const link = document.createElement("a");
+      const link = document.createElement("a");
 
-    link.href = dataURL;
-    link.download = `prismat-export.${format}`;
+      link.href = dataURL;
+      link.download = `prismat-export.${exportFormat}`;
 
-    link.click();
+      link.click();
+    }
+
+    // SVG
+    if (exportFormat === "svg") {
+      const svg = canvas.toSVG();
+
+      const blob = new Blob([svg], {
+        type: "image/svg+xml",
+      });
+
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "prismat-export.svg";
+
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    // PDF
+    if (exportFormat === "pdf") {
+      const dataURL = canvas.toDataURL({
+        format: "png",
+        quality: 1,
+        multiplier: 2,
+      });
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "px",
+        format: [
+          canvas.getWidth(),
+          canvas.getHeight(),
+        ],
+      });
+
+      pdf.addImage(
+        dataURL,
+        "PNG",
+        0,
+        0,
+        canvas.getWidth(),
+        canvas.getHeight()
+      );
+
+      pdf.save("prismat-export.pdf");
+    }
   }
 
   return (
@@ -68,8 +139,27 @@ export function Header() {
         <button style={btnStyle} onClick={() => pushHistory("Redo")}>
           <Redo2 size={13} /> Redo
         </button>
+
+        <select
+          value={exportFormat}
+          onChange={(e) => setExportFormat(e.target.value)}
+          style={{
+            background: "#111",
+            color: "#fff",
+            border: "1px solid #2a2a2a",
+            borderRadius: 6,
+            padding: "4px 8px",
+            fontSize: 12,
+          }}
+        >
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="pdf">PDF</option>
+          <option value="svg">SVG</option>
+        </select>
+
         <button
-          onClick={() => handleExport("png")}
+          onClick={() => handleExport()}
           style={{
             ...btnStyle,
             background: "var(--accent)",
