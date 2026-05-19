@@ -39,15 +39,15 @@ export function LogoToolsPanel({
 interface ToolButtonProps {
   label: string;
   active: boolean;
-  activeFill?: boolean; // canvas tools fill bg; panel tools use accent colour text
+  activeFill?: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }
 
 function ToolButton({ label, active, activeFill = false, onClick, children }: ToolButtonProps) {
   const activeStyle = activeFill
-    ? "bg-secondary text-primary"          // panel toggle: subtle bg + accent text
-    : "bg-primary text-primary-foreground"; // canvas tool: solid primary fill
+    ? "bg-secondary text-primary"          // panel toggle
+    : "bg-primary text-primary-foreground"; // canvas tool
 
   return (
     <button

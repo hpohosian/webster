@@ -46,6 +46,7 @@ export function RightPanel() {
       .catch(console.error);
   }, [projectId, setLayers, setSelectedLayerId]);
 
+  // colapsed view
   if (collapsed) {
     return (
       <div style={{ width: 44, background: "var(--sidebar)", borderLeft: "1px solid var(--sidebar-border)", display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 4, flexShrink: 0 }}>
@@ -70,7 +71,7 @@ export function RightPanel() {
             <button key={id} onClick={() => setTab(id)} style={{
               background: tab === id ? "var(--accent)" : "transparent",
               border: "none",
-              color: tab === id ? "var(--sidebar-primary)" : "var(--sidebar-foreground)",
+              color: tab === id ? "var(--sidebar-layer)" : "var(--sidebar-foreground)",
               borderRadius: 6,
               padding: "5px 8px",
               cursor: "pointer",
@@ -112,17 +113,18 @@ export function RightPanel() {
                     >
                       {layer.visible ? <Eye size={13} /> : <EyeOff size={13} />}
                     </button>
-
+                    {/* square */}
                     <div style={{
                       width: 22,
                       height: 22,
                       borderRadius: 4,
                       background: "linear-gradient(135deg, var(--sidebar-ring), var(--sidebar-ring-mid))",
-                      border: "1px solid var(--sidebar-border)",
+                      // border: "1px solid var(--sidebar-border)",
                       flexShrink: 0,
                       opacity: layer.opacity / 100,
                     }} />
 
+                    {/* name */}
                     {editingId === layer.id ? (
                       <input
                         autoFocus
@@ -151,6 +153,7 @@ export function RightPanel() {
                       </span>
                     )}
 
+                    {/* action buttons */}
                     <button
                       onClick={(e) => { e.stopPropagation(); updateLayer(layer.id, { locked: !layer.locked }); }}
                       style={{ background: "none", border: "none", cursor: "pointer", color: layer.locked ? "var(--accent)" : "var(--sidebar-accent)", padding: 2, display: "flex" }}
@@ -160,18 +163,18 @@ export function RightPanel() {
 
                     <div style={{ display: "flex", gap: 1 }}>
                       {([
-                        [<Copy size={11} />, () => duplicateLayer(layer.id), "Duplicate", false],
-                        [<MoveUp size={11} />, () => moveLayer(layer.id, "up"), "Up", false],
-                        [<MoveDown size={11} />, () => moveLayer(layer.id, "down"), "Down", false],
-                        [<Trash2 size={11} />, () => deleteLayer(layer.id), "Delete", true],
+                        [<Copy size={12} />, () => duplicateLayer(layer.id), "Duplicate", false],
+                        [<MoveUp size={12} />, () => moveLayer(layer.id, "up"), "Up", false],
+                        [<MoveDown size={12} />, () => moveLayer(layer.id, "down"), "Down", false],
+                        [<Trash2 size={12} />, () => deleteLayer(layer.id), "Delete", true],
                       ] as [React.ReactNode, () => void, string, boolean][]).map(([icon, fn, title, isDanger], i) => (
                         <button
                           key={i}
                           title={title}
                           onClick={(e) => { e.stopPropagation(); fn(); }}
-                          style={{ background: "none", border: "none", color: isDanger ? "#f87171" : "#555", cursor: "pointer", padding: 2, display: "flex", borderRadius: 3 }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = isDanger ? "#fca5a5" : "#bbb")}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = isDanger ? "#f87171" : "#555")}
+                          style={{ background: "none", border: "none", color: isDanger ? "#f87171" : "#848484", cursor: "pointer", padding: 2, display: "flex", borderRadius: 3 }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = isDanger ? "#fca5a5" : "#c3c3c3")}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = isDanger ? "#f87171" : "#848484")}
                         >{icon}</button>
                       ))}
                     </div>
@@ -180,11 +183,13 @@ export function RightPanel() {
               })}
             </div>
 
+            {/* add layer */}
             <button
               onClick={addLayer}
               style={{ marginTop: 8, width: "100%", background: "var(--accent)", border: "none", color: "#fff", borderRadius: 6, padding: "7px", cursor: "pointer", fontSize: 12 }}
             >Add Layer</button>
 
+            {/* blend modes */}
             {selectedLayer && (
               <div style={{ marginTop: 10, background: "var(--sidebar)", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 10 }}>
                 <div>
@@ -219,6 +224,7 @@ export function RightPanel() {
           </>
         )}
 
+      {/* history tab  */}
         {tab === "history" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {[...history].reverse().map((item, i) => {

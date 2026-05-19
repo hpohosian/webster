@@ -13,7 +13,7 @@ export default function LeftSidebar() {
   const [error, setError] = useState("");
   // const [isLogged, setIsLogged] = useState(false);
   const [userId, setId] = useState(null);
-  // const [newLink, setLink] = useState("");
+  
   useEffect(() => {
      fetch(`${API}/auth/me`, { credentials: "include" })
        .then(r => r.json())
@@ -68,7 +68,6 @@ export default function LeftSidebar() {
       }),
     });
      const project = await res.json();
-      // window.location.href = `/edit-page/${project.id}`;
       return project.id;
     } catch (err) {
       console.error(err);

@@ -5,6 +5,8 @@ import { userProfile, useProjects,
         type SortKey, type Project } from "./userLogik";
 import { Pencil, Trash2 } from "lucide-react";
 
+const API = import.meta.env?.VITE_API;
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric", month: "short", year: "numeric",
@@ -21,7 +23,7 @@ function sortProjects(projects: Project[], key: SortKey) {
 
 const createProject = async (type: "photo" | "logo") => {
   try {
-    const me = await fetch("http://localhost:3000/auth/me", {
+    const me = await fetch(`${API}/auth/me`, {
       credentials: "include",
     });
 
@@ -32,7 +34,7 @@ const createProject = async (type: "photo" | "logo") => {
       return;
     }
 
-    const res = await fetch("http://localhost:3000/projects", {
+    const res = await fetch(`${API}/projects`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -185,7 +187,7 @@ export default function MyProjectsPage() {
 
   const renameProject = async (id: string) => {
     try {
-      await fetch(`http://localhost:3000/projects/${id}`, {
+      await fetch(`${API}}/projects/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -210,7 +212,7 @@ export default function MyProjectsPage() {
     if (!confirmed) return;
 
     try {
-      await fetch(`http://localhost:3000/projects/${id}`, {
+      await fetch(`${API}/projects/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -237,7 +239,7 @@ export default function MyProjectsPage() {
         display: "flex", flexDirection: "column",
         height: "100%", minHeight: "100vh",
         fontFamily: "'DM Sans', sans-serif",
-        background: "f0f0f0"
+        background: "#323232"
       }}>
 
         {/*user bar*/}
@@ -260,7 +262,7 @@ export default function MyProjectsPage() {
               flexShrink: 0,
             }}>
               { profile?.profilePicture && !profile.profilePicture.includes('default.png') ? 
-              ( <img src={`http://localhost:3000/${profile.profilePicture}`} alt="avatar" />)
+              ( <img src={`${API}/${profile.profilePicture}`} alt="avatar" />)
               :(
               <svg width="22" height="22" fill="none" stroke="#bbb" strokeWidth="1.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19"/>

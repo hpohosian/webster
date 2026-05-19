@@ -61,7 +61,7 @@ export function FeaturesPanel() {
     </div>
   );
 }
-
+// basic adjustments
 function AdjustmentsContent() {
   const adjustments = useEditorStore((s) => s.adjustments);
   const setAdjustment = useEditorStore((s) => s.setAdjustment);
@@ -107,7 +107,7 @@ function AdjustmentsContent() {
     </div>
   );
 }
-
+// draw 
 function DrawContent() {
   const brushColor = useEditorStore((s) => s.brushColor);
   const brushSize = useEditorStore((s) => s.brushSize);
@@ -173,7 +173,7 @@ function DrawContent() {
     </div>
   );
 }
-
+// filters 
 function FilterContent() {
   const pushHistory = useEditorStore((s) => s.pushHistory);
   return (
@@ -190,7 +190,7 @@ function FilterContent() {
     </div>
   );
 }
-
+// text 
 function TextContent() {
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const brushColor = useEditorStore((s) => s.brushColor);
@@ -271,7 +271,7 @@ function TextContent() {
     </div>
   );
 }
-
+// shapes
 function ShapesContent() {
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const shapes: { label: string; shape: ShapeKind }[] = [
@@ -298,7 +298,7 @@ function ShapesContent() {
     </div>
   );
 }
-
+// resize canvas 
 function ResizeContent() {
   const canvasSize = useEditorStore((s) => s.canvasSize);
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize);
@@ -327,7 +327,7 @@ function ResizeContent() {
 
     if (projectId) {
       await saveProject(projectId, {
-        canvas: { width: canvasSize.w, height: canvasSize.h, background: "#ffffff" },
+        canvas: { width: canvasSize.w, height: canvasSize.h, background: "#dadada" },
         objects: [],
       });
       pushHistory("Resize saved to DB");
@@ -373,7 +373,7 @@ function ResizeContent() {
     </div>
   );
 }
-
+// apload picture 
 function UploadContent() {
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const addImageLayer = useEditorStore((s) => s.addImageLayer);
@@ -518,7 +518,7 @@ function UploadContent() {
     </div>
   );
 }
-
+// templates 
 function TemplatesContent() {
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize);
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
@@ -596,7 +596,7 @@ const panelBtnStyle: React.CSSProperties = {
 };
 
 const pillButtonStyle: React.CSSProperties = {
-  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+  background: "linear-gradient(135deg, #3bd1f6, #2563eb)",
   border: "none",
   color: "white",
   borderRadius: 999,

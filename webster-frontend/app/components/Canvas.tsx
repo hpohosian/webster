@@ -2,17 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Hand, MousePointer2, ZoomIn, ZoomOut, RotateCcw, Undo2, Redo2 } from "lucide-react";
 import {
   Canvas as FabricCanvas,
-  Circle,
-  FabricImage,
+  Circle, FabricImage,
   FabricObject,
   FabricText,
-  IText,
-  Line,
-  Path,
-  PencilBrush,
+  IText, Line,
+  Path, PencilBrush,
   Polygon,
-  Rect,
-  Triangle,
+  Rect, Triangle,
 } from "fabric";
 import { useEditorStore } from "../store/editorStore";
 import type { CanvasCommand, Layer, ShapeKind } from "../store/editorStore";
@@ -27,7 +23,8 @@ type EngineObject = FabricObject & {
 type Snapshot = { label: string; size: { w: number; h: number }; json: Record<string, unknown> };
 
 const FABRIC_PROPS = ["id", "name", "fileId", "imageUrl"];
-// const CANVAS_BACKGROUND = "#ffffff";
+
+const API = import.meta.env?.VITE_API;
 
 export function Canvas() {
   const canvasElementRef = useRef<HTMLCanvasElement>(null);
@@ -166,7 +163,7 @@ export function Canvas() {
       multiplier: 0.2,
     });
 
-    await fetch(`http://localhost:3000/projects/${projectId}/save`, {
+    await fetch(`${API}/projects/${projectId}/save`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -266,8 +263,8 @@ export function Canvas() {
     object.set({
       left: object.left ?? 120,
       top: object.top ?? 100,
-      cornerColor: "#454fda",
-      borderColor: "#454fda",
+      cornerColor: "#5de4fc",
+      borderColor: "#5de4fc",
       transparentCorners: false,
     });
 
