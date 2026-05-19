@@ -6,13 +6,13 @@ A modern, production-ready template for building full-stack React applications u
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- Server-side rendering
+- Hot Module Replacement (HMR)
+- Asset bundling and optimization
+- Data loading and mutations
+- TypeScript by default
+- TailwindCSS for styling
+- [React Router docs](https://reactrouter.com/)
 
 ## Getting Started
 
@@ -115,4 +115,3 @@ http://localhost:5173/
 ```
 
 The browser calls `/api`; Vite proxies those requests to the mock API server on `MOCK_API_PORT`, defaulting to `8787`.
-

@@ -1,11 +1,26 @@
 import { Download, Undo2, Redo2 } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
+
+const API = import.meta.env?.VITE_API;
 
 export function Header() {
   const history     = useEditorStore((s) => s.history);
   const pushHistory = useEditorStore((s) => s.pushHistory);
-
+  const [userId, setId] = useState(null);
+  
+   useEffect(() => {
+        fetch(`${API}/auth/me`, { credentials: "include" })
+          .then(r => r.json())
+          .then(data => {
+            if (data.user) {
+              // setIsLogged(true);
+              setId(data.user.id); 
+            }
+          })
+        .catch(console.error);
+      }, []);
   const canUndo = history.length > 1;
 
   const canvas = useEditorStore((s) => s.fabricCanvas);
@@ -34,14 +49,12 @@ export function Header() {
       padding: "0 16px", flexShrink: 0,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Link to="/projects" style={{ fontWeight: 700, fontSize: 15, color: "var(--accent)", letterSpacing: "-0.5px" }}>
+        <Link to={`/projects/${userId}`} style={{ fontWeight: 700, fontSize: 15, color: "var(--accent)", letterSpacing: "-0.5px" }}>
           Prismat
         </Link>
-        {["Save to projects", "Edit", "Image", "View"].map((m) => (
-          <button key={m} style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
-            {m}
+          <button style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
+            Edit
           </button>
-        ))}
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>

@@ -178,6 +178,7 @@ export default function MyProjectsPage() {
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const { profile } = userProfile();
+  console.log(profile);
   const { projects, loading } = useProjects();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
@@ -239,10 +240,10 @@ export default function MyProjectsPage() {
         background: "f0f0f0"
       }}>
 
-        {/*TOP BAR*/}
+        {/*user bar*/}
         <div style={{
           borderBottom: "1px solid #e8e8e8",
-          background: "#f7f7f7",
+          background: "#f6f6f6",
           padding: "18px 36px",
           display: "flex", alignItems: "center",
           justifyContent: "space-between",
@@ -252,7 +253,7 @@ export default function MyProjectsPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* Avatar */}
             <Link to={`/profile/${profile?.id}/edit`} style={{
-              width: 46, height: 46, borderRadius: "50%",
+              width: 48, height: 48, borderRadius: "50%",
               background: "#e4e4e4",
               border: "1.5px solid #d0d0d0",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -277,9 +278,9 @@ export default function MyProjectsPage() {
                 {profile?.username}
               </h1>
               <h2 style={{
-                fontSize: 22, fontWeight: 600,
+                fontSize: 20, fontWeight: 600,
                 color: "#1a1a1a", letterSpacing: "-0.02em",
-                lineHeight: 1.1,
+                lineHeight: 1,
               }}>
                 My Projects
               </h2>
@@ -416,13 +417,6 @@ export default function MyProjectsPage() {
                   <ProjectThumb project={project} />
                   <div style={{ padding: "12px 14px 14px" }}>
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
-                      {/* <span style={{
-                        fontSize: 14, fontWeight: 600,
-                        color: "#1a1a1a", lineHeight: 1.3,
-                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                      }}>
-                        {project.title}
-                      </span> */}
                       <div
                         style={{
                           display: "flex",

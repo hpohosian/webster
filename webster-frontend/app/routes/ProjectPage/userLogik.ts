@@ -29,13 +29,12 @@ export interface Project {
 
 const API = import.meta.env.VITE_API;
 
-export async function fetchCurrentUser(): Promise<{ id: string } | null> {
-  try {
-    const res = await fetch(`${API}/auth/me`, {
+export async function fetchCurrentUser(): Promise<UserProfile> {
+    const res = await fetch(`${API}/users/me`, {
       credentials: "include",
     });
 
-    if (!res.ok) return null;
+    if (!res.ok)  throw new Error("Failed to fetch profile");
 
     const data = await res.json();
 
@@ -44,24 +43,7 @@ export async function fetchCurrentUser(): Promise<{ id: string } | null> {
     //     return null ;
     //   }
 
-    return data.user ?? null;
-  } catch {
-    return null;
-  }
-}
-
-//user profile 
-export async function fetchUserProfile(id: string): Promise<UserProfile> {
-  const res = await fetch(`${API}/users/${id}`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-  
-  if (!data.ok) {
-    throw new Error("Failed to fetch profile");
-  }
-  return (data);
+    return data;
 }
 
 export function userProfile() {
@@ -73,10 +55,8 @@ export function userProfile() {
     async function loadProfile() {
       setLoading(true);
       try {
-        const user = await fetchCurrentUser();
-        if (!user) throw new Error("Not logged in");
-
-        const profileData = await fetchUserProfile(user?.id);
+        const profileData = await fetchCurrentUser();
+        if (!profileData) throw new Error("Not logged in");
 
         setProfile(profileData);
       } catch (err: any) {
