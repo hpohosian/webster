@@ -104,7 +104,7 @@ function AdjustmentsContent() {
       ))}
       <button
         onClick={() => { resetAdjustments(); pushHistory("Reset Adjustments"); }}
-        style={{ background: "var(--secondary)", border: "1px solid var(--border)", color: "var(--muted-foreground)", borderRadius: "var(--radius)", padding: "6px", fontSize: 12, cursor: "pointer" }}
+        style={{ background: "var(--secondary)", color: "var(--muted-foreground)", borderRadius: "var(--radius)", padding: "6px", fontSize: 12, cursor: "pointer" }}
       >Reset All</button>
     </div>
   );
@@ -142,7 +142,7 @@ function DrawContent() {
           type="color"
           value={brushColor}
           onChange={(e) => setBrushColor(e.target.value)}
-          style={{ width: "100%", height: 36, borderRadius: "var(--radius)", cursor: "pointer", border: "1px solid var(--border)" }}
+          style={{ width: "100%", height: 36, borderRadius: "var(--radius)", cursor: "pointer" }}
         />
       </div>
 
@@ -162,7 +162,7 @@ function DrawContent() {
               style={{
                 height: 28,
                 borderRadius: "var(--radius)",
-                border: item.hex.toLowerCase() === brushColor.toLowerCase() ? "2px solid var(--primary)" : "1px solid var(--border)",
+                border: item.hex.toLowerCase() === brushColor.toLowerCase() ? "2px solid var(--primary)" : "1px solid var(--sidebar-border)",
                 background: item.hex,
                 cursor: "pointer",
               }}
@@ -245,7 +245,7 @@ function TextContent() {
       </div>
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Color</label>
-        <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer", border: "1px solid var(--border)" }} />
+        <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer" }} />
       </div>
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Size (px)</label>
@@ -307,7 +307,7 @@ function ShapesContent() {
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Color</label>
         <input type="color" value={shapeColor} 
         onChange={(e) => setShapeColor(e.target.value)}
-        style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer", border: "1px solid var(--border)" }} />
+        style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer" }} />
       </div>
     </div>
   );
@@ -511,7 +511,6 @@ function UploadContent() {
               style={{
                 overflow: "hidden",
                 borderRadius: "var(--radius)",
-                border: "1px solid var(--border)",
                 background: "var(--secondary)",
                 padding: 0,
                 cursor: "pointer",
@@ -597,7 +596,6 @@ function SliderField({ label, value, min, max, onChange, unit = "" }: {
 
 const panelBtnStyle: React.CSSProperties = {
   background: "var(--secondary)",
-  border: "1px solid var(--border)",
   color: "var(--secondary-foreground)",
   borderRadius: "var(--radius)",
   padding: "8px 12px",
@@ -610,25 +608,9 @@ const panelBtnStyle: React.CSSProperties = {
   width: "100%",
 };
 
-// const pillButtonStyle: React.CSSProperties = {
-//   background: "linear-gradient(135deg, #a7ccd5, #9fceda)",
-//   border: "none",
-//   color: "white",
-//   borderRadius: 999,
-//   padding: "10px 16px",
-//   textAlign: "center",
-//   cursor: "pointer",
-//   fontSize: 12,
-//   display: "flex",
-//   justifyContent: "center",
-//   alignItems: "center",
-//   width: "100%",
-// };
-
 const selectStyle: React.CSSProperties = {
   width: "100%",
   background: "var(--secondary)",
-  border: "1px solid var(--border)",
   color: "var(--secondary-foreground)",
   borderRadius: "var(--radius)",
   padding: "6px 8px",
@@ -638,7 +620,6 @@ const selectStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   background: "var(--secondary)",
-  border: "1px solid var(--border)",
   color: "var(--secondary-foreground)",
   borderRadius: "var(--radius)",
   padding: "6px 8px",

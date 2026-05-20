@@ -29,23 +29,6 @@ export function Header() {
 
   const canvas = useEditorStore((s) => s.fabricCanvas);
 
-  // function handleExport(format: "png" | "jpeg") {
-  //   if (!canvas) return;
-
-  //   const dataURL = canvas.toDataURL({
-  //     format,
-  //     quality: 1,
-  //     multiplier: 2,
-  //   });
-
-  //   const link = document.createElement("a");
-
-  //   link.href = dataURL;
-  //   link.download = `prismat-export.${format}`;
-
-  //   link.click();
-  // }
-
   const saveAsTemplate = async () => {
     if (!projectId) return;
     setSaving(true);

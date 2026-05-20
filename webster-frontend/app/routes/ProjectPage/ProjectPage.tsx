@@ -539,7 +539,7 @@ export default function MyProjectsPage() {
         background: "#323232"
       }}>
 
-        {/*user bar*/}
+        {/* --user bar--*/}
         <div style={{
           borderBottom: "1px solid #e8e8e8",
           background: "#f6f6f6",
@@ -552,11 +552,11 @@ export default function MyProjectsPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* Avatar */}
             <Link to={`/profile/${profile?.id}/edit`} style={{
-              width: 48, height: 48, borderRadius: "50%",
+              width: 49, height: 49, borderRadius: "50%",
               background: "#e4e4e4",
               border: "1.5px solid #d0d0d0",
               display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
+              flexShrink: 0, overflow: "hidden"
             }}>
               { profile?.profilePicture && !profile.profilePicture.includes('default.png') ? 
               ( <img src={`${API}/${profile.profilePicture}`} alt="avatar" />)
