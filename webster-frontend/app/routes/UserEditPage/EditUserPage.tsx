@@ -173,7 +173,7 @@ export default function UserEditPage() {
 
           {/* Main */}
           <main className="ep-content">
-              <SectionCard title="Personal info" subtitle="How others see you" delay={0.04}>
+              <SectionCard title="Personal info" delay={0.04}>
                 <div className="ep-form-grid">
                   <Field label="Username" error={errors.username}>
                     <div className="ep-input-wrap">
