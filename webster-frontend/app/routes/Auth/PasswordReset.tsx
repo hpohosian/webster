@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { AuthHeader } from "../../components/AuthHeader";
+//import { AuthHeader } from "../../components/AuthHeader";
 import { useParams } from "react-router";
 import { IconEye, ClosedIconEye, CheckIcon, IconX } from "../../assets/Icons";
 

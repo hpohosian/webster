@@ -1,0 +1,54 @@
+{
+  "title": "Polaroid",
+  "type": "photo",
+  "projectData": {
+    "canvas": { "width": 800, "height": 900, "background": "#f2f0eb" },
+    "objects": {
+      "version": "7.3.1",
+      "background": "#f2f0eb",
+      "objects": [
+        {
+          "type": "Rect",
+          "left": 400, "top": 420,
+          "width": 620, "height": 780,
+          "fill": "#ffffff",
+          "stroke": null, "strokeWidth": 0,
+          "rx": 2, "ry": 2,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0,
+          "opacity": 1,
+          "shadow": { "color": "rgba(0,0,0,0.12)", "blur": 24, "offsetX": 0, "offsetY": 8 }
+        },
+        {
+          "type": "Rect",
+          "left": 400, "top": 370,
+          "width": 540, "height": 540,
+          "fill": "#e8e8e8",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 400, "top": 740,
+          "width": 200, "height": 8,
+          "fill": "#d0d0d0",
+          "stroke": null, "strokeWidth": 0,
+          "rx": 4, "ry": 4,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 400, "top": 770,
+          "width": 140, "height": 8,
+          "fill": "#e0e0e0",
+          "stroke": null, "strokeWidth": 0,
+          "rx": 4, "ry": 4,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        }
+      ]
+    }
+  }
+}

@@ -21,9 +21,15 @@ import { LayersController } from './layers/layers.controller';
 import { LayersService } from './layers/layers.service';
 import { LayersModule } from './layers/layers.module';
 import { TemplatesModule } from './templates/templates.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

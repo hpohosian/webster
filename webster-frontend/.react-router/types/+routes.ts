@@ -60,8 +60,8 @@ type RouteFiles = {
     id: "routes/WelcomePage/WelcomePage";
     page: "/";
   };
-  "routes/Auth/HomePagelayout.tsx": {
-    id: "routes/Auth/HomePagelayout";
+  "routes/Auth/HomePageLayout.tsx": {
+    id: "routes/Auth/HomePageLayout";
     page: "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId/edit" | "/projects/:userId";
   };
   "routes/Auth/Login.tsx": {
@@ -105,7 +105,7 @@ type RouteFiles = {
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
   "routes/WelcomePage/WelcomePage": typeof import("./app/routes/WelcomePage/WelcomePage.tsx");
-  "routes/Auth/HomePagelayout": typeof import("./app/routes/Auth/HomePagelayout.tsx");
+  "routes/Auth/HomePageLayout": typeof import("./app/routes/Auth/HomePageLayout.tsx");
   "routes/Auth/Login": typeof import("./app/routes/Auth/Login.tsx");
   "routes/Auth/Register": typeof import("./app/routes/Auth/Register.tsx");
   "routes/Auth/EmailVerif": typeof import("./app/routes/Auth/EmailVerif.tsx");
