@@ -47,6 +47,8 @@ export class ProjectsService {
         objects: [],
       },
       user: { id: userId } as User,
+      isTemplate: false,
+      isDefaultTemplate: false,
     });
 
     const savedProject = await this.projectRepo.save(project);
@@ -85,14 +87,19 @@ export class ProjectsService {
 
   async findAll(userId: string) {
     return this.projectRepo.find({
-      where: { user: { id: userId } },
+      where: {
+        user: { id: userId },
+        isTemplate: false,
+      },
       order: { updatedAt: 'DESC' },
     });
   }
 
   async findOne(projectId: string, userId: string) {
     const project = await this.projectRepo.findOne({
-      where: { id: projectId },
+      where: {
+        id: projectId,
+      },
       relations: { user: true },
     });
 
@@ -104,7 +111,7 @@ export class ProjectsService {
 
   async update(projectId: string, dto: UpdateProjectDto, userId: string) {
     const project = await this.projectRepo.findOne({
-      where: { id: projectId, user: { id: userId } },
+      where: { id: projectId, user: { id: userId }, isDefaultTemplate: false },
     });
 
     if (!project) throw new NotFoundException('Project not found');
@@ -120,6 +127,7 @@ export class ProjectsService {
     const result = await this.projectRepo.delete({
       id: projectId,
       user: { id: userId },
+      isDefaultTemplate: false,
     });
 
     if (result.affected === 0) throw new NotFoundException('Project not found');

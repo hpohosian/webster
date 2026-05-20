@@ -20,6 +20,7 @@ import { ElementsModule } from './elements/elements.module';
 import { LayersController } from './layers/layers.controller';
 import { LayersService } from './layers/layers.service';
 import { LayersModule } from './layers/layers.module';
+import { TemplatesModule } from './templates/templates.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { LayersModule } from './layers/layers.module';
     FilesModule,
     ElementsModule,
     LayersModule,
+    TemplatesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

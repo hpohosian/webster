@@ -76,4 +76,10 @@ export class Project {
 
   @Column({ type: "text", nullable: true })
   thumbnail: string;
+
+  @Column({ default: false })
+  isTemplate: boolean;
+
+  @Column({ default: false })
+  isDefaultTemplate: boolean;
 }

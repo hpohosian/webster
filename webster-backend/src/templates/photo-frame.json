@@ -1,0 +1,25 @@
+{
+  "title": "Photo Frame",
+  "type": "photo",
+  "projectData": {
+    "canvas": { "width": 1920, "height": 1080, "background": "#ffffff" },
+    "objects": {
+      "version": "7.3.1",
+      "background": "#ffffff",
+      "objects": [
+        {
+          "type": "Rect",
+          "left": 960, "top": 540,
+          "width": 1820, "height": 980,
+          "fill": null,
+          "stroke": "#454fda",
+          "strokeWidth": 8,
+          "rx": 12, "ry": 12,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1,
+          "angle": 0, "opacity": 1
+        }
+      ]
+    }
+  }
+}
