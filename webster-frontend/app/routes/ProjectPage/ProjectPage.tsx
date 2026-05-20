@@ -77,97 +77,170 @@ const createFromTemplate = async (templateId: string) => {
 function TemplateCard({
   tpl,
   onClick,
+  isUserTemplate = false,
+  onRename,
+  onDelete,
 }: {
   tpl: Template;
   onClick: () => void;
+  isUserTemplate?: boolean;
+  onRename?: (newTitle: string) => void;
+  onDelete?: () => void;
 }) {
   const [preview, setPreview] = useState<string | null>(tpl.thumbnail);
   const [generating, setGenerating] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(tpl.title);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    // Если thumbnail уже есть — не генерируем
     if (tpl.thumbnail) return;
     if (!tpl.projectData) return;
-
     setGenerating(true);
     generateThumbnailFromProjectData(tpl.projectData)
       .then((url) => setPreview(url))
       .finally(() => setGenerating(false));
   }, [tpl.id]);
 
+  const handleRenameSubmit = () => {
+    if (editingTitle.trim() && editingTitle !== tpl.title) {
+      onRename?.(editingTitle.trim());
+    }
+    setIsEditing(false);
+  };
+
   return (
-    <button
-      onClick={onClick}
-      style={{
-        border: "1.5px solid #ebebeb",
-        borderRadius: 10,
-        background: "#fff",
-        cursor: "pointer",
-        padding: 0,
-        overflow: "hidden",
-        textAlign: "left",
-        transition: "border-color 0.15s, box-shadow 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.borderColor = "#454fda";
-        (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(69,79,218,0.12)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.borderColor = "#ebebeb";
-        (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-      }}
-    >
-      {/* Thumbnail */}
-      <div style={{
-        width: "100%",
-        aspectRatio: "4/3",
-        background: tpl.type === "logo" ? "#1a1a1a" : "#f0f0f0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-        position: "relative",
-      }}>
-        {generating && (
-          <div style={{
-            position: "absolute", inset: 0,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: "#f5f5f5",
-          }}>
+    <div style={{ position: "relative" }}>
+      <div
+        onClick={() => { if (!isEditing) onClick(); }}
+        style={{
+          width: "100%",
+          border: "1.5px solid #ebebeb",
+          borderRadius: 10,
+          background: "#fff",
+          cursor: "pointer",
+          padding: 0,
+          overflow: "hidden",
+          textAlign: "left",
+          transition: "border-color 0.15s, box-shadow 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "#454fda";
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(69,79,218,0.12)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "#ebebeb";
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+        }}
+      >
+        {/* Thumbnail */}
+        <div style={{
+          width: "100%", aspectRatio: "4/3",
+          background: tpl.type === "logo" ? "#1a1a1a" : "#f0f0f0",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          overflow: "hidden", position: "relative",
+        }}>
+          {generating && (
             <div style={{
-              width: 20, height: 20,
-              border: "2px solid #e0e0e0",
-              borderTopColor: "#454fda",
-              borderRadius: "50%",
-              animation: "spin 0.7s linear infinite",
-            }} />
-          </div>
-        )}
-        {preview ? (
-          <img
-            src={preview}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : !generating ? (
-          <span style={{ fontSize: 11, color: "#ccc" }}>No preview</span>
-        ) : null}
+              position: "absolute", inset: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "#f5f5f5",
+            }}>
+              <div style={{
+                width: 20, height: 20,
+                border: "2px solid #e0e0e0",
+                borderTopColor: "#454fda",
+                borderRadius: "50%",
+                animation: "spin 0.7s linear infinite",
+              }} />
+            </div>
+          )}
+          {preview ? (
+            <img src={preview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : !generating ? (
+            <span style={{ fontSize: 11, color: "#ccc" }}>No preview</span>
+          ) : null}
+        </div>
+
+        {/* Label */}
+        <div style={{ padding: "10px 12px 12px" }}>
+          {isEditing ? (
+            <input
+              autoFocus
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleRenameSubmit();
+                }
+                if (e.key === "Escape") {
+                  setIsEditing(false);
+                  setEditingTitle(tpl.title);
+                }
+              }}
+              onKeyUp={(e) => e.stopPropagation()}
+              onBlur={handleRenameSubmit}
+              style={{
+                width: "100%", border: "1px solid #ddd",
+                borderRadius: 6, padding: "2px 6px",
+                fontSize: 13, fontWeight: 600, color: "#1a1a1a"
+              }}
+            />
+          ) : (
+            <div style={{
+              fontSize: 13, fontWeight: 600, color: "#1a1a1a",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {tpl.title}
+            </div>
+          )}
+          <div style={{ fontSize: 11, color: "#bbb", marginTop: 3 }}>{tpl.type}</div>
+        </div>
       </div>
 
-      {/* Label */}
-      <div style={{ padding: "10px 12px 12px" }}>
+      {isUserTemplate && (
         <div style={{
-          fontSize: 13, fontWeight: 600, color: "#1a1a1a",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          position: "absolute", top: 8, right: 8,
+          display: "flex", gap: 4,
         }}>
-          {tpl.title}
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsEditing(true); setEditingTitle(tpl.title); }}
+            title="Rename"
+            style={{
+              width: 26, height: 26,
+              border: "none", borderRadius: 6,
+              background: "rgba(255,255,255,0.9)",
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#888",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+            }}
+          >
+            <Pencil size={12} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+            title="Delete"
+            style={{
+              width: 26, height: 26,
+              border: "none", borderRadius: 6,
+              background: "rgba(255,255,255,0.9)",
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#d9534f",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+            }}
+          >
+            <Trash2 size={12} />
+          </button>
         </div>
-        <div style={{ fontSize: 11, color: "#bbb", marginTop: 3 }}>{tpl.type}</div>
-      </div>
-    </button>
+      )}
+    </div>
   );
 }
 
-// 2. Добавить компонент TemplatesModal (между TemplateCard и ProjectThumb)
 function TemplatesModal({
   onClose,
   onSelect,
@@ -183,6 +256,26 @@ function TemplatesModal({
   }, []);
 
   const list = tab === "default" ? templates.default : templates.user;
+
+  const renameTemplate = async (templateId: string, newTitle: string) => {
+    await fetch(`${API}/templates/${templateId}/rename`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: newTitle }),
+    });
+    fetchTemplates();
+  };
+
+  const deleteTemplate = async (templateId: string) => {
+    const confirmed = window.confirm("Delete this template?");
+    if (!confirmed) return;
+    await fetch(`${API}/templates/${templateId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    fetchTemplates();
+  };
 
   return (
     <div
@@ -244,7 +337,14 @@ function TemplatesModal({
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 14 }}>
               {list.map((tpl) => (
-                <TemplateCard key={tpl.id} tpl={tpl} onClick={() => onSelect(tpl.id)} />
+                <TemplateCard
+                  key={tpl.id}
+                  tpl={tpl}
+                  onClick={() => onSelect(tpl.id)}
+                  isUserTemplate={tab === "user"}        // ← вот это новое
+                  onRename={(newTitle) => renameTemplate(tpl.id, newTitle)}
+                  onDelete={() => deleteTemplate(tpl.id)}
+                />
               ))}
             </div>
           )}
@@ -384,7 +484,7 @@ export default function MyProjectsPage() {
 
   const renameProject = async (id: string) => {
     try {
-      await fetch(`${API}}/projects/${id}`, {
+      await fetch(`${API}/projects/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: {

@@ -7,11 +7,13 @@ import {
   Body,
   UseGuards,
   Req,
+  Patch,
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import { CreateFromTemplateDto } from './dto/create-from-template.dto';
 import { SessionAuthGuard } from '../auth/guards/session-auth.guard'; // укажи свой путь
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { RenameTeplateDto } from './dto/rename-template.dto';
 
 @ApiTags('templates')
 // @ApiBearerAuth()
@@ -50,5 +52,22 @@ export class TemplatesController {
   @ApiOperation({ summary: 'Remove template status from user template' })
   removeTemplate(@Param('templateId') templateId: string, @Req() req) {
     return this.templatesService.removeTemplateStatus(templateId, req.session.user.id);
+  }
+
+  @Patch(':templateId/rename')
+  @ApiOperation({ summary: 'Rename user template' })
+  rename(
+    @Param('templateId') templateId: string,
+    @Body() dto: RenameTeplateDto,
+    @Req() req,
+  ) {
+    return this.templatesService.renameTemplate(templateId, req.session.user.id, dto.title);
+  }
+
+  @Delete(':templateId')
+  @ApiOperation({ summary: 'Delete user template' })
+  async delete(@Param('templateId') templateId: string, @Req() req) {
+    await this.templatesService.deleteTemplate(templateId, req.session.user.id);
+    return { success: true };
   }
 }

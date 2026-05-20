@@ -18,7 +18,14 @@ export class TemplatesService implements OnModuleInit {
   }
 
   private async seedDefaultTemplates() {
-    const templatesDir = path.join(__dirname, '..', '..', 'src', 'templates');
+    const templatesDir = path.join(
+      __dirname,
+      '..',
+      '..',
+      'src',
+      'templates',
+      'json',
+    );
 
     const dirs = [
       templatesDir,
@@ -135,5 +142,36 @@ export class TemplatesService implements OnModuleInit {
 
     template.isTemplate = false;
     return this.projectRepo.save(template);
+  }
+
+  async renameTemplate(templateId: string, userId: string, title: string): Promise<Project> {
+    const template = await this.projectRepo
+      .createQueryBuilder('project')
+      .leftJoin('project.user', 'user')
+      .where('project.id = :templateId', { templateId })
+      .andWhere('user.id = :userId', { userId })
+      .andWhere('project.isTemplate = true')
+      .andWhere('project.isDefaultTemplate = false')
+      .getOne();
+
+    if (!template) throw new NotFoundException('Template not found');
+
+    template.title = title;
+    return this.projectRepo.save(template);
+  }
+
+  async deleteTemplate(templateId: string, userId: string): Promise<void> {
+    const template = await this.projectRepo
+      .createQueryBuilder('project')
+      .leftJoin('project.user', 'user')
+      .where('project.id = :templateId', { templateId })
+      .andWhere('user.id = :userId', { userId })
+      .andWhere('project.isTemplate = true')
+      .andWhere('project.isDefaultTemplate = false')
+      .getOne();
+
+    if (!template) throw new NotFoundException('Template not found');
+
+    await this.projectRepo.remove(template);
   }
 }
