@@ -150,7 +150,7 @@ export function Canvas() {
       canvas: {
         width: canvas.getWidth(),
         height: canvas.getHeight(),
-        background: "#ffffff",
+        background: canvas.backgroundColor,
       },
       objects: canvas.toJSON(FABRIC_PROPS),
     };
@@ -245,7 +245,7 @@ export function Canvas() {
     canvas.setDimensions(toFabricSize(snapshot.size));
     setCanvasSize(snapshot.size);
     await canvas.loadFromJSON(snapshot.json);
-    canvas.backgroundColor = CANVAS_BACKGROUND;
+    canvas.backgroundColor = canvasBackgroundColor;
     canvas.discardActiveObject();
     canvas.requestRenderAll();
     historyIndexRef.current = index;

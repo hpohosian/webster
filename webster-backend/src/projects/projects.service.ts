@@ -67,6 +67,8 @@ export class ProjectsService {
     backgroundLayer.x = 0;
     backgroundLayer.y = 0;
 
+    backgroundLayer.color = dto.canvas.background;
+
     backgroundLayer.type = 'background';
 
     if (backgroundLayer.name === 'Background') {
