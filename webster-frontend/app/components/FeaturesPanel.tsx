@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sun, Contrast, Palette, Lightbulb, CloudRain } from "lucide-react";
+import { Sun, Contrast, Palette, Lightbulb, CloudRain, Triangle } from "lucide-react";
 import { useParams } from "react-router";
 import { useEditorStore } from "../store/editorStore";
 import type { Adjustments, ShapeKind } from "../store/editorStore";
@@ -74,6 +74,8 @@ function AdjustmentsContent() {
     { key: "colorBalance", Icon: Palette, label: "Color Balance" },
     { key: "light", Icon: Lightbulb, label: "Light" },
     { key: "shadow", Icon: CloudRain, label: "Shadow" },
+    { key: "Blur", Icon: CloudRain, label: "Blur" },
+    { key: "Scharpen", Icon: Triangle, label: "Shadow" },
   ];
 
   return (
@@ -107,6 +109,7 @@ function AdjustmentsContent() {
     </div>
   );
 }
+
 // draw 
 function DrawContent() {
   const brushColor = useEditorStore((s) => s.brushColor);
@@ -271,9 +274,14 @@ function TextContent() {
     </div>
   );
 }
+
 // shapes
 function ShapesContent() {
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
+    // const setBrushColor = useEditorStore((s) => s.setBrushColor);
+  const shapeColor = useEditorStore((s) => s.shapeColor || "#000000"); 
+  const setShapeColor = useEditorStore((s) => s.setShapeColor);
+
   const shapes: { label: string; shape: ShapeKind }[] = [
     { label: "Rectangle", shape: "rectangle" },
     { label: "Rounded Rect", shape: "rounded-rect" },
@@ -289,15 +297,22 @@ function ShapesContent() {
       {shapes.map((item) => (
         <button
           key={item.shape}
-          onClick={() => runCanvasCommand({ type: "add-shape", shape: item.shape })}
+          onClick={() => runCanvasCommand({ type: "add-shape", shape: item.shape, color: shapeColor })}
           style={panelBtnStyle}
           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sidebar-accent)")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "var(--secondary)")}
         >{item.label}</button>
       ))}
+      <div>
+        <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Color</label>
+        <input type="color" value={shapeColor} 
+        onChange={(e) => setShapeColor(e.target.value)}
+        style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer", border: "1px solid var(--border)" }} />
+      </div>
     </div>
   );
 }
+
 // resize canvas 
 function ResizeContent() {
   const canvasSize = useEditorStore((s) => s.canvasSize);
@@ -369,7 +384,7 @@ function ResizeContent() {
         </button>
       ))}
 
-      <button onClick={handleApply} style={pillButtonStyle}>Apply</button>
+      {/* <button onClick={handleApply} style={pillButtonStyle}>Apply</button> */}
     </div>
   );
 }
@@ -595,20 +610,20 @@ const panelBtnStyle: React.CSSProperties = {
   width: "100%",
 };
 
-const pillButtonStyle: React.CSSProperties = {
-  background: "linear-gradient(135deg, #3bd1f6, #2563eb)",
-  border: "none",
-  color: "white",
-  borderRadius: 999,
-  padding: "10px 16px",
-  textAlign: "center",
-  cursor: "pointer",
-  fontSize: 12,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  width: "100%",
-};
+// const pillButtonStyle: React.CSSProperties = {
+//   background: "linear-gradient(135deg, #a7ccd5, #9fceda)",
+//   border: "none",
+//   color: "white",
+//   borderRadius: 999,
+//   padding: "10px 16px",
+//   textAlign: "center",
+//   cursor: "pointer",
+//   fontSize: 12,
+//   display: "flex",
+//   justifyContent: "center",
+//   alignItems: "center",
+//   width: "100%",
+// };
 
 const selectStyle: React.CSSProperties = {
   width: "100%",

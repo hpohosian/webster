@@ -141,9 +141,9 @@ export function Header() {
         <Link to={`/projects/${userId}`} style={{ fontWeight: 700, fontSize: 15, color: "var(--accent)", letterSpacing: "-0.5px" }}>
           Prismat
         </Link>
-          <button style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
+          {/* <button style={{ background: "none", border: "none", color: "#666", fontSize: 13, cursor: "pointer" }}>
             Edit
-          </button>
+          </button> */}
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>

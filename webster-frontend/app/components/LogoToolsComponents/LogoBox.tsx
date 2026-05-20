@@ -1,19 +1,9 @@
 import * as Slider from "@radix-ui/react-slider";
+import { useLogo } from './LogoProvider';
 
-interface BoxConfig {
-  padding: number;
-  gap: number;
-  backgroundColor: string;
-}
+export function BoxPanel() {
+  const [logo, updateLogo] = useLogo();
 
-interface BoxPanelProps {
-  config: BoxConfig;
-  onChange: (patch: Partial<BoxConfig>) => void;
-}
-
-// ── Component 
-
-export function BoxPanel({ config, onChange }: BoxPanelProps) {
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col">
       <div className="h-12 px-4 border-b border-border flex items-center">
@@ -25,20 +15,21 @@ export function BoxPanel({ config, onChange }: BoxPanelProps) {
         {/* Padding */}
         <SliderField
           label="Padding"
-          value={config.padding}
+          value={logo.padding}
           min={0}
           max={300}
-          onChange={(v) => onChange({ padding: v })}
+          onChange={(v) => updateLogo({ padding: v })}
         />
 
         {/* Gap */}
         <SliderField
           label="Gap"
-          value={config.gap}
+          value={logo.gap}
           min={0}
           max={100}
-          onChange={(v) => onChange({ gap: v })}
+          onChange={(v) => updateLogo({ gap: v })}
         />
+
 
         {/* Background color */}
         <div>
@@ -47,22 +38,22 @@ export function BoxPanel({ config, onChange }: BoxPanelProps) {
           <div className="relative w-full h-10 rounded overflow-hidden border border-border">
             <input
               type="color"
-              value={config.backgroundColor}
-              onChange={(e) => onChange({ backgroundColor: e.target.value })}
+              value={logo.backgroundColor}
+              onChange={(e) => updateLogo({ backgroundColor: e.target.value })}
               className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
             />
             <div
               className="w-full h-full rounded"
-              style={{ background: config.backgroundColor }}
+              style={{ background: logo.backgroundColor }}
             />
           </div>
 
           <input
             type="text"
-            value={config.backgroundColor}
+            value={logo.backgroundColor}
             onChange={(e) => {
               if (/^#([0-9A-Fa-f]{0,6})$/.test(e.target.value))
-                onChange({ backgroundColor: e.target.value });
+                updateLogo({ backgroundColor: e.target.value });
             }}
             className="
               mt-2 w-full px-3 py-1.5 text-sm font-mono
@@ -73,19 +64,19 @@ export function BoxPanel({ config, onChange }: BoxPanelProps) {
           />
         </div>
 
-        {/* Visual preview of padding/gap */}
+        {/* Visual preview */}
         <div>
           <label className="text-xs text-muted-foreground mb-2 block">Preview</label>
           <div
             className="w-full rounded-lg border border-border flex items-center justify-center transition-all"
             style={{
-              background: config.backgroundColor || "transparent",
-              padding: `${Math.min(config.padding / 5, 32)}px`,
+              background: logo.backgroundColor || "transparent",
+              padding: `${Math.min(logo.padding / 5, 32)}px`,
             }}
           >
             <div
               className="flex items-center rounded"
-              style={{ gap: `${Math.min(config.gap / 3, 24)}px` }}
+              style={{ gap: `${Math.min(logo.gap / 3, 24)}px` }}
             >
               <div className="w-8 h-8 rounded bg-primary/60" />
               <div className="space-y-1">
@@ -100,8 +91,6 @@ export function BoxPanel({ config, onChange }: BoxPanelProps) {
     </div>
   );
 }
-
-// ── Shared slider field 
 
 function SliderField({
   label,

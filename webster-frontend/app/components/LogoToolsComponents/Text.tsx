@@ -1,24 +1,9 @@
 import { useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Slider from "@radix-ui/react-slider";
+import { useLogo } from './LogoProvider';
 
 export type FontWeight = "normal" | "bold";
-
-interface TextConfig {
-  text: string;
-  fontWeight: FontWeight;
-  fontSize: number;
-  letterSpacing: number;
-  color: string;
-  fontFamily: string;
-}
-
-interface TextPanelProps {
-  config: TextConfig;
-  onChange: (patch: Partial<TextConfig>) => void;
-}
-
-// ── Placeholder font list (swap with your google-fonts.json import) ───────────
 
 const GOOGLE_FONTS: string[] = [
   "Roboto", "Open_Sans", "Lato", "Montserrat", "Oswald",
@@ -27,9 +12,9 @@ const GOOGLE_FONTS: string[] = [
   "Space_Grotesk", "Sora", "Outfit", "Plus_Jakarta_Sans",
 ];
 
-// ── Component ─────────────────────────────────────────────────────────────────
+export function TextPanel() {
+  const [logo, updateLogo] = useLogo();
 
-export function TextPanel({ config, onChange }: TextPanelProps) {
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col overflow-hidden">
       <div className="h-12 px-4 border-b border-border flex items-center flex-shrink-0">
@@ -37,7 +22,6 @@ export function TextPanel({ config, onChange }: TextPanelProps) {
       </div>
 
       <Tabs.Root defaultValue="font" className="flex flex-col flex-1 overflow-hidden">
-        {/* Tab list */}
         <Tabs.List className="flex gap-1 px-3 pt-3 pb-1 flex-shrink-0">
           {(["font", "family"] as const).map((tab) => (
             <Tabs.Trigger
@@ -55,19 +39,17 @@ export function TextPanel({ config, onChange }: TextPanelProps) {
           ))}
         </Tabs.List>
 
-        {/* ── Text / style tab ─────────────────────────────────────────────── */}
+        {/* Text / style tab */}
         <Tabs.Content value="font" className="flex-1 overflow-y-auto p-4 space-y-5">
 
           {/* Logo name input */}
           <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">
-              Logo name
-            </label>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Logo name</label>
             <input
               type="text"
               placeholder="Eg. Amazing Logo"
-              value={config.text}
-              onChange={(e) => onChange({ text: e.target.value })}
+              value={logo.text}
+              onChange={(e) => updateLogo({ text: e.target.value })}
               className="
                 w-full px-3 py-2 text-sm
                 bg-input rounded border border-border
@@ -79,17 +61,15 @@ export function TextPanel({ config, onChange }: TextPanelProps) {
 
           {/* Font weight toggle */}
           <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">
-              Font weight
-            </label>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Font weight</label>
             <div className="flex gap-2">
               {(["normal", "bold"] as const).map((w) => (
                 <button
                   key={w}
-                  onClick={() => onChange({ fontWeight: w })}
+                  onClick={() => updateLogo({ fontWeight: w })}
                   className={`
                     flex-1 py-1.5 text-xs rounded border transition-all
-                    ${config.fontWeight === w
+                    ${logo.fontWeight === w
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-transparent text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
                     }
@@ -105,19 +85,19 @@ export function TextPanel({ config, onChange }: TextPanelProps) {
           {/* Font size */}
           <SliderField
             label="Font size"
-            value={config.fontSize}
+            value={logo.fontSize}
             min={10}
             max={160}
-            onChange={(v) => onChange({ fontSize: v })}
+            onChange={(v) => updateLogo({ fontSize: v })}
           />
 
           {/* Letter spacing */}
           <SliderField
             label="Letter spacing"
-            value={config.letterSpacing}
+            value={logo.letterSpacing}
             min={-20}
             max={80}
-            onChange={(v) => onChange({ letterSpacing: v })}
+            onChange={(v) => updateLogo({ letterSpacing: v })}
           />
 
           {/* Text preview */}
@@ -126,37 +106,37 @@ export function TextPanel({ config, onChange }: TextPanelProps) {
             <div className="flex items-center justify-center p-3 bg-secondary rounded-lg border border-border min-h-12 overflow-hidden">
               <span
                 style={{
-                  fontFamily: config.fontFamily.replace(/_/g, " "),
-                  fontWeight: config.fontWeight === "bold" ? 700 : 400,
-                  fontSize: Math.min(config.fontSize, 32),
-                  letterSpacing: config.letterSpacing,
-                  color: config.color,
+                  fontFamily: logo.fontFamily.replace(/_/g, " "),
+                  fontWeight: logo.fontWeight === "bold" ? 700 : 400,
+                  fontSize: Math.min(logo.fontSize, 32),
+                  letterSpacing: logo.letterSpacing,
+                  color: logo.color,
                   whiteSpace: "nowrap",
                 }}
               >
-                {config.text || "Logo Name"}
+                {logo.text || "Logo Name"}
               </span>
             </div>
           </div>
 
-          {/* Color */}
+          {/* Color hex input */}
           <div>
             <label className="text-xs text-muted-foreground mb-2 block">Color</label>
             <div className="relative w-full h-10 rounded overflow-hidden border border-border">
               <input
                 type="color"
-                value={config.color}
-                onChange={(e) => onChange({ color: e.target.value })}
+                value={logo.color}
+                onChange={(e) => updateLogo({ color: e.target.value })}
                 className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
               />
-              <div className="w-full h-full rounded" style={{ background: config.color }} />
+              <div className="w-full h-full rounded" style={{ background: logo.color }} />
             </div>
             <input
               type="text"
-              value={config.color}
+              value={logo.color}
               onChange={(e) => {
                 if (/^#([0-9A-Fa-f]{0,6})$/.test(e.target.value))
-                  onChange({ color: e.target.value });
+                  updateLogo({ color: e.target.value });
               }}
               className="
                 mt-2 w-full px-3 py-1.5 text-sm font-mono
@@ -168,15 +148,15 @@ export function TextPanel({ config, onChange }: TextPanelProps) {
           </div>
         </Tabs.Content>
 
-        {/* ── Font family tab ───────────────────────────────────────────────── */}
+        {/* Font family tab */}
         <Tabs.Content value="family" className="flex-1 overflow-y-auto p-3 space-y-1">
           {GOOGLE_FONTS.map((font) => {
-            const isSelected = font === config.fontFamily;
+            const isSelected = font === logo.fontFamily;
             const displayName = font.replace(/_/g, " ");
             return (
               <button
                 key={font}
-                onClick={() => onChange({ fontFamily: font })}
+                onClick={() => updateLogo({ fontFamily: font })}
                 className={`
                   w-full px-3 py-2.5 text-left rounded-lg border transition-all
                   ${isSelected
@@ -202,8 +182,6 @@ export function TextPanel({ config, onChange }: TextPanelProps) {
     </div>
   );
 }
-
-// ── Shared slider field ───────────────────────────────────────────────────────
 
 function SliderField({
   label,
