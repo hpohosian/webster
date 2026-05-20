@@ -181,3 +181,7 @@
     line-height: 1.5;
   }
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import "./ProjectPage.css"
 import { userProfile, useProjects,
-        type SortKey, type Project } from "./userLogik";
+        type SortKey, type Project, useTemplates, 
+        type Template} from "./userLogik";
 import { Pencil, Trash2 } from "lucide-react";
+import { generateThumbnailFromProjectData } from "./generateThumbnail";
 
 const API = import.meta.env?.VITE_API;
 
@@ -56,6 +58,201 @@ const createProject = async (type: "photo" | "logo") => {
     console.error(err);
   }
 };
+
+const createFromTemplate = async (templateId: string) => {
+  try {
+    const res = await fetch(`${API}/templates/${templateId}/fork`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const project = await res.json();
+    window.location.href = `/edit-page/${project.id}`;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+function TemplateCard({
+  tpl,
+  onClick,
+}: {
+  tpl: Template;
+  onClick: () => void;
+}) {
+  const [preview, setPreview] = useState<string | null>(tpl.thumbnail);
+  const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    // Если thumbnail уже есть — не генерируем
+    if (tpl.thumbnail) return;
+    if (!tpl.projectData) return;
+
+    setGenerating(true);
+    generateThumbnailFromProjectData(tpl.projectData)
+      .then((url) => setPreview(url))
+      .finally(() => setGenerating(false));
+  }, [tpl.id]);
+
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        border: "1.5px solid #ebebeb",
+        borderRadius: 10,
+        background: "#fff",
+        cursor: "pointer",
+        padding: 0,
+        overflow: "hidden",
+        textAlign: "left",
+        transition: "border-color 0.15s, box-shadow 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.borderColor = "#454fda";
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(69,79,218,0.12)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.borderColor = "#ebebeb";
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+      }}
+    >
+      {/* Thumbnail */}
+      <div style={{
+        width: "100%",
+        aspectRatio: "4/3",
+        background: tpl.type === "logo" ? "#1a1a1a" : "#f0f0f0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        position: "relative",
+      }}>
+        {generating && (
+          <div style={{
+            position: "absolute", inset: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#f5f5f5",
+          }}>
+            <div style={{
+              width: 20, height: 20,
+              border: "2px solid #e0e0e0",
+              borderTopColor: "#454fda",
+              borderRadius: "50%",
+              animation: "spin 0.7s linear infinite",
+            }} />
+          </div>
+        )}
+        {preview ? (
+          <img
+            src={preview}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : !generating ? (
+          <span style={{ fontSize: 11, color: "#ccc" }}>No preview</span>
+        ) : null}
+      </div>
+
+      {/* Label */}
+      <div style={{ padding: "10px 12px 12px" }}>
+        <div style={{
+          fontSize: 13, fontWeight: 600, color: "#1a1a1a",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>
+          {tpl.title}
+        </div>
+        <div style={{ fontSize: 11, color: "#bbb", marginTop: 3 }}>{tpl.type}</div>
+      </div>
+    </button>
+  );
+}
+
+// 2. Добавить компонент TemplatesModal (между TemplateCard и ProjectThumb)
+function TemplatesModal({
+  onClose,
+  onSelect,
+}: {
+  onClose: () => void;
+  onSelect: (id: string) => void;
+}) {
+  const { templates, loading, fetchTemplates } = useTemplates();
+  const [tab, setTab] = useState<"default" | "user">("default");
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const list = tab === "default" ? templates.default : templates.user;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0,
+        background: "rgba(0,0,0,0.45)",
+        zIndex: 1000,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 16,
+          width: 640, maxHeight: "80vh",
+          display: "flex", flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
+        }}
+      >
+        {/* Header */}
+        <div style={{ padding: "20px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1a1a", margin: 0 }}>
+            Choose a template
+          </h2>
+          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#aaa", padding: 4 }}>
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", padding: "16px 24px 0", borderBottom: "1px solid #f0f0f0" }}>
+          {(["default", "user"] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)} style={{
+              border: "none", background: "transparent", cursor: "pointer",
+              padding: "8px 16px", fontSize: 13, fontWeight: 600,
+              color: tab === t ? "#1a1a1a" : "#aaa",
+              borderBottom: tab === t ? "2px solid #1a1a1a" : "2px solid transparent",
+              marginBottom: -1, transition: "color 0.15s",
+            }}>
+              {t === "default" ? "Default" : "My templates"}
+            </button>
+          ))}
+        </div>
+
+        {/* Grid */}
+        <div style={{ padding: 24, overflowY: "auto", flex: 1 }}>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: 40, color: "#bbb", fontSize: 13 }}>Loading...</div>
+          ) : list.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 40, color: "#bbb", fontSize: 13 }}>
+              {tab === "user"
+                ? "No saved templates yet."
+                : "No default templates available."}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 14 }}>
+              {list.map((tpl) => (
+                <TemplateCard key={tpl.id} tpl={tpl} onClick={() => onSelect(tpl.id)} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Project card thumbnail 
 function ProjectThumb({ project }: { project: Project }) {
@@ -180,10 +377,10 @@ export default function MyProjectsPage() {
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const { profile } = userProfile();
-  console.log(profile);
   const { projects, loading } = useProjects();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
 
   const renameProject = async (id: string) => {
     try {
@@ -294,6 +491,19 @@ export default function MyProjectsPage() {
 
           {/* Right: action buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              className="new-btn"
+              style={{ background: "#454fda", color: "#fff" }}
+              onClick={() => setTemplateModalOpen(true)}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              From Template
+            </button>
             <button className="new-btn" onClick={createProject}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19"/>
@@ -735,6 +945,15 @@ export default function MyProjectsPage() {
           )}
         </div>
       </div>
+      {templateModalOpen && (
+        <TemplatesModal
+          onClose={() => setTemplateModalOpen(false)}
+          onSelect={(id) => {
+            setTemplateModalOpen(false);
+            createFromTemplate(id);
+          }}
+        />
+      )}
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { Download, Undo2, Redo2 } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import jsPDF from "jspdf";
 
 const API = import.meta.env?.VITE_API;
@@ -11,6 +11,8 @@ export function Header() {
   const pushHistory = useEditorStore((s) => s.pushHistory);
   const [userId, setId] = useState(null);
   const [exportFormat, setExportFormat] = useState("png");
+  const { projectId } = useParams();
+  const [saving, setSaving] = useState(false);
   
    useEffect(() => {
         fetch(`${API}/auth/me`, { credentials: "include" })
@@ -43,6 +45,22 @@ export function Header() {
 
   //   link.click();
   // }
+
+  const saveAsTemplate = async () => {
+    if (!projectId) return;
+    setSaving(true);
+    try {
+      await fetch(`${API}/templates/${projectId}/save-as-template`, {
+        method: "POST",
+        credentials: "include",
+      });
+      alert("Saved as template!");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   async function handleExport() {
     if (!canvas) return;
@@ -168,6 +186,20 @@ export function Header() {
           }}
         >
           <Download size={13} /> Export
+        </button>
+
+        <button
+          onClick={saveAsTemplate}
+          disabled={saving}
+          style={{
+            ...btnStyle,
+            opacity: saving ? 0.6 : 1,
+            background: "var(--accent)",
+            color: "#fff",
+            border: "none",
+          }}
+        >
+          {saving ? "Saving..." : "Save as Template"}
         </button>
       </div>
     </header>

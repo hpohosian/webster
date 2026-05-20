@@ -109,3 +109,32 @@ export function useProjects() {
   
   return { projects, loading, error };
 }
+
+export function useTemplates() {
+  const [templates, setTemplates] = useState<{
+    default: Template[];
+    user: Template[];
+  }>({ default: [], user: [] });
+  const [loading, setLoading] = useState(false);
+
+  const fetchTemplates = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/templates`, { credentials: "include" });
+      const data = await res.json();
+      setTemplates(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { templates, loading, fetchTemplates };
+}
+
+export type Template = {
+  id: string;
+  title: string;
+  type: "photo" | "logo";
+  thumbnail: string | null;
+  projectData: Record<string, any>;
+};
