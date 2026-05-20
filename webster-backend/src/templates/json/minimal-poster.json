@@ -1,0 +1,59 @@
+{
+  "title": "Minimal Poster",
+  "type": "photo",
+  "projectData": {
+    "canvas": { "width": 800, "height": 1100, "background": "#ffffff" },
+    "objects": {
+      "version": "7.3.1",
+      "background": "#ffffff",
+      "objects": [
+        {
+          "type": "Rect",
+          "left": 400, "top": 275,
+          "width": 800, "height": 550,
+          "fill": "#f5f5f7",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 400, "top": 840,
+          "width": 640, "height": 1,
+          "fill": "#cccccc",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 80, "top": 920,
+          "width": 48, "height": 4,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "rx": 2, "ry": 2,
+          "originX": "left", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 80, "top": 1020,
+          "width": 200, "height": 2,
+          "fill": "#e0e0e0",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "left", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 80, "top": 1044,
+          "width": 140, "height": 2,
+          "fill": "#e0e0e0",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "left", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        }
+      ]
+    }
+  }
+}

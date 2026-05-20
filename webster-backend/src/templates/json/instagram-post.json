@@ -1,0 +1,51 @@
+{
+  "title": "Instagram Post",
+  "type": "photo",
+  "projectData": {
+    "canvas": { "width": 1080, "height": 1080, "background": "#fafafa" },
+    "objects": {
+      "version": "7.3.1",
+      "background": "#fafafa",
+      "objects": [
+        {
+          "type": "Rect",
+          "left": 540, "top": 540,
+          "width": 1080, "height": 1080,
+          "fill": "#f0f0f0",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 540, "top": 490,
+          "width": 920, "height": 780,
+          "fill": "#ffffff",
+          "stroke": "#e0e0e0", "strokeWidth": 1,
+          "rx": 4, "ry": 4,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 540, "top": 960,
+          "width": 920, "height": 60,
+          "fill": "#ffffff",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 430, "top": 960,
+          "width": 120, "height": 8,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "rx": 4, "ry": 4,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        }
+      ]
+    }
+  }
+}
