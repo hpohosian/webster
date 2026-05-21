@@ -315,7 +315,7 @@ function TextContent() {
     listFonts()
       .then((loadedFonts) => {
         if (!isActive) return;
-        setFonts(loadedFonts);
+        setFonts([...loadedFonts, ...fontOptions]);
         if (loadedFonts[0]?.family) setSelectedFont(loadedFonts[0].family);
       })
       .catch(() => { if (isActive) setFonts([]); })
@@ -515,7 +515,7 @@ function ResizeContent() {
 
     if (projectId) {
       await saveProject(projectId, {
-        canvas: { width: canvasSize.w, height: canvasSize.h, background: "#dadada" },
+        canvas: { width: canvasSize.w, height: canvasSize.h, background: "#ededed" },
         objects: [],
       });
       pushHistory("Resize saved to DB");

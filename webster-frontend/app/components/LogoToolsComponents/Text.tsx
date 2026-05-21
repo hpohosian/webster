@@ -1,34 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Slider from "@radix-ui/react-slider";
 import { useLogo } from './LogoProvider';
+import { listFonts } from '../../lib/demoApi';
+import type { DemoFont } from '../../lib/demoApi';
+
 export type FontWeight = "normal" | "bold";
 
-interface TextConfig {
-  text: string;
-  fontWeight: FontWeight;
-  fontSize: number;
-  letterSpacing: number;
-  color: string;
-  fontFamily: string;
-}
-
-interface TextPanelProps {
-  config: TextConfig;
-  onChange: (patch: Partial<TextConfig>) => void;
-}
+// interface TextConfig {
+//   text: string;
+//   fontWeight: FontWeight;
+//   fontSize: number;
+//   letterSpacing: number;
+//   color: string;
+//   fontFamily: string;
+// }
 
 // ── Placeholder font list (swap with your google-fonts.json import) ───────────
 
-const GOOGLE_FONTS: string[] = [
-  "Roboto", "Open_Sans", "Lato", "Montserrat", "Oswald",
-  "Raleway", "Poppins", "Merriweather", "Playfair_Display",
-  "Ubuntu", "Nunito", "Rubik", "Inter", "DM_Sans",
-  "Space_Grotesk", "Sora", "Outfit", "Plus_Jakarta_Sans",
-];
+// const GOOGLE_FONTS: string[] = [
+//   "Roboto", "Open_Sans", "Lato", "Montserrat", "Oswald",
+//   "Raleway", "Poppins", "Merriweather", "Playfair_Display",
+//   "Ubuntu", "Nunito", "Rubik", "Inter", "DM_Sans",
+//   "Space_Grotesk", "Sora", "Outfit", "Plus_Jakarta_Sans",
+// ];
+
+const FALLBACK_FONTS: DemoFont[] = [
+  "Arial", "Georgia", "Courier New", "Impact", "Trebuchet MS",
+].map((family) => ({ family }));
 
 export function TextPanel() {
   const [logo, updateLogo] = useLogo();
+  const [fonts, setFonts] = useState<DemoFont[]>([]);
+  const [isLoadingFonts, setIsLoadingFonts] = useState(false);
+
+   useEffect(() => {
+    let isActive = true;
+    setIsLoadingFonts(true);
+
+    listFonts()
+      .then((loaded) => {if (isActive) setFonts([...FALLBACK_FONTS, ...loaded]); })
+      .catch(() => { if (isActive) setFonts([]); })
+      .finally(() => { if (isActive) setIsLoadingFonts(false); });
+
+    return () => { isActive = false; };
+  }, []);
+
+  const fontList = fonts.length > 0 ? fonts : FALLBACK_FONTS;
+
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col overflow-hidden">
       <div className="h-12 px-4 border-b border-border flex items-center flex-shrink-0">
@@ -36,7 +55,6 @@ export function TextPanel() {
       </div>
 
       <Tabs.Root defaultValue="font" className="flex flex-col flex-1 overflow-hidden">
-        {/* Tab list */}
         <Tabs.List className="flex gap-1 px-3 pt-3 pb-1 flex-shrink-0">
           {(["font", "family"] as const).map((tab) => (
             <Tabs.Trigger
@@ -57,7 +75,6 @@ export function TextPanel() {
         {/* Text / style tab */}
         <Tabs.Content value="font" className="flex-1 overflow-y-auto p-4 space-y-5">
 
-          {/* Logo name input */}
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">Logo name</label>
             <input
@@ -74,7 +91,6 @@ export function TextPanel() {
             />
           </div>
 
-          {/* Font weight toggle */}
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">Font weight</label>
             <div className="flex gap-2">
@@ -97,7 +113,6 @@ export function TextPanel() {
             </div>
           </div>
 
-          {/* Font size */}
           <SliderField
             label="Font size"
             value={logo.fontSize}
@@ -106,7 +121,6 @@ export function TextPanel() {
             onChange={(v) => updateLogo({ fontSize: v })}
           />
 
-          {/* Letter spacing */}
           <SliderField
             label="Letter spacing"
             value={logo.letterSpacing}
@@ -115,13 +129,12 @@ export function TextPanel() {
             onChange={(v) => updateLogo({ letterSpacing: v })}
           />
 
-          {/* Text preview */}
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">Preview</label>
             <div className="flex items-center justify-center p-3 bg-secondary rounded-lg border border-border min-h-12 overflow-hidden">
               <span
                 style={{
-                  fontFamily: logo.fontFamily.replace(/_/g, " "),
+                  fontFamily: `'${logo.fontFamily.replace(/_/g, " ")}', sans-serif`,
                   fontWeight: logo.fontWeight === "bold" ? 700 : 400,
                   fontSize: Math.min(logo.fontSize, 32),
                   letterSpacing: logo.letterSpacing,
@@ -134,7 +147,6 @@ export function TextPanel() {
             </div>
           </div>
 
-          {/* Color */}
           <div>
             <label className="text-xs text-muted-foreground mb-2 block">Color</label>
             <div className="relative w-full h-10 rounded overflow-hidden border border-border">
@@ -165,13 +177,19 @@ export function TextPanel() {
 
         {/* Font family tab */}
         <Tabs.Content value="family" className="flex-1 overflow-y-auto p-3 space-y-1">
-          {GOOGLE_FONTS.map((font) => {
-            const isSelected = font === logo.fontFamily;
-            const displayName = font.replace(/_/g, " ");
+          <p className="text-xs text-muted-foreground mb-2 px-1">
+            Family
+            {isLoadingFonts && (
+              <span className="opacity-50 ml-1">· loading Google Fonts</span>
+            )}
+          </p>
+
+          {fontList.map((font) => {
+            const isSelected = font.family === logo.fontFamily;
             return (
               <button
-                key={font}
-                onClick={() => updateLogo({ fontFamily: font })}
+                key={font.family}
+                onClick={() => updateLogo({ fontFamily: font.family })}
                 className={`
                   w-full px-3 py-2.5 text-left rounded-lg border transition-all
                   ${isSelected
@@ -182,9 +200,9 @@ export function TextPanel() {
               >
                 <span
                   className="text-sm font-semibold block"
-                  style={{ fontFamily: `'${displayName}', sans-serif` }}
+                  style={{ fontFamily: `'${font.family}', sans-serif` }}
                 >
-                  {displayName}
+                  {font.family}
                 </span>
                 {isSelected && (
                   <span className="text-[10px] text-primary mt-0.5 block">Selected</span>
