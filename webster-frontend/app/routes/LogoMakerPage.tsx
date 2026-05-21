@@ -8,21 +8,6 @@ import { LayoutPanel } from "./../components/LogoToolsComponents/Layout";
 import { useState } from "react";
 import { LogoProvider } from "./../components/LogoToolsComponents/LogoProvider";
 import { LogoPreview } from "./../components/LogoToolsComponents/Prewiew"
-// const DEFAULT_LOGO: LogoState = {
-//   text: "",
-//   fontWeight: "normal",
-//   fontSize: 48,
-//   letterSpacing: 0,
-//   color: "#e5e5e7",
-//   fontFamily: "Poppins",
-//   iconId: null,
-//   iconSize: 80,
-//   iconColor: "#bdd6df",
-//   padding: 40,
-//   gap: 16,
-//   backgroundColor: "var(--background)",
-//   layout: "Icon-Left",
-// };
 
 export default function LogoMakerPage() {
   const [activeTool, setActiveTool]   = useState<CanvasTool>("pointer");
@@ -66,6 +51,8 @@ export default function LogoMakerPage() {
               iconId: logo.iconId,
               iconSize: logo.iconSize,
               iconColor: logo.iconColor,
+              iconSvg: logo.iconSvg,
+              iconLabel: logo.iconLabel,
             }}
             onChange={updateLogo}
           />
@@ -88,7 +75,8 @@ export default function LogoMakerPage() {
             onChange={(layout) => updateLogo({ layout })}
           />
         )}
-        */}
+          */}
+        
           
           <LogoPreview/>
         </div>
