@@ -125,7 +125,7 @@ function TemplateCard({
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLButtonElement).style.borderColor = "#a0cedc";
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(69,79,218,0.12)";
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(69, 183, 218, 0.12)";
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLButtonElement).style.borderColor = "#ebebeb";
@@ -563,7 +563,7 @@ export default function MyProjectsPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button
               className="new-btn"
-              style={{ background: "#a0cedc", color: "#fff" }}
+              style={{ background: "#76afc0", color: "#fff" }}
               onClick={() => setTemplateModalOpen(true)}
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">

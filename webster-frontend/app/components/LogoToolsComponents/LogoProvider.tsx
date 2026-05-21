@@ -13,6 +13,8 @@ interface LogoState {
   iconId: string;
   iconColor: string;
   iconSize: number;
+  iconSvg: string | null;
+  iconLabel: string | null;
   layout: LayoutVariant;
   text: string;
   padding: number;
@@ -33,6 +35,8 @@ const initLogo: LogoState = {
   iconId: 'Fingerprint',
   iconColor: '#ffffff',
   iconSize: 96,
+   iconSvg: null,
+  iconLabel: null,
   layout: 'Icon-Left',
   text: 'Logotype',
   padding: 70,

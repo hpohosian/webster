@@ -7,31 +7,17 @@ import type { DemoIcon } from "../../lib/demoApi";
 import { useLogo } from './LogoProvider';
 
 type IconItem = DemoIcon;
-{/* from prw version */}
-{/* interface IconItem {
-  id: string;
-  label: string;
-  svg?: string;
-} */}
 
-interface IconConfig {
-  iconId: string | null;
-  iconSize: number;
-  iconColor: string;
-  iconSvg?: string | null;
-  iconLabel?: string | null;
-}
-
-{/* interface IconsPanelProps {
-  config: IconConfig;
-  onChange: (patch: Partial<IconConfig>) => void;
-} */}
+// interface IconConfig {
+//   iconId: string | null;
+//   iconSize: number;
+//   iconColor: string;
+//   iconSvg?: string | null;
+//   iconLabel?: string | null;
+// }
 
 const DEFAULT_QUERY = "logo";
 
-// ── Component 
-
-{/* export function IconsPanel({ config, onChange }: IconsPanelProps) { */}
 export function IconsPanel() {
   const [search, setSearch] = useState(DEFAULT_QUERY);
   const [icons, setIcons] = useState<IconItem[]>([]);

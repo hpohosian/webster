@@ -31,54 +31,9 @@ export default function LogoMakerPage() {
             {activePanel === "icons" && <IconsPanel />}
             {activePanel === "box" && <BoxPanel />}
             {activePanel === "templates" && <LayoutPanel />}
-        {/* Sliding panels */}
-        {/* {activePanel === "text" && (
-          <TextPanel
-            config={{
-              text: logo.text,
-              fontWeight: logo.fontWeight,
-              fontSize: logo.fontSize,
-              letterSpacing: logo.letterSpacing,
-              color: logo.color,
-              fontFamily: logo.fontFamily,
-            }}
-            onChange={updateLogo}
-          />
-        )}
- 
-        {activePanel === "icons" && (
-          <IconsPanel
-            config={{
-              iconId: logo.iconId,
-              iconSize: logo.iconSize,
-              iconColor: logo.iconColor,
-              iconSvg: logo.iconSvg,
-              iconLabel: logo.iconLabel,
-            }}
-            onChange={updateLogo}
-          />
-        )}
- 
-        {activePanel === "box" && (
-          <BoxPanel
-            config={{
-              padding: logo.padding,
-              gap: logo.gap,
-              backgroundColor: logo.backgroundColor,
-            }}
-            onChange={updateLogo}
-          />
-        )}
- 
-        {activePanel === "templates" && (
-          <LayoutPanel
-            layout={logo.layout}
-            onChange={(layout) => updateLogo({ layout })}
-          />
-        )}
-        */}
-          
-          <LogoPreview/>
+          <div className="size-full m-5 flex items-center justify-center" style={{ height: "100vh", background: "#f8f8f8", justifyContent: "center"}}>
+            <LogoPreview/>
+          </div>
         </div>
       </div>
     </LogoProvider>
