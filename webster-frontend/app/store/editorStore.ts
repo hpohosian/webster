@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import type { Canvas as FabricCanvas } from "fabric";
 
 export type ShapeKind = "rectangle" | "rounded-rect" | "circle" | "line" | "arrow" | "triangle" | "star";
+export type BrushMode = "pencil" | "marker" | "highlighter" | "spray" | "dots";
 
 export interface Layer {
   id: string;
@@ -69,9 +71,18 @@ export interface EditorStore {
   brushColor: string;
   brushSize: number;
   brushOpacity: number;
+  brushMode: BrushMode;
 
   canvasSize: { w: number; h: number };
   canvasCommand: CanvasCommand | null;
+
+  canvasJSON: any;
+
+  canvasBackgroundColor: string;
+
+  fabricCanvas: FabricCanvas | null;
+
+  setFabricCanvas: (canvas: FabricCanvas | null) => void;
 
   resizeCanvas: (width: number, height: number) => void;
 
@@ -101,6 +112,7 @@ export interface EditorStore {
   setBrushColor: (color: string) => void;
   setBrushSize: (size: number) => void;
   setBrushOpacity: (opacity: number) => void;
+  setBrushMode: (mode: BrushMode) => void;
 
   setCanvasSize: (size: { w: number; h: number }) => void;
   addImageLayer: (layer: {
@@ -116,6 +128,9 @@ export interface EditorStore {
   }) => void;
   runCanvasCommand: (command: CanvasCommandInput) => void;
   consumeCanvasCommand: (id: number) => void;
+
+  setCanvasJSON: (json: any) => void;
+  setCanvasBackgroundColor: (color: string) => void;
 }
 
 const DEFAULT_ADJUSTMENTS: Adjustments = {
@@ -148,9 +163,15 @@ export const useEditorStore = create<EditorStore>()(
       brushColor: "#454fda",
       brushSize: 5,
       brushOpacity: 100,
+      brushMode: "pencil",
 
       canvasSize: { w: 800, h: 600 },
       canvasCommand: null,
+
+      canvasJSON: null,
+      canvasBackgroundColor: "#ffffff",
+
+      fabricCanvas: null,
 
       setActiveTool: (tool) => set({ activeTool: tool }, false, "setActiveTool"),
 
@@ -167,7 +188,12 @@ export const useEditorStore = create<EditorStore>()(
       resetView: () => set({ zoom: 100, offset: { x: 0, y: 0 } }, false, "resetView"),
       setOffset: (offset) => set({ offset }, false, "setOffset"),
 
-      addLayer: () => get().runCanvasCommand({ type: "add-shape", shape: "rectangle" }),
+      addLayer: () =>
+        set(
+          (s) => ({ selectedLayerId: s.layers[s.layers.length - 1]?.id ?? s.selectedLayerId }),
+          false,
+          "addLayer"
+        ),
       deleteLayer: (id) => {
         set({ selectedLayerId: id }, false, "selectLayerBeforeDelete");
         get().runCanvasCommand({ type: "delete-selected" });
@@ -212,6 +238,7 @@ export const useEditorStore = create<EditorStore>()(
       setBrushColor: (brushColor) => set({ brushColor }, false, "setBrushColor"),
       setBrushSize: (brushSize) => set({ brushSize }, false, "setBrushSize"),
       setBrushOpacity: (brushOpacity) => set({ brushOpacity }, false, "setBrushOpacity"),
+      setBrushMode: (brushMode) => set({ brushMode }, false, "setBrushMode"),
 
       setCanvasSize: (canvasSize) => set({ canvasSize }, false, "setCanvasSize"),
       resizeCanvas: (width, height) => set({ canvasSize: { w: width, h: height } }, false, "resizeCanvas"),
@@ -232,6 +259,12 @@ export const useEditorStore = create<EditorStore>()(
         set({ canvasCommand: { ...command, id: ++commandId } as CanvasCommand }, false, "runCanvasCommand"),
       consumeCanvasCommand: (id) =>
         set((s) => ({ canvasCommand: s.canvasCommand?.id === id ? null : s.canvasCommand }), false, "consumeCanvasCommand"),
+      setCanvasJSON: (json) =>
+        set({ canvasJSON: json }, false, "setCanvasJSON"),
+      setFabricCanvas: (canvas) =>
+        set({ fabricCanvas: canvas }, false, "setFabricCanvas"),
+      setCanvasBackgroundColor: (color) =>
+        set({ canvasBackgroundColor: color }, false, "setCanvasBackgroundColor"),
     }),
     { name: "EditorStore" }
   )

@@ -6,7 +6,7 @@ export class CreateLayerDto {
 
   @IsOptional()
   @IsString()
-  type?: "image" | "text" | "shape";
+  type?: "image" | "text" | "shape" | "background";
 
   @IsOptional()
   @IsBoolean()
@@ -38,9 +38,9 @@ export class CreateLayerDto {
 
   @IsOptional()
   @IsNumber()
-  width?: number;
+  width?: number | undefined;
 
   @IsOptional()
   @IsNumber()
-  height?: number;
+  height?: number | undefined;
 }

@@ -30,6 +30,13 @@ export class Project {
   @Column()
   title: string;
 
+  @Column({
+    type: 'enum',
+    enum: ['photo', 'logo'],
+    default: 'photo',
+  })
+  type: 'photo' | 'logo';
+
   @ApiProperty({
     description: 'Project data (canvas + objects)',
   })
@@ -66,4 +73,13 @@ export class Project {
 
   @Column({ nullable: true })
   currentVersionId: string;
+
+  @Column({ type: "text", nullable: true })
+  thumbnail: string;
+
+  @Column({ default: false })
+  isTemplate: boolean;
+
+  @Column({ default: false })
+  isDefaultTemplate: boolean;
 }

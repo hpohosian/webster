@@ -3,10 +3,8 @@ import { Link, useNavigate } from 'react-router';
 import './EditUserPage.css';
 import { userProfile } from '../ProjectPage/userLogik';
 import type {
-  ProfileFormKey,
-  ToastState,
-  FormErrors,
-  ProfileForm,
+  ProfileFormKey, ToastState,
+  FormErrors, ProfileForm,
 } from './EditUserFunctions';
 import { SectionCard, Field } from './EditUserFunctions';
 import { handleDelete, handleUpdate } from './EditUserFunctions';
@@ -27,7 +25,7 @@ export default function UserEditPage() {
     email: '',
   });
 
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined >(undefined);
   const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
@@ -65,7 +63,6 @@ export default function UserEditPage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errs.email = 'Invalid email address';
     }
-
     return errs;
   };
 
@@ -127,17 +124,17 @@ export default function UserEditPage() {
       <div className="ep-page">
 
         <div className="ep-body">
-          {/* ── Sidebar ── */}
+          {/* Sidebar */}
           <aside className="ep-sidebar">
             <div className="ep-avatar-card">
               <div className="ep-avatar-wrap">
                 <div className="ep-avatar">
-                  {/* {avatarPreview && !avatarPreview.includes('default.png') ? (
+                  {avatarPreview && !avatarPreview.includes('default.png') ? (
                     <img src={avatarPreview} alt="avatar" />)
                     :(
-                      <img src={avatarPreview} alt="avatar" />
-                    )} */}
-                   <img src={avatarPreview} alt="avatar" />
+                      <></>
+                    )}
+                   {/* <img src={avatarPreview} alt="avatar" /> */}
                 </div>
                 <button
                   className="ep-avatar-edit-btn"
@@ -174,9 +171,9 @@ export default function UserEditPage() {
             </div>
           </aside>
 
-          {/* ── Main ── */}
+          {/* Main */}
           <main className="ep-content">
-              <SectionCard title="Personal info" subtitle="How others see you" delay={0.04}>
+              <SectionCard title="Personal info" delay={0.04}>
                 <div className="ep-form-grid">
                   <Field label="Username" error={errors.username}>
                     <div className="ep-input-wrap">
@@ -214,7 +211,7 @@ export default function UserEditPage() {
                 </div>
 
                 <div className="ep-action-bar">
-                  <Link to={`/profile/${profile?.id}`} className="ep-cancel-btn">Cancel</Link>
+                  <Link to={`/projects/${profile?.id}`} className="ep-cancel-btn">Cancel</Link>
                   <button type="submit" className="ep-save-btn" disabled={saving}>
                     {saving ? <><span className="ep-spinner" /> Saving…</> : 'Save changes'}
                   </button>
@@ -223,7 +220,6 @@ export default function UserEditPage() {
           </main>
         </div>
 
-        {/* Toast */}
         {toast && (
           <div className={`ep-toast ${toast.type}`}>
             {toast.msg}

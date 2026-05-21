@@ -1,0 +1,59 @@
+{
+  "title": "Business Card",
+  "type": "photo",
+  "projectData": {
+    "canvas": { "width": 1050, "height": 600, "background": "#ffffff" },
+    "objects": {
+      "version": "7.3.1",
+      "background": "#ffffff",
+      "objects": [
+        {
+          "type": "Rect",
+          "left": 0, "top": 300,
+          "width": 340, "height": 600,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "left", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Circle",
+          "left": 170, "top": 200,
+          "radius": 90,
+          "fill": "#ffffff",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 0.08
+        },
+        {
+          "type": "Circle",
+          "left": 310, "top": 520,
+          "radius": 130,
+          "fill": "#ffffff",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 0.05
+        },
+        {
+          "type": "Rect",
+          "left": 695, "top": 440,
+          "width": 540, "height": 1,
+          "fill": "#e8e8e8",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 420, "top": 300,
+          "width": 4, "height": 120,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "rx": 2, "ry": 2,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        }
+      ]
+    }
+  }
+}

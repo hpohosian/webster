@@ -2,31 +2,30 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Hand, MousePointer2, ZoomIn, ZoomOut, RotateCcw, Undo2, Redo2 } from "lucide-react";
 import {
   Canvas as FabricCanvas,
-  Circle,
-  FabricImage,
+  Circle, FabricImage,
   FabricObject,
   FabricText,
-  IText,
-  Line,
-  Path,
-  PencilBrush,
-  Polygon,
-  Rect,
-  Triangle,
+  IText, Line,
+  CircleBrush, Path, PencilBrush,
+  Polygon, SprayBrush,
+  Rect, Triangle,
 } from "fabric";
 import { useEditorStore } from "../store/editorStore";
 import type { CanvasCommand, Layer, ShapeKind } from "../store/editorStore";
+import { useParams } from "react-router-dom";
 
 type EngineObject = FabricObject & {
   id?: string;
   name?: string;
   fileId?: string;
   imageUrl?: string;
+  locked?: boolean;
 };
 type Snapshot = { label: string; size: { w: number; h: number }; json: Record<string, unknown> };
 
-const FABRIC_PROPS = ["id", "name", "fileId", "imageUrl"];
-const CANVAS_BACKGROUND = "#ffffff";
+const FABRIC_PROPS = ["id", "name", "fileId", "imageUrl", "locked", "globalCompositeOperation"];
+
+const API = import.meta.env?.VITE_API;
 
 export function Canvas() {
   const canvasElementRef = useRef<HTMLCanvasElement>(null);
@@ -42,10 +41,13 @@ export function Canvas() {
   const brushColor = useEditorStore((s) => s.brushColor);
   const brushSize = useEditorStore((s) => s.brushSize);
   const brushOpacity = useEditorStore((s) => s.brushOpacity);
+  const brushMode = useEditorStore((s) => s.brushMode);
   const canvasSize = useEditorStore((s) => s.canvasSize);
   const selectedLayerId = useEditorStore((s) => s.selectedLayerId);
   const layers = useEditorStore((s) => s.layers);
   const command = useEditorStore((s) => s.canvasCommand);
+  const canvasJSON = useEditorStore((s) => s.canvasJSON);
+  const canvasBackgroundColor = useEditorStore((s) => s.canvasBackgroundColor);
 
   const zoomIn = useEditorStore((s) => s.zoomIn);
   const zoomOut = useEditorStore((s) => s.zoomOut);
@@ -57,11 +59,44 @@ export function Canvas() {
   const setHistory = useEditorStore((s) => s.setHistory);
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const consumeCanvasCommand = useEditorStore((s) => s.consumeCanvasCommand);
+  const setFabricCanvas = useEditorStore((s) => s.setFabricCanvas);
+  
 
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [showCtxMenu, setShowCtxMenu] = useState(false);
-  const [ctxPos, setCtxPos] = useState({ x: 0, y: 0 });
+  const [ctxPos, setCtxPos] = useState({ x: 0, y: 0 });  
+
+  useEffect(() => {
+    const element = canvasElementRef.current;
+    if (!element || fabricRef.current) return;
+
+    const canvas = new FabricCanvas(element, {
+      width: canvasSize.w,
+      height: canvasSize.h,
+      backgroundColor: canvasBackgroundColor,
+      preserveObjectStacking: true,
+      selection: true,
+    });
+
+    setFabricCanvas(canvas);
+
+    fabricRef.current = canvas;
+
+    // const json = canvasJSON;
+    // if (json) {
+    //   canvas.loadFromJSON(json, () => {
+    //     canvas.backgroundColor = canvasBackgroundColor;
+    //     canvas.requestRenderAll();
+    //   });
+    // }
+
+    return () => {
+      canvas.dispose();
+      fabricRef.current = null;
+    };
+  }, []);
+
 
   const syncLayers = useCallback((selectedId?: string) => {
     const canvas = fabricRef.current;
@@ -70,14 +105,19 @@ export function Canvas() {
     const nextLayers: Layer[] = canvas.getObjects().map((object, index) => {
       const item = object as EngineObject;
       const id = ensureObjectId(item);
+      const name = item.name || nameForObject(item, index + 1);
+      const locked = Boolean(item.locked) || object.selectable === false;
+      item.name = name;
+      item.locked = locked;
+
       return {
         id,
-        name: item.name || nameForObject(item, index + 1),
+        name,
         type: normalizeLayerType(object),
         visible: object.visible !== false,
-        locked: object.selectable === false,
+        locked,
         opacity: Math.round((object.opacity ?? 1) * 100),
-        blendMode: "Normal",
+        blendMode: compositeToBlendMode(object.globalCompositeOperation),
         src: item.imageUrl,
         fileId: item.fileId,
         x: Math.round(object.left ?? 0),
@@ -90,6 +130,78 @@ export function Canvas() {
     const activeId = selectedId ?? ((canvas.getActiveObject() as EngineObject | undefined)?.id);
     setLayers(nextLayers, activeId);
   }, [setLayers]);
+
+  useEffect(() => {
+    const canvas = fabricRef.current;
+    if (!canvas || !canvasJSON || Array.isArray(canvasJSON) || !canvasJSON.objects) return;
+
+    let cancelled = false;
+
+    const loadProjectCanvas = async () => {
+      isRestoringRef.current = true;
+      try {
+        await canvas.loadFromJSON(canvasJSON);
+        if (cancelled) return;
+
+        canvas.backgroundColor = canvasBackgroundColor;
+        canvas.discardActiveObject();
+        canvas.requestRenderAll();
+        syncLayers();
+
+        const initialSnapshot: Snapshot = {
+          label: "Project Loaded",
+          size: { w: canvas.getWidth(), h: canvas.getHeight() },
+          json: canvas.toObject(FABRIC_PROPS),
+        };
+        snapshotsRef.current = [initialSnapshot];
+        historyIndexRef.current = 0;
+        setHistory([initialSnapshot.label], 0);
+      } finally {
+        if (!cancelled) isRestoringRef.current = false;
+      }
+    };
+
+    void loadProjectCanvas().catch(console.error);
+
+    return () => {
+      cancelled = true;
+      isRestoringRef.current = false;
+    };
+  }, [canvasJSON, canvasBackgroundColor, setHistory, syncLayers]);
+
+  const { projectId } = useParams();
+
+  const saveProject = useCallback(async () => {
+    const canvas = fabricRef.current;
+    if (!canvas || !projectId) return;
+
+    const payload = {
+      canvas: {
+        width: canvas.getWidth(),
+        height: canvas.getHeight(),
+        background: canvas.backgroundColor,
+      },
+      objects: canvas.toObject(FABRIC_PROPS),
+    };
+
+    const thumbnail = canvas.toDataURL({
+      format: "png",
+      multiplier: 0.2,
+    });
+
+    await fetch(`${API}/projects/${projectId}/save`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        projectState: payload,
+        isAutoSave: true,
+        thumbnail,
+      }),
+    });
+  }, [projectId]);
 
   const recordSnapshot = useCallback((label: string) => {
     const canvas = fabricRef.current;
@@ -107,7 +219,63 @@ export function Canvas() {
     historyIndexRef.current = next.length - 1;
     setHistory(next.map((item) => item.label), historyIndexRef.current);
     syncLayers();
+    isDirtyRef.current = true;
   }, [setHistory, syncLayers]);
+
+  const isDirtyRef = useRef(false);
+
+  useEffect(() => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+
+    const markAndSync = () => {
+      if (!isRestoringRef.current) isDirtyRef.current = true;
+      syncLayers();
+    };
+
+    const syncSelection = () => syncLayers();
+
+    const handlePathCreated = (event: unknown) => {
+      const path = (event as { path?: EngineObject }).path;
+      if (path) {
+        ensureObjectId(path);
+        path.name = path.name || "Drawing";
+      }
+      markAndSync();
+      recordSnapshot("Draw");
+    };
+
+    canvas.on("object:modified", markAndSync);
+    canvas.on("object:added", markAndSync);
+    canvas.on("object:removed", markAndSync);
+    canvas.on("selection:created", syncSelection);
+    canvas.on("selection:updated", syncSelection);
+    canvas.on("selection:cleared", syncSelection);
+    canvas.on("path:created", handlePathCreated);
+
+    return () => {
+      canvas.off("object:modified", markAndSync);
+      canvas.off("object:added", markAndSync);
+      canvas.off("object:removed", markAndSync);
+      canvas.off("selection:created", syncSelection);
+      canvas.off("selection:updated", syncSelection);
+      canvas.off("selection:cleared", syncSelection);
+      canvas.off("path:created", handlePathCreated);
+    };
+  }, [recordSnapshot, syncLayers]);
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    const interval = setInterval(() => {
+      if (!isDirtyRef.current) return;
+
+      isDirtyRef.current = false;
+      void saveProject();
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [projectId, saveProject]);
 
   const restoreSnapshot = useCallback(async (index: number) => {
     const canvas = fabricRef.current;
@@ -118,7 +286,7 @@ export function Canvas() {
     canvas.setDimensions(toFabricSize(snapshot.size));
     setCanvasSize(snapshot.size);
     await canvas.loadFromJSON(snapshot.json);
-    canvas.backgroundColor = CANVAS_BACKGROUND;
+    canvas.backgroundColor = canvasBackgroundColor;
     canvas.discardActiveObject();
     canvas.requestRenderAll();
     historyIndexRef.current = index;
@@ -136,8 +304,8 @@ export function Canvas() {
     object.set({
       left: object.left ?? 120,
       top: object.top ?? 100,
-      cornerColor: "#454fda",
-      borderColor: "#454fda",
+      cornerColor: "#5de4fc",
+      borderColor: "#5de4fc",
       transparentCorners: false,
     });
 
@@ -193,7 +361,7 @@ export function Canvas() {
       }
       case "create-empty-canvas":
         canvas.clear();
-        canvas.backgroundColor = CANVAS_BACKGROUND;
+        canvas.backgroundColor = canvasBackgroundColor;
         canvas.requestRenderAll();
         recordSnapshot("Create Empty Canvas");
         break;
@@ -241,38 +409,6 @@ export function Canvas() {
   }, [addObject, brushColor, recordSnapshot, restoreSnapshot]);
 
   useEffect(() => {
-    const element = canvasElementRef.current;
-    if (!element || fabricRef.current) return;
-
-    const canvas = new FabricCanvas(element, {
-      width: canvasSize.w,
-      height: canvasSize.h,
-      backgroundColor: CANVAS_BACKGROUND,
-      preserveObjectStacking: true,
-      selection: true,
-    });
-
-    fabricRef.current = canvas;
-
-    const markChanged = () => recordSnapshot("Canvas Changed");
-    canvas.on("selection:created", () => syncLayers());
-    canvas.on("selection:updated", () => syncLayers());
-    canvas.on("selection:cleared", () => syncLayers(""));
-    canvas.on("object:modified", markChanged);
-    canvas.on("path:created", () => recordSnapshot("Draw Stroke"));
-
-    snapshotsRef.current = [{ label: "Canvas Created", size: canvasSize, json: canvas.toObject(FABRIC_PROPS) }];
-    historyIndexRef.current = 0;
-    setHistory(["Canvas Created"], 0);
-    syncLayers();
-
-    return () => {
-      fabricRef.current = null;
-      void canvas.dispose();
-    };
-  }, []);
-
-  useEffect(() => {
     const canvas = fabricRef.current;
     if (!canvas) return;
 
@@ -281,19 +417,16 @@ export function Canvas() {
     canvas.skipTargetFind = activeTool === "hand" || activeTool === "draw";
 
     canvas.getObjects().forEach((object) => {
-      const locked = object.selectable === false;
+      const locked = (object as EngineObject).locked === true || object.selectable === false;
       object.evented = activeTool === "pointer" && !locked;
     });
 
     if (activeTool === "draw") {
-      const brush = new PencilBrush(canvas);
-      brush.color = withOpacity(brushColor, brushOpacity);
-      brush.width = brushSize;
-      canvas.freeDrawingBrush = brush;
+      canvas.freeDrawingBrush = createBrush(canvas, brushMode, brushColor, brushSize, brushOpacity);
     }
 
     canvas.requestRenderAll();
-  }, [activeTool, brushColor, brushOpacity, brushSize]);
+  }, [activeTool, brushColor, brushMode, brushOpacity, brushSize]);
 
   useEffect(() => {
     const canvas = fabricRef.current;
@@ -345,6 +478,8 @@ export function Canvas() {
     const canvas = fabricRef.current;
     if (!canvas) return;
 
+    let changedByLayerPanel = false;
+
     const active = canvas.getActiveObject() as EngineObject | undefined;
     if (selectedLayerId && active?.id !== selectedLayerId) {
       const target = canvas.getObjects().find((object) => (object as EngineObject).id === selectedLayerId);
@@ -356,20 +491,34 @@ export function Canvas() {
       const layer = layers.find((candidate) => candidate.id === item.id);
       if (!layer) return;
 
+      const nextVisible = layer.visible !== false;
+      const nextLocked = Boolean(layer.locked);
+      const nextOpacity = Math.max(0, Math.min(100, layer.opacity ?? 100)) / 100;
+      const nextComposite = blendModeToComposite(layer.blendMode);
+
+      if (object.visible !== nextVisible) changedByLayerPanel = true;
+      if (item.locked !== nextLocked) changedByLayerPanel = true;
+      if (Math.round((object.opacity ?? 1) * 100) !== Math.round(nextOpacity * 100)) changedByLayerPanel = true;
+      if ((item.name || "") !== layer.name) changedByLayerPanel = true;
+      if ((object.globalCompositeOperation || "source-over") !== nextComposite) changedByLayerPanel = true;
+
       object.set({
-        visible: layer.visible,
-        selectable: !layer.locked,
-        evented: !layer.locked && activeTool === "pointer",
-        opacity: layer.opacity / 100,
+        visible: nextVisible,
+        selectable: !nextLocked,
+        evented: !nextLocked && activeTool === "pointer",
+        opacity: nextOpacity,
+        globalCompositeOperation: nextComposite,
       });
-      object.lockMovementX = layer.locked;
-      object.lockMovementY = layer.locked;
-      object.lockScalingX = layer.locked;
-      object.lockScalingY = layer.locked;
-      object.lockRotation = layer.locked;
+      object.lockMovementX = nextLocked;
+      object.lockMovementY = nextLocked;
+      object.lockScalingX = nextLocked;
+      object.lockScalingY = nextLocked;
+      object.lockRotation = nextLocked;
+      item.locked = nextLocked;
       item.name = layer.name;
     });
 
+    if (changedByLayerPanel && !isRestoringRef.current) isDirtyRef.current = true;
     canvas.requestRenderAll();
   }, [activeTool, layers, selectedLayerId]);
 
@@ -578,6 +727,16 @@ function normalizeLayerType(object: FabricObject): Layer["type"] {
   return "shape";
 }
 
+function blendModeToComposite(mode?: string) {
+  const normalized = (mode || "Normal").trim().toLowerCase().replace(/\s+/g, "-");
+  return normalized === "normal" ? "source-over" : normalized;
+}
+
+function compositeToBlendMode(mode?: string) {
+  if (!mode || mode === "source-over") return "Normal";
+  return mode.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+}
+
 function createShape(shape: ShapeKind, color: string): FabricObject {
   const common = {
     left: 140,
@@ -629,6 +788,30 @@ function starPoints(outer: number, inner: number, points: number) {
     result.push({ x: Math.cos(angle) * radius + outer, y: Math.sin(angle) * radius + outer });
   }
   return result;
+}
+
+function createBrush(canvas: FabricCanvas, mode: string, color: string, size: number, opacity: number) {
+  if (mode === "spray") {
+    const brush = new SprayBrush(canvas);
+    brush.color = withOpacity(color, opacity);
+    brush.width = Math.max(8, size);
+    brush.density = Math.max(8, Math.round(size * 1.2));
+    return brush;
+  }
+
+  if (mode === "dots") {
+    const brush = new CircleBrush(canvas);
+    brush.color = withOpacity(color, opacity);
+    brush.width = Math.max(4, size);
+    return brush;
+  }
+
+  const brush = new PencilBrush(canvas);
+  const modeOpacity = mode === "highlighter" ? Math.min(opacity, 35) : mode === "marker" ? Math.min(100, Math.max(opacity, 75)) : opacity;
+  const modeWidth = mode === "marker" ? Math.max(size, 12) : mode === "highlighter" ? Math.max(size, 18) : size;
+  brush.color = withOpacity(color, modeOpacity);
+  brush.width = modeWidth;
+  return brush;
 }
 
 function withOpacity(hex: string, opacity: number) {

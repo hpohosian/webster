@@ -1,19 +1,18 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Slider from "@radix-ui/react-slider";
+import { searchIcons } from "../../lib/demoApi";
+import type { DemoIcon } from "../../lib/demoApi";
 
-interface IconItem {
-  id: string;
-  label: string;
-  /** SVG path(s) as a string – will be dropped in once the API is wired */
-  svg?: string;
-}
+type IconItem = DemoIcon;
 
 interface IconConfig {
   iconId: string | null;
   iconSize: number;
   iconColor: string;
+  iconSvg?: string | null;
+  iconLabel?: string | null;
 }
 
 interface IconsPanelProps {
@@ -21,21 +20,43 @@ interface IconsPanelProps {
   onChange: (patch: Partial<IconConfig>) => void;
 }
 
-// ── Placeholder icons (swap out once the real API is ready) 
-
-const PLACEHOLDER_ICONS: IconItem[] = Array.from({ length: 30 }, (_, i) => ({
-  id: `icon-${i + 1}`,
-  label: `Icon ${i + 1}`,
-}));
+const DEFAULT_QUERY = "logo";
 
 // ── Component 
 
 export function IconsPanel({ config, onChange }: IconsPanelProps) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(DEFAULT_QUERY);
+  const [icons, setIcons] = useState<IconItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const filtered = PLACEHOLDER_ICONS.filter((icon) =>
-    icon.label.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    let cancelled = false;
+    const query = search.trim() || DEFAULT_QUERY;
+
+    setLoading(true);
+    setError("");
+
+    const timeout = window.setTimeout(() => {
+      searchIcons(query)
+        .then((items) => {
+          if (!cancelled) setIcons(items);
+        })
+        .catch(() => {
+          if (!cancelled) setError("Could not load icons");
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [search]);
+
+  const filtered = useMemo(() => icons, [icons]);
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col">
@@ -94,7 +115,15 @@ export function IconsPanel({ config, onChange }: IconsPanelProps) {
 
           {/* Icon grid */}
           <div className="flex-1 overflow-y-auto px-3 pb-3">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                Loading icons...
+              </p>
+            ) : error ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                {error}
+              </p>
+            ) : filtered.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-8">
                 No icons found
               </p>
@@ -106,15 +135,14 @@ export function IconsPanel({ config, onChange }: IconsPanelProps) {
                     icon={icon}
                     selected={config.iconId === icon.id}
                     color={config.iconColor}
-                    onSelect={() => onChange({ iconId: icon.id })}
+                    onSelect={() => onChange({ iconId: icon.id, iconSvg: icon.svg, iconLabel: icon.label })}
                   />
                 ))}
               </div>
             )}
 
-            {/* API placeholder notice */}
             <p className="mt-3 text-center text-[10px] text-muted-foreground/50">
-              Icon library loads via API
+              Free SVG icons load through the backend API
             </p>
           </div>
         </Tabs.Content>
@@ -180,23 +208,35 @@ export function IconsPanel({ config, onChange }: IconsPanelProps) {
           </div>
 
           {/* Preview */}
-          {config.iconId && (
+          {(config.iconSvg || config.iconId) && (
             <div>
               <label className="text-xs text-muted-foreground mb-2 block">Preview</label>
               <div className="flex items-center justify-center p-4 bg-secondary rounded-lg border border-border">
-                {/* Once the API is wired, render the actual SVG here */}
-                <div
-                  className="rounded bg-primary/20 flex items-center justify-center"
-                  style={{
-                    width: Math.min(config.iconSize, 80),
-                    height: Math.min(config.iconSize, 80),
-                    color: config.iconColor,
-                  }}
-                >
-                  <span className="text-xs text-muted-foreground">
-                    {config.iconId}
-                  </span>
-                </div>
+                {config.iconSvg ? (
+                  <span
+                    className="svg-icon-preview"
+                    style={{
+                      width: Math.min(config.iconSize, 80),
+                      height: Math.min(config.iconSize, 80),
+                      color: config.iconColor,
+                      display: "flex",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: config.iconSvg }}
+                  />
+                ) : (
+                  <div
+                    className="rounded bg-primary/20 flex items-center justify-center"
+                    style={{
+                      width: Math.min(config.iconSize, 80),
+                      height: Math.min(config.iconSize, 80),
+                      color: config.iconColor,
+                    }}
+                  >
+                    <span className="text-xs text-muted-foreground">
+                      {config.iconId}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -233,10 +273,9 @@ function IconCard({
       `}
     >
       {icon.svg ? (
-        // When the API delivers SVG markup
-        <svg
-          viewBox="0 0 24 24"
-          style={{ width: 20, height: 20, color: selected ? color : "currentColor" }}
+        <span
+          className="svg-icon-thumb"
+          style={{ width: 20, height: 20, color: selected ? color : "currentColor", display: "flex" }}
           dangerouslySetInnerHTML={{ __html: icon.svg }}
         />
       ) : (

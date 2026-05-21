@@ -20,6 +20,8 @@ interface LogoState {
   iconId: string | null;
   iconSize: number;
   iconColor: string;
+  iconSvg: string | null;
+  iconLabel: string | null;
   // Box
   padding: number;
   gap: number;
@@ -38,6 +40,8 @@ const DEFAULT_LOGO: LogoState = {
   iconId: null,
   iconSize: 80,
   iconColor: "#bdd6df",
+  iconSvg: null,
+  iconLabel: null,
   padding: 40,
   gap: 16,
   backgroundColor: "var(--background)",
@@ -86,6 +90,8 @@ export default function LogoMakerPage() {
               iconId: logo.iconId,
               iconSize: logo.iconSize,
               iconColor: logo.iconColor,
+              iconSvg: logo.iconSvg,
+              iconLabel: logo.iconLabel,
             }}
             onChange={updateLogo}
           />
@@ -109,7 +115,7 @@ export default function LogoMakerPage() {
           />
         )}
  
-        {/* <Canvas /> */}
+        <Canvas />
       </div>
     </div>
   );

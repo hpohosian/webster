@@ -1,0 +1,59 @@
+{
+  "title": "YouTube Thumbnail",
+  "type": "photo",
+  "projectData": {
+    "canvas": { "width": 1280, "height": 720, "background": "#0f0f0f" },
+    "objects": {
+      "version": "7.3.1",
+      "background": "#0f0f0f",
+      "objects": [
+        {
+          "type": "Rect",
+          "left": 640, "top": 360,
+          "width": 1280, "height": 720,
+          "fill": "#1a1a2e",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 0, "top": 360,
+          "width": 500, "height": 720,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "left", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 0.15
+        },
+        {
+          "type": "Rect",
+          "left": 100, "top": 280,
+          "width": 6, "height": 160,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "rx": 3, "ry": 3,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 1
+        },
+        {
+          "type": "Rect",
+          "left": 640, "top": 660,
+          "width": 1180, "height": 2,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 0, "opacity": 0.5
+        },
+        {
+          "type": "Triangle",
+          "left": 980, "top": 360,
+          "width": 80, "height": 70,
+          "fill": "#454fda",
+          "stroke": null, "strokeWidth": 0,
+          "originX": "center", "originY": "center",
+          "scaleX": 1, "scaleY": 1, "angle": 90, "opacity": 0.6
+        }
+      ]
+    }
+  }
+}

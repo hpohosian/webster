@@ -47,6 +47,8 @@ export class ProjectsService {
         objects: [],
       },
       user: { id: userId } as User,
+      isTemplate: false,
+      isDefaultTemplate: false,
     });
 
     const savedProject = await this.projectRepo.save(project);
@@ -64,8 +66,18 @@ export class ProjectsService {
 
     backgroundLayer.x = 0;
     backgroundLayer.y = 0;
-    backgroundLayer.width = dto.canvas.width;
-    backgroundLayer.height = dto.canvas.height;
+
+    backgroundLayer.color = dto.canvas.background;
+
+    backgroundLayer.type = 'background';
+
+    if (backgroundLayer.name === 'Background') {
+      backgroundLayer.width = undefined;
+      backgroundLayer.height = undefined;
+    } else {
+      backgroundLayer.width = dto.canvas.width;
+      backgroundLayer.height = dto.canvas.height;
+    }
 
     await this.layerRepo.save(backgroundLayer);
 
@@ -77,14 +89,19 @@ export class ProjectsService {
 
   async findAll(userId: string) {
     return this.projectRepo.find({
-      where: { user: { id: userId } },
+      where: {
+        user: { id: userId },
+        isTemplate: false,
+      },
       order: { updatedAt: 'DESC' },
     });
   }
 
   async findOne(projectId: string, userId: string) {
     const project = await this.projectRepo.findOne({
-      where: { id: projectId },
+      where: {
+        id: projectId,
+      },
       relations: { user: true },
     });
 
@@ -96,7 +113,7 @@ export class ProjectsService {
 
   async update(projectId: string, dto: UpdateProjectDto, userId: string) {
     const project = await this.projectRepo.findOne({
-      where: { id: projectId, user: { id: userId } },
+      where: { id: projectId, user: { id: userId }, isDefaultTemplate: false },
     });
 
     if (!project) throw new NotFoundException('Project not found');
@@ -112,6 +129,7 @@ export class ProjectsService {
     const result = await this.projectRepo.delete({
       id: projectId,
       user: { id: userId },
+      isDefaultTemplate: false,
     });
 
     if (result.affected === 0) throw new NotFoundException('Project not found');
@@ -140,6 +158,7 @@ export class ProjectsService {
     projectState: any,
     isAutoSave: boolean,
     userId: string,
+    thumbnail?: string,
   ) {
     const project = await this.projectRepo.findOne({
       where: { id: projectId, user: { id: userId } },
@@ -165,12 +184,16 @@ export class ProjectsService {
 
     project.currentVersionId = savedVersion.id;
     project.projectData = projectState;
+    if (thumbnail) {
+      project.thumbnail = thumbnail;
+    }
 
     await this.projectRepo.save(project);
 
     return {
       version: savedVersion,
       versionNumber: nextVersionNumber,
+      projectthumbnail: project.thumbnail,
     };
   }
 

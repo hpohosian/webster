@@ -13,16 +13,12 @@ const PANEL_CATEGORIES = [
   { id: "templates" as const, Icon: LayoutTemplate,  label: "Templates" },
 ] satisfies { id: Exclude<PanelCategory, null>; Icon: React.FC<{ className?: string }>; label: string }[];
 
-// ── Component 
 export function LogoToolsPanel({
   activePanel,
   onPanelSelect,
 }: LogoToolsPanelProps) {
   return (
-    <div className="w-13 bg-[#0f0f14] border-r border-border flex flex-col items-center py-3 gap-1 flex-shrink-0">
-
-      {/* Divider */}
-      {/* <div className="w-7 h-px bg-border my-1" /> */}
+    <div className="w-13 bg-[#0f0f14] h-100 border-r border-border flex flex-col items-center py-3 gap-1 flex-shrink-0">
 
       {/* Panel categories */}
       {PANEL_CATEGORIES.map(({ id, Icon, label }) => (
@@ -43,15 +39,15 @@ export function LogoToolsPanel({
 interface ToolButtonProps {
   label: string;
   active: boolean;
-  activeFill?: boolean; // canvas tools fill bg; panel tools use accent colour text
+  activeFill?: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }
 
 function ToolButton({ label, active, activeFill = false, onClick, children }: ToolButtonProps) {
   const activeStyle = activeFill
-    ? "bg-secondary text-primary"          // panel toggle: subtle bg + accent text
-    : "bg-primary text-primary-foreground"; // canvas tool: solid primary fill
+    ? "bg-secondary text-primary"          // panel toggle
+    : "bg-primary text-primary-foreground"; // canvas tool
 
   return (
     <button

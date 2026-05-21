@@ -43,7 +43,6 @@ export interface FieldProps {
 }
 
 // -- Sub-components 
-
 export const NavItem = ({ icon, label, active, onClick }: NavItemProps) => (
   <button className={`ep-nav-item${active ? ' active' : ''}`} onClick={onClick}>
     {icon}
@@ -142,12 +141,6 @@ export async function handleUpdate({
 
     formData.append('username', form.username);
 
-    const fullName = `${form.firstName} ${form.lastName}`.trim();
-    formData.append('fullName', fullName);
-
-    formData.append('bio', form.bio);
-    formData.append('hideFromAttendees', String(form.hideFromAttendees));
-
     const file = fileRef.current?.files?.[0];
 
     if (file) {
@@ -174,7 +167,7 @@ export async function handleUpdate({
     }
 
     showToast('Profile updated successfully');
-    navigate(`/profile/${userId}`);
+    navigate(`/projects/${userId}`);
   } catch (err: any) {
     console.error(err.message ?? 'Unknown error');
     showToast('Something went wrong', 'error');

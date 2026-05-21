@@ -106,7 +106,7 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Save project (manual + autosave)' })
   saveProject(
     @Param('id') id: string,
-    @Body() body: { projectState: any; isAutoSave: boolean },
+    @Body() body: { projectState: any; isAutoSave: boolean; thumbnail?: string },
     @Req() req,
   ) {
     return this.projectsService.saveProject(
@@ -114,6 +114,7 @@ export class ProjectsController {
       body.projectState,
       body.isAutoSave,
       req.session.user.id,
+      body.thumbnail,
     );
   }
 

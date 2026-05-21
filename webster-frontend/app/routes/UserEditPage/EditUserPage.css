@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,900&display=swap');
 
-/* ── Design tokens ── */
 :root {
   --text: #2a2a2a;
   --text-h: #08060d;
-  --bg: #fff;
-  --bg-muted: #f4f3ec;
+  --bg: #323232;
+  --card-bg: #e5e5e5;
+  --bg-muted: #e3eaec;
   --border: #e5e4e7;
   --accent: #b0cbd5;
   --accent-bg: rgba(5, 36, 65, 0.08);
@@ -40,7 +40,6 @@ a {
   text-decoration: none;
 }
 
-/* ── Animations ── */
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -69,14 +68,11 @@ a {
   }
 }
 
-/* ── Page shell ── */
 .ep-page , .page {
   min-height: 100vh;
-  background: #f4f3ec;
   font-family: var(--sans);
 }
 
-/* ── Body layout ── */
 .ep-body , .body{
   max-width: 1160px;
   margin: 0 auto;
@@ -86,7 +82,6 @@ a {
   align-items: flex-start;
 }
 
-/* ── Sidebar ── */
 .ep-sidebar , .sidebar {
   width: 280px;
   flex-shrink: 0;
@@ -97,7 +92,7 @@ a {
 }
 
 .ep-avatar-card {
-  background: var(--bg);
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 32px 24px 28px;
   border: 1px solid var(--border);
@@ -117,7 +112,7 @@ a {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: var(--accent);
+  background: linear-gradient(45grad,#78b3c8,var(--accent));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -143,7 +138,7 @@ a {
   height: 28px;
   border-radius: 50%;
   background: var(--text-h);
-  border: 2px solid var(--bg);
+  border: 2px solid var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,9 +212,8 @@ a {
   stroke: var(--accent);
 }
 
-/* danger zone card */
 .ep-danger-card {
-  background: var(--bg);
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 20px 24px;
   border: 1px solid var(--border);
@@ -263,10 +257,8 @@ a {
   gap: 24px;
 }
 
-
-/* section card */
 .ep-section-card {
-  background: var(--bg);
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 28px 32px 32px;
   border: 1px solid var(--border);
@@ -345,7 +337,7 @@ a {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-h);
-  background: var(--bg-muted);
+  background: var(--card-bg);
   border: 1.5px solid transparent;
   border-radius: 12px;
   outline: none;
@@ -354,7 +346,7 @@ a {
 }
 
 .ep-input:focus {
-  background: var(--bg);
+  background: var(--bg-muted);
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
@@ -424,7 +416,7 @@ a {
 }
 
 .ep-tags-wrap:focus-within {
-  background: var(--bg);
+  background: var(--card-bg);
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
@@ -516,7 +508,7 @@ a {
   padding: 12px 28px;
   border-radius: 12px;
   border: none;
-  background: var(--accent);
+  background: #78b3c8;
   font-family: var(--sans);
   font-weight: 700;
   font-size: 14px;
@@ -641,7 +633,6 @@ a {
   opacity: 1;
 }
 
-/* ── Responsive ── */
 @media (max-width: 768px) {
   .ep-body {
     flex-direction: column;

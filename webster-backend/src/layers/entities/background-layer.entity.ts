@@ -6,9 +6,9 @@ export class BackgroundLayer extends BaseLayer {
   @Column({ default: '#ffffff' })
   color: string;
 
-  @Column()
-  width: number;
+  @Column({ type: "int", nullable: true })
+  width?: number;
 
-  @Column()
-  height: number;
+  @Column({ type: "int", nullable: true })
+  height?: number;
 }

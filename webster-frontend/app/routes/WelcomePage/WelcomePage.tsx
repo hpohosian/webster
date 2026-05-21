@@ -1,8 +1,6 @@
-import { AuthHeader } from "../../components/AuthHeader";
 import { Link } from "react-router";
-// import "./HomePage.css";
 import { useState, useEffect, useRef } from "react";
-
+import { IconUser} from "../../assets/Icons"
 import before from '../../assets/before.png';
 import after from '../../assets/after.png';
 
@@ -10,15 +8,26 @@ export async function loader() {
   return null;
 }
 
-
 export default function HomePage() {
   const [sliderPos, setSliderPos] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [heroVisible, setHeroVisible] = useState(false);
+  const [isLogged, setIsLogged] = useState(false);
+  const [userId, setId] = useState(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100);
+
+    fetch("http://localhost:3000/auth/me", { credentials: "include" })
+      .then(r => r.json())
+      .then(data => {
+        if (data.user) {
+          setIsLogged(true);
+          setId(data.user.id); 
+        }
+      })
+    .catch(console.error);
   }, []);
 
   const handleMouseDown = () => setIsDragging(true);
@@ -40,17 +49,6 @@ export default function HomePage() {
 
   const createProject = async () => {
     try {
-      const me = await fetch("http://localhost:3000/auth/me", {
-        credentials: "include",
-      });
-
-      const meData = await me.json();
-
-      if (!meData.user) {
-        window.location.href = "/login";
-        return;
-      }
-
       const res = await fetch("http://localhost:3000/projects", {
         method: "POST",
         credentials: "include",
@@ -119,9 +117,17 @@ export default function HomePage() {
           <Link to="#" className="hover:text-[#1a1a1a] transition-colors">Features</Link>
           <Link to="#" className="hover:text-[#1a1a1a] transition-colors">Pricing</Link>
           <Link to="#" className="hover:text-[#1a1a1a] transition-colors">About</Link>
-          <Link to="/login" className="px-4 py-1.5 border border-[#ccc] rounded-full text-[#1a1a1a] hover:border-[#7ec8e3] hover:text-[#7ec8e3] transition-all text-[13px]">
-            Sign in
-          </Link>
+          
+          {isLogged ? (
+            <Link to={`/projects/${userId}`} className="px-4 py-1.5 border flex border-[#ccc] rounded-full text-[#1a1a1a] hover:border-[#7ec8e3] hover:text-[#7ec8e3] transition-all text-[13px]">
+               <IconUser/>
+                User Page
+            </Link>
+          ):(
+            <Link to="/login" className="px-4 py-1.5 border border-[#ccc] rounded-full text-[#1a1a1a] hover:border-[#7ec8e3] hover:text-[#7ec8e3] transition-all text-[13px]">
+              Sign in
+            </Link>
+          )}
         </div>
       </nav>
 
