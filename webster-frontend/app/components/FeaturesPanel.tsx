@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { filters } from "fabric";
 import { Sun, Contrast, Palette, Lightbulb, CloudRain, Triangle } from "lucide-react";
 import { useParams } from "react-router";
 import { useEditorStore } from "../store/editorStore";
-import type { Adjustments, ShapeKind } from "../store/editorStore";
+import type { Adjustments, BrushMode, ShapeKind } from "../store/editorStore";
 import { getPalette, listFonts, searchImages } from "../lib/demoApi";
 import type { DemoColor, DemoFont, DemoImage } from "../lib/demoApi";
 
@@ -109,15 +110,16 @@ function AdjustmentsContent() {
     </div>
   );
 }
-
 // draw 
 function DrawContent() {
   const brushColor = useEditorStore((s) => s.brushColor);
   const brushSize = useEditorStore((s) => s.brushSize);
   const brushOpacity = useEditorStore((s) => s.brushOpacity);
+  const brushMode = useEditorStore((s) => s.brushMode);
   const setBrushColor = useEditorStore((s) => s.setBrushColor);
   const setBrushSize = useEditorStore((s) => s.setBrushSize);
   const setBrushOpacity = useEditorStore((s) => s.setBrushOpacity);
+  const setBrushMode = useEditorStore((s) => s.setBrushMode);
 
   const [palette, setPalette] = useState<DemoColor[]>([]);
   const [isLoadingPalette, setIsLoadingPalette] = useState(false);
@@ -134,8 +136,37 @@ function DrawContent() {
     return () => { isActive = false; };
   }, [brushColor]);
 
+  const modes: { id: BrushMode; label: string }[] = [
+    { id: "pencil", label: "Pencil" },
+    { id: "marker", label: "Marker" },
+    { id: "highlighter", label: "Highlighter" },
+    { id: "spray", label: "Spray" },
+    { id: "dots", label: "Dots" },
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div>
+        <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Mode</label>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 6 }}>
+          {modes.map((mode) => (
+            <button
+              key={mode.id}
+              onClick={() => setBrushMode(mode.id)}
+              style={{
+                ...panelBtnStyle,
+                justifyContent: "center",
+                padding: "7px 8px",
+                background: brushMode === mode.id ? "var(--accent)" : "var(--secondary)",
+                color: brushMode === mode.id ? "#fff" : "var(--secondary-foreground)",
+              }}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Color</label>
         <input
@@ -178,24 +209,94 @@ function DrawContent() {
 }
 // filters 
 function FilterContent() {
+  const canvas = useEditorStore((s) => s.fabricCanvas);
+  const selectedLayerId = useEditorStore((s) => s.selectedLayerId);
   const pushHistory = useEditorStore((s) => s.pushHistory);
+  const [brightness, setBrightness] = useState(0);
+  const [contrast, setContrast] = useState(0);
+  const [saturation, setSaturation] = useState(0);
+  const [blur, setBlur] = useState(0);
+  const [grayscale, setGrayscale] = useState(false);
+  const [sepia, setSepia] = useState(false);
+
+  const active = canvas?.getActiveObject() as any;
+  const isImageSelected = Boolean(active && active.type === "image");
+
+  const applyImageFilters = (next = { brightness, contrast, saturation, blur, grayscale, sepia }) => {
+    if (!canvas) return;
+    const image = canvas.getActiveObject() as any;
+    if (!image || image.type !== "image") return;
+
+    const FabricFilters = filters as any;
+    image.filters = [
+      next.brightness !== 0 ? new FabricFilters.Brightness({ brightness: next.brightness / 100 }) : null,
+      next.contrast !== 0 ? new FabricFilters.Contrast({ contrast: next.contrast / 100 }) : null,
+      next.saturation !== 0 ? new FabricFilters.Saturation({ saturation: next.saturation / 100 }) : null,
+      next.blur !== 0 ? new FabricFilters.Blur({ blur: next.blur / 100 }) : null,
+      next.grayscale ? new FabricFilters.Grayscale() : null,
+      next.sepia ? new FabricFilters.Sepia() : null,
+    ].filter(Boolean);
+
+    image.applyFilters();
+    commitActiveObject(canvas, "Edit Image Filters", pushHistory);
+  };
+
+  const setAndApply = (patch: Partial<{ brightness: number; contrast: number; saturation: number; blur: number; grayscale: boolean; sepia: boolean }>) => {
+    const next = { brightness, contrast, saturation, blur, grayscale, sepia, ...patch };
+    if (patch.brightness !== undefined) setBrightness(patch.brightness);
+    if (patch.contrast !== undefined) setContrast(patch.contrast);
+    if (patch.saturation !== undefined) setSaturation(patch.saturation);
+    if (patch.blur !== undefined) setBlur(patch.blur);
+    if (patch.grayscale !== undefined) setGrayscale(patch.grayscale);
+    if (patch.sepia !== undefined) setSepia(patch.sepia);
+    applyImageFilters(next);
+  };
+
+  const reset = () => {
+    setBrightness(0);
+    setContrast(0);
+    setSaturation(0);
+    setBlur(0);
+    setGrayscale(false);
+    setSepia(false);
+    applyImageFilters({ brightness: 0, contrast: 0, saturation: 0, blur: 0, grayscale: false, sepia: false });
+  };
+
+  useEffect(() => {
+    setBrightness(0);
+    setContrast(0);
+    setSaturation(0);
+    setBlur(0);
+    setGrayscale(false);
+    setSepia(false);
+  }, [selectedLayerId]);
+
+  if (!isImageSelected) {
+    return <EmptyPanelHint>Select an image layer to adjust filters.</EmptyPanelHint>;
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      {["Grayscale", "Blur", "Sharpen", "Sepia", "Vintage", "HDR", "Vignette", "Matte"].map((f) => (
-        <button
-          key={f}
-          onClick={() => pushHistory("Apply " + f)}
-          style={panelBtnStyle}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sidebar-accent)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--secondary)")}
-        >{f}</button>
-      ))}
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <SliderField label="Brightness" value={brightness} min={-100} max={100} onChange={(value) => setAndApply({ brightness: value })} />
+      <SliderField label="Contrast" value={contrast} min={-100} max={100} onChange={(value) => setAndApply({ contrast: value })} />
+      <SliderField label="Saturation" value={saturation} min={-100} max={100} onChange={(value) => setAndApply({ saturation: value })} />
+      <SliderField label="Blur" value={blur} min={0} max={100} onChange={(value) => setAndApply({ blur: value })} />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 6 }}>
+        <button onClick={() => setAndApply({ grayscale: !grayscale })} style={{ ...panelBtnStyle, justifyContent: "center", background: grayscale ? "var(--accent)" : "var(--secondary)", color: grayscale ? "#fff" : "var(--secondary-foreground)" }}>Grayscale</button>
+        <button onClick={() => setAndApply({ sepia: !sepia })} style={{ ...panelBtnStyle, justifyContent: "center", background: sepia ? "var(--accent)" : "var(--secondary)", color: sepia ? "#fff" : "var(--secondary-foreground)" }}>Sepia</button>
+      </div>
+
+      <button onClick={reset} style={{ ...panelBtnStyle, justifyContent: "center" }}>Reset Filters</button>
     </div>
   );
 }
 // text 
 function TextContent() {
+  const canvas = useEditorStore((s) => s.fabricCanvas);
+  const selectedLayerId = useEditorStore((s) => s.selectedLayerId);
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
+  const pushHistory = useEditorStore((s) => s.pushHistory);
   const brushColor = useEditorStore((s) => s.brushColor);
   const [fonts, setFonts] = useState<DemoFont[]>([]);
   const [isLoadingFonts, setIsLoadingFonts] = useState(false);
@@ -223,21 +324,94 @@ function TextContent() {
     return () => { isActive = false; };
   }, []);
 
+  useEffect(() => {
+    const active = canvas?.getActiveObject() as any;
+    if (!active || !isTextObject(active)) return;
+    setTextValue(active.text || "");
+    setSelectedFont(active.fontFamily || "Arial");
+    setFontSize(Math.round(active.fontSize || 48));
+    setTextColor(typeof active.fill === "string" ? active.fill : brushColor);
+    setIsBold(active.fontWeight === "bold" || Number(active.fontWeight) >= 600);
+    setIsItalic(active.fontStyle === "italic");
+    setIsUnderline(Boolean(active.underline));
+  }, [brushColor, canvas, selectedLayerId]);
+
   const fontOptions = fonts.length > 0
     ? fonts
     : ["Arial", "Georgia", "Courier New", "Impact", "Trebuchet MS"].map((family) => ({ family }));
+
+  const selectedObject = canvas?.getActiveObject() as any;
+  const isTextSelected = Boolean(selectedObject && isTextObject(selectedObject));
+
+  const applyToSelectedText = async (patch: Partial<{ text: string; fontFamily: string; fontSize: number; fill: string; fontWeight: "normal" | "bold"; fontStyle: "normal" | "italic"; underline: boolean }>) => {
+    if (!canvas) return;
+    const active = canvas.getActiveObject() as any;
+    if (!active || !isTextObject(active)) return;
+
+    const nextFont = patch.fontFamily ?? selectedFont;
+    await loadFontFamily(nextFont);
+    active.set({
+      text: patch.text ?? textValue,
+      fontFamily: nextFont,
+      fontSize: patch.fontSize ?? fontSize,
+      fill: patch.fill ?? textColor,
+      fontWeight: patch.fontWeight ?? (isBold ? "bold" : "normal"),
+      fontStyle: patch.fontStyle ?? (isItalic ? "italic" : "normal"),
+      underline: patch.underline ?? isUnderline,
+    });
+    commitActiveObject(canvas, "Edit Text", pushHistory);
+  };
+
+  const updateTextValue = (value: string) => {
+    setTextValue(value);
+    void applyToSelectedText({ text: value });
+  };
+
+  const updateFont = (value: string) => {
+    setSelectedFont(value);
+    void applyToSelectedText({ fontFamily: value });
+  };
+
+  const updateFontSize = (value: number) => {
+    const next = Number.isFinite(value) ? Math.max(1, value) : 16;
+    setFontSize(next);
+    void applyToSelectedText({ fontSize: next });
+  };
+
+  const updateTextColor = (value: string) => {
+    setTextColor(value);
+    void applyToSelectedText({ fill: value });
+  };
+
+  const toggleBold = () => {
+    const next = !isBold;
+    setIsBold(next);
+    void applyToSelectedText({ fontWeight: next ? "bold" : "normal" });
+  };
+
+  const toggleItalic = () => {
+    const next = !isItalic;
+    setIsItalic(next);
+    void applyToSelectedText({ fontStyle: next ? "italic" : "normal" });
+  };
+
+  const toggleUnderline = () => {
+    const next = !isUnderline;
+    setIsUnderline(next);
+    void applyToSelectedText({ underline: next });
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Text</label>
-        <input value={textValue} onChange={(e) => setTextValue(e.target.value)} style={inputStyle} />
+        <input value={textValue} onChange={(e) => updateTextValue(e.target.value)} style={inputStyle} />
       </div>
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>
           Font {isLoadingFonts && <span style={{ color: "var(--muted-foreground)", opacity: 0.6 }}>· loading Google Fonts</span>}
         </label>
-        <select value={selectedFont} onChange={(e) => setSelectedFont(e.target.value)} style={selectStyle}>
+        <select value={selectedFont} onChange={(e) => updateFont(e.target.value)} style={selectStyle}>
           {fontOptions.map((font) => (
             <option key={font.family} value={font.family}>{font.family}</option>
           ))}
@@ -245,16 +419,16 @@ function TextContent() {
       </div>
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Color</label>
-        <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer" }} />
+        <input type="color" value={toHexInputColor(textColor)} onChange={(e) => updateTextColor(e.target.value)} style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer", border: "1px solid var(--border)" }} />
       </div>
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Size (px)</label>
-        <input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value) || 16)} style={inputStyle} />
+        <input type="number" value={fontSize} onChange={(e) => updateFontSize(Number(e.target.value) || 16)} style={inputStyle} />
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        <button onClick={() => setIsBold((v) => !v)} style={{ ...panelBtnStyle, flex: 1, fontWeight: "bold", background: isBold ? "var(--accent)" : "var(--secondary)", color: isBold ? "#fff" : "var(--secondary-foreground)" }}>B</button>
-        <button onClick={() => setIsItalic((v) => !v)} style={{ ...panelBtnStyle, flex: 1, fontStyle: "italic", background: isItalic ? "var(--accent)" : "var(--secondary)", color: isItalic ? "#fff" : "var(--secondary-foreground)" }}>I</button>
-        <button onClick={() => setIsUnderline((v) => !v)} style={{ ...panelBtnStyle, flex: 1, textDecoration: "underline", background: isUnderline ? "var(--accent)" : "var(--secondary)", color: isUnderline ? "#fff" : "var(--secondary-foreground)" }}>U</button>
+        <button onClick={toggleBold} style={{ ...panelBtnStyle, flex: 1, fontWeight: "bold", background: isBold ? "var(--accent)" : "var(--secondary)", color: isBold ? "#fff" : "var(--secondary-foreground)" }}>B</button>
+        <button onClick={toggleItalic} style={{ ...panelBtnStyle, flex: 1, fontStyle: "italic", background: isItalic ? "var(--accent)" : "var(--secondary)", color: isItalic ? "#fff" : "var(--secondary-foreground)" }}>I</button>
+        <button onClick={toggleUnderline} style={{ ...panelBtnStyle, flex: 1, textDecoration: "underline", background: isUnderline ? "var(--accent)" : "var(--secondary)", color: isUnderline ? "#fff" : "var(--secondary-foreground)" }}>U</button>
       </div>
       <button
         onClick={() => runCanvasCommand({
@@ -269,12 +443,12 @@ function TextContent() {
         })}
         style={{ ...panelBtnStyle, background: "var(--accent)", color: "#fff", justifyContent: "center" }}
       >
-        Add Text
+        {isTextSelected ? "Add Another Text" : "Add Text"}
       </button>
+      {!isTextSelected && <EmptyPanelHint>Select a text layer to edit existing text styles.</EmptyPanelHint>}
     </div>
   );
 }
-
 // shapes
 function ShapesContent() {
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
@@ -312,7 +486,6 @@ function ShapesContent() {
     </div>
   );
 }
-
 // resize canvas 
 function ResizeContent() {
   const canvasSize = useEditorStore((s) => s.canvasSize);
@@ -568,6 +741,60 @@ function TemplatesContent() {
   );
 }
 
+function EmptyPanelHint({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      border: "1px dashed var(--border)",
+      borderRadius: "var(--radius)",
+      padding: 12,
+      color: "var(--muted-foreground)",
+      fontSize: 12,
+      lineHeight: 1.4,
+      background: "var(--secondary)",
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function isTextObject(object: any) {
+  return object?.type === "i-text" || object?.type === "text" || object?.type === "textbox";
+}
+
+function commitActiveObject(canvas: any, label: string, pushHistory?: (label: string) => void) {
+  const active = canvas.getActiveObject?.();
+  if (!active) return;
+
+  active.setCoords?.();
+  canvas.requestRenderAll?.();
+  canvas.fire?.("object:modified", { target: active });
+  pushHistory?.(label);
+}
+
+async function loadFontFamily(family: string) {
+  if (typeof document === "undefined" || !family) return;
+  const id = "font-" + family.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+  if (!document.getElementById(id)) {
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(family).replace(/%20/g, "+") + ":wght@400;700&display=swap";
+    document.head.appendChild(link);
+  }
+
+  if (document.fonts?.load) {
+    await document.fonts.load("16px \"" + family + "\"");
+  }
+}
+
+function toHexInputColor(color: string) {
+  if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+  if (/^#[0-9a-f]{3}$/i.test(color)) {
+    return "#" + color.slice(1).split("").map((part) => part + part).join("");
+  }
+  return "#000000";
+}
+
 function SliderField({ label, value, min, max, onChange, unit = "" }: {
   label: string;
   value: number;
@@ -607,6 +834,21 @@ const panelBtnStyle: React.CSSProperties = {
   alignItems: "center",
   width: "100%",
 };
+
+// const pillButtonStyle: React.CSSProperties = {
+//   background: "linear-gradient(135deg, #3bd1f6, #2563eb)",
+//   border: "none",
+//   color: "white",
+//   borderRadius: 999,
+//   padding: "10px 16px",
+//   textAlign: "center",
+//   cursor: "pointer",
+//   fontSize: 12,
+//   display: "flex",
+//   justifyContent: "center",
+//   alignItems: "center",
+//   width: "100%",
+// };
 
 const selectStyle: React.CSSProperties = {
   width: "100%",

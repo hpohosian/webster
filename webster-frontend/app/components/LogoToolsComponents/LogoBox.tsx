@@ -1,9 +1,20 @@
 import * as Slider from "@radix-ui/react-slider";
 import { useLogo } from './LogoProvider';
+interface BoxConfig {
+  padding: number;
+  gap: number;
+  backgroundColor: string;
+}
+
+// interface BoxPanelProps {
+//   config: BoxConfig;
+//   onChange: (patch: Partial<BoxConfig>) => void;
+// }
+
+// ── Component 
 
 export function BoxPanel() {
-  const [logo, updateLogo] = useLogo();
-
+   const [logo, updateLogo] = useLogo();
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col">
       <div className="h-12 px-4 border-b border-border flex items-center">
@@ -29,7 +40,6 @@ export function BoxPanel() {
           max={100}
           onChange={(v) => updateLogo({ gap: v })}
         />
-
 
         {/* Background color */}
         <div>
@@ -64,7 +74,7 @@ export function BoxPanel() {
           />
         </div>
 
-        {/* Visual preview */}
+        {/* Visual preview of padding/gap */}
         <div>
           <label className="text-xs text-muted-foreground mb-2 block">Preview</label>
           <div
@@ -92,6 +102,7 @@ export function BoxPanel() {
   );
 }
 
+// Shared slider field 
 function SliderField({
   label,
   value,

@@ -20,6 +20,15 @@ export interface DemoColor {
   name?: string;
 }
 
+export interface DemoIcon {
+  id: string;
+  label: string;
+  svg: string;
+  source?: string;
+  author?: string;
+  license?: string;
+}
+
 export async function searchImages(query: string): Promise<DemoImage[]> {
   const response = await fetch(`${API_BASE_URL}/images/search?q=${encodeURIComponent(query)}`);
   const data = await readJson(response);
@@ -30,6 +39,12 @@ export async function listFonts(): Promise<DemoFont[]> {
   const response = await fetch(`${API_BASE_URL}/fonts?limit=40`);
   const data = await readJson(response);
   return data.fonts || [];
+}
+
+export async function searchIcons(query: string): Promise<DemoIcon[]> {
+  const response = await fetch(`${API_BASE_URL}/icons/search?q=${encodeURIComponent(query)}&limit=30`);
+  const data = await readJson(response);
+  return data.icons || [];
 }
 
 export async function getPalette(hex: string): Promise<DemoColor[]> {

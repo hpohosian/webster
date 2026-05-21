@@ -1,36 +1,81 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Slider from "@radix-ui/react-slider";
+import { searchIcons } from "../../lib/demoApi";
+import type { DemoIcon } from "../../lib/demoApi";
 import { useLogo } from './LogoProvider';
-import materialIcons from './material.json';
 
-interface IconItem {
+type IconItem = DemoIcon;
+{/* from prw version */}
+{/* interface IconItem {
   id: string;
   label: string;
   svg?: string;
+} */}
+
+interface IconConfig {
+  iconId: string | null;
+  iconSize: number;
+  iconColor: string;
+  iconSvg?: string | null;
+  iconLabel?: string | null;
 }
 
+{/* interface IconsPanelProps {
+  config: IconConfig;
+  onChange: (patch: Partial<IconConfig>) => void;
+} */}
+
+const DEFAULT_QUERY = "logo";
+
+// ── Component 
+
+{/* export function IconsPanel({ config, onChange }: IconsPanelProps) { */}
 export function IconsPanel() {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(DEFAULT_QUERY);
+  const [icons, setIcons] = useState<IconItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [logo, updateLogo] = useLogo();
 
-  const allIcons: IconItem[] = materialIcons.map((m) => ({
-    id: m.id,
-    label: m.name,
-  }));
+  useEffect(() => {
+    let cancelled = false;
+    const query = search.trim() || DEFAULT_QUERY;
 
-  const filtered = allIcons.filter((icon) =>
-    icon.label.toLowerCase().includes(search.toLowerCase())
-  );
+    setLoading(true);
+    setError("");
+
+    const timeout = window.setTimeout(() => {
+      searchIcons(query)
+        .then((items) => {
+          if (!cancelled) setIcons(items);
+        })
+        .catch(() => {
+          if (!cancelled) setError("Could not load icons");
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [search]);
+
+  const filtered = useMemo(() => icons, [icons]);
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col">
+      {/* Panel header */}
       <div className="h-12 px-4 border-b border-border flex items-center">
         <h3 className="font-semibold text-foreground text-sm">Icons</h3>
       </div>
 
       <Tabs.Root defaultValue="icons" className="flex flex-col flex-1 overflow-hidden">
+        {/* Tab list */}
         <Tabs.List className="flex gap-1 px-3 pt-3 pb-1 flex-shrink-0">
           {(["icons", "style"] as const).map((tab) => (
             <Tabs.Trigger
@@ -48,8 +93,9 @@ export function IconsPanel() {
           ))}
         </Tabs.List>
 
-        {/* Icons tab */}
+        {/* ── Icons tab */}
         <Tabs.Content value="icons" className="flex-1 flex flex-col overflow-hidden">
+          {/* Search bar */}
           <div className="px-3 py-2 flex-shrink-0">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
@@ -76,9 +122,20 @@ export function IconsPanel() {
             </div>
           </div>
 
+          {/* Icon grid */}
           <div className="flex-1 overflow-y-auto px-3 pb-3">
-            {filtered.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-8">No icons found</p>
+            {loading ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                Loading icons...
+              </p>
+            ) : error ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                {error}
+              </p>
+            ) : filtered.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                No icons found
+              </p>
             ) : (
               <div className="grid grid-cols-4 gap-1.5">
                 {filtered.map((icon) => (
@@ -87,15 +144,19 @@ export function IconsPanel() {
                     icon={icon}
                     selected={logo.iconId === icon.id}
                     color={logo.iconColor}
-                    onSelect={() => updateLogo({ iconId: icon.id })}
+                    onSelect={() => updateLogo({ iconId: icon.id, iconSvg: icon.svg, iconLabel: icon.label })}
                   />
                 ))}
               </div>
             )}
+
+            <p className="mt-3 text-center text-[10px] text-muted-foreground/50">
+              Free SVG icons load through the backend API
+            </p>
           </div>
         </Tabs.Content>
 
-        {/* Style tab */}
+        {/* Style tab  */}
         <Tabs.Content value="style" className="flex-1 overflow-y-auto p-4 space-y-6">
 
           {/* Size */}
@@ -122,15 +183,22 @@ export function IconsPanel() {
           {/* Color */}
           <div>
             <label className="text-xs text-muted-foreground mb-2 block">Color</label>
-            <div className="relative w-full h-10 rounded overflow-hidden border border-border mt-3">
+
+            {/* Native colour picker */}
+            <div className="relative w-full h-10 rounded overflow-hidden border border-border">
               <input
                 type="color"
                 value={logo.iconColor}
                 onChange={(e) => updateLogo({ iconColor: e.target.value })}
                 className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
               />
-              <div className="w-full h-full rounded" style={{ background: logo.iconColor }} />
+              <div
+                className="w-full h-full rounded"
+                style={{ background: logo.iconColor }}
+              />
             </div>
+
+            {/* Hex input */}
             <input
               type="text"
               value={logo.iconColor}
@@ -149,20 +217,35 @@ export function IconsPanel() {
           </div>
 
           {/* Preview */}
-          {logo.iconId && (
+          {(logo.iconSvg || logo.iconId) && (
             <div>
               <label className="text-xs text-muted-foreground mb-2 block">Preview</label>
               <div className="flex items-center justify-center p-4 bg-secondary rounded-lg border border-border">
-                <div
-                  className="rounded bg-primary/20 flex items-center justify-center"
-                  style={{
-                    width: Math.min(logo.iconSize, 80),
-                    height: Math.min(logo.iconSize, 80),
-                    color: logo.iconColor,
-                  }}
-                >
-                  <span className="text-xs text-muted-foreground">{logo.iconId}</span>
-                </div>
+                {logo.iconSvg ? (
+                  <span
+                    className="svg-icon-preview"
+                    style={{
+                      width: Math.min(logo.iconSize, 80),
+                      height: Math.min(logo.iconSize, 80),
+                      color: logo.iconColor,
+                      display: "flex",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: logo.iconSvg }}
+                  />
+                ) : (
+                  <div
+                    className="rounded bg-primary/20 flex items-center justify-center"
+                    style={{
+                      width: Math.min(logo.iconSize, 80),
+                      height: Math.min(logo.iconSize, 80),
+                      color: logo.iconColor,
+                    }}
+                  >
+                    <span className="text-xs text-muted-foreground">
+                      {logo.iconId}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -172,6 +255,7 @@ export function IconsPanel() {
   );
 }
 
+// ── Icon card 
 function IconCard({
   icon,
   selected,

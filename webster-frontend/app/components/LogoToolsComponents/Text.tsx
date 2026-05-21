@@ -2,8 +2,23 @@ import { useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Slider from "@radix-ui/react-slider";
 import { useLogo } from './LogoProvider';
-
 export type FontWeight = "normal" | "bold";
+
+interface TextConfig {
+  text: string;
+  fontWeight: FontWeight;
+  fontSize: number;
+  letterSpacing: number;
+  color: string;
+  fontFamily: string;
+}
+
+interface TextPanelProps {
+  config: TextConfig;
+  onChange: (patch: Partial<TextConfig>) => void;
+}
+
+// ── Placeholder font list (swap with your google-fonts.json import) ───────────
 
 const GOOGLE_FONTS: string[] = [
   "Roboto", "Open_Sans", "Lato", "Montserrat", "Oswald",
@@ -14,7 +29,6 @@ const GOOGLE_FONTS: string[] = [
 
 export function TextPanel() {
   const [logo, updateLogo] = useLogo();
-
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col overflow-hidden">
       <div className="h-12 px-4 border-b border-border flex items-center flex-shrink-0">
@@ -22,6 +36,7 @@ export function TextPanel() {
       </div>
 
       <Tabs.Root defaultValue="font" className="flex flex-col flex-1 overflow-hidden">
+        {/* Tab list */}
         <Tabs.List className="flex gap-1 px-3 pt-3 pb-1 flex-shrink-0">
           {(["font", "family"] as const).map((tab) => (
             <Tabs.Trigger
@@ -119,7 +134,7 @@ export function TextPanel() {
             </div>
           </div>
 
-          {/* Color hex input */}
+          {/* Color */}
           <div>
             <label className="text-xs text-muted-foreground mb-2 block">Color</label>
             <div className="relative w-full h-10 rounded overflow-hidden border border-border">

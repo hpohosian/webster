@@ -86,26 +86,27 @@ This template comes with [Tailwind CSS](https://tailwindcss.com/) already config
 
 Built with ❤️ using React Router.
 
-## Demo API integrations
+## Backend API integrations
 
-This frontend can run with a small local API proxy for demo-only external integrations:
+Unsplash image search, Google Fonts, and The Color API palettes are served by the Nest backend.
 
-- Unsplash image search in the Upload panel
-- Google Fonts in the Text panel font selector
-- The Color API palettes in the Draw panel color controls
-
-First copy the example env file:
+Required frontend env:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Add real keys to `.env.local` when available. The Color API does not require a key.
+Set the backend URL in `.env.local`:
 
-Run both the mock API proxy and the React Router frontend:
+```env
+VITE_API=http://localhost:3000
+VITE_API_BASE_URL=/api
+```
+
+Run the Nest backend first, then start the frontend:
 
 ```bash
-npm run dev:full
+npm run dev
 ```
 
 Open:

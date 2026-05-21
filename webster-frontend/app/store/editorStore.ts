@@ -3,6 +3,7 @@ import { devtools } from "zustand/middleware";
 import type { Canvas as FabricCanvas } from "fabric";
 
 export type ShapeKind = "rectangle" | "rounded-rect" | "circle" | "line" | "arrow" | "triangle" | "star";
+export type BrushMode = "pencil" | "marker" | "highlighter" | "spray" | "dots";
 
 export interface Layer {
   id: string;
@@ -70,13 +71,14 @@ export interface EditorStore {
   brushColor: string;
   brushSize: number;
   brushOpacity: number;
+  brushMode: BrushMode;
 
   shapeColor: string;
 
   canvasSize: { w: number; h: number };
   canvasCommand: CanvasCommand | null;
 
-  canvasJSON: null;
+  canvasJSON: any;
 
   canvasBackgroundColor: string;
 
@@ -112,6 +114,7 @@ export interface EditorStore {
   setBrushColor: (color: string) => void;
   setBrushSize: (size: number) => void;
   setBrushOpacity: (opacity: number) => void;
+  setBrushMode: (mode: BrushMode) => void;
 
   setShapeColor: (color: string) => void;
 
@@ -164,6 +167,7 @@ export const useEditorStore = create<EditorStore>()(
       brushColor: "#2088b5",
       brushSize: 5,
       brushOpacity: 100,
+      brushMode: "pencil",
 
       shapeColor: "#2088b5",
       
@@ -175,7 +179,11 @@ export const useEditorStore = create<EditorStore>()(
       
       fabricCanvas: null,
 
-      
+      canvasJSON: null,
+      canvasBackgroundColor: "#e2e2e2",
+
+      fabricCanvas: null,
+
       setActiveTool: (tool) => set({ activeTool: tool }, false, "setActiveTool"),
       
       setActivePanel: (panel) =>
@@ -184,47 +192,52 @@ export const useEditorStore = create<EditorStore>()(
           false,
           "setActivePanel"
         ),
-        
-  zoomIn: () => set((s) => ({ zoom: Math.min(400, s.zoom + 10) }), false, "zoomIn"),
-  zoomOut: () => set((s) => ({ zoom: Math.max(10, s.zoom - 10) }), false, "zoomOut"),
-  setZoom: (zoom) => set({ zoom }, false, "setZoom"),
-  resetView: () => set({ zoom: 100, offset: { x: 0, y: 0 } }, false, "resetView"),
-  setOffset: (offset) => set({ offset }, false, "setOffset"),
-  
-  addLayer: () => get().runCanvasCommand({ type: "add-shape", shape: "rectangle", color: {shapeColor} }),
-  deleteLayer: (id) => {
-    set({ selectedLayerId: id }, false, "selectLayerBeforeDelete");
-    get().runCanvasCommand({ type: "delete-selected" });
-  },
-  duplicateLayer: (id) => {
-    set({ selectedLayerId: id }, false, "selectLayerBeforeDuplicate");
-    get().runCanvasCommand({ type: "duplicate-selected" });
-  },
-  updateLayer: (id, patch) =>
-    set(
-      (s) => ({ layers: s.layers.map((l) => (l.id === id ? { ...l, ...patch } : l)) }),
-      false,
-      "updateLayer"
-    ),
-    moveLayer: (id, dir) => {
-      set({ selectedLayerId: id }, false, "selectLayerBeforeMove");
-      get().runCanvasCommand({ type: dir === "up" ? "bring-forward" : "send-backward" });
-    },
-    setSelectedLayerId: (id) => set({ selectedLayerId: id }, false, "setSelectedLayerId"),
-    setLayers: (layers, selectedLayerId) =>
-      set(
-        (s) => ({
-          layers,
-          selectedLayerId:
-          selectedLayerId ??
-          (layers.some((l) => l.id === s.selectedLayerId)
-          ? s.selectedLayerId
-          : layers[layers.length - 1]?.id ?? ""),
-        }),
-        false,
-        "setLayers"
-      ),
-      
+
+      zoomIn: () => set((s) => ({ zoom: Math.min(400, s.zoom + 10) }), false, "zoomIn"),
+      zoomOut: () => set((s) => ({ zoom: Math.max(10, s.zoom - 10) }), false, "zoomOut"),
+      setZoom: (zoom) => set({ zoom }, false, "setZoom"),
+      resetView: () => set({ zoom: 100, offset: { x: 0, y: 0 } }, false, "resetView"),
+      setOffset: (offset) => set({ offset }, false, "setOffset"),
+
+      addLayer: () =>
+        set(
+          (s) => ({ selectedLayerId: s.layers[s.layers.length - 1]?.id ?? s.selectedLayerId }),
+          false,
+          "addLayer"
+        ),
+      deleteLayer: (id) => {
+        set({ selectedLayerId: id }, false, "selectLayerBeforeDelete");
+        get().runCanvasCommand({ type: "delete-selected" });
+      },
+      duplicateLayer: (id) => {
+        set({ selectedLayerId: id }, false, "selectLayerBeforeDuplicate");
+        get().runCanvasCommand({ type: "duplicate-selected" });
+      },
+      updateLayer: (id, patch) =>
+        set(
+          (s) => ({ layers: s.layers.map((l) => (l.id === id ? { ...l, ...patch } : l)) }),
+          false,
+          "updateLayer"
+        ),
+      moveLayer: (id, dir) => {
+        set({ selectedLayerId: id }, false, "selectLayerBeforeMove");
+        get().runCanvasCommand({ type: dir === "up" ? "bring-forward" : "send-backward" });
+      },
+      setSelectedLayerId: (id) => set({ selectedLayerId: id }, false, "setSelectedLayerId"),
+      setLayers: (layers, selectedLayerId) =>
+        set(
+          (s) => ({
+            layers,
+            selectedLayerId:
+              selectedLayerId ??
+              (layers.some((l) => l.id === s.selectedLayerId)
+                ? s.selectedLayerId
+                : layers[layers.length - 1]?.id ?? ""),
+          }),
+          false,
+          "setLayers"
+        ),
+
       pushHistory: (label) =>
         set((s) => ({ history: [...s.history, label], historyIndex: s.history.length }), false, "pushHistory"),
       setHistory: (history, historyIndex) => set({ history, historyIndex }, false, "setHistory"),
@@ -238,6 +251,7 @@ export const useEditorStore = create<EditorStore>()(
       setBrushOpacity: (brushOpacity) => set({ brushOpacity }, false, "setBrushOpacity"),
       
       setShapeColor: (shapeColor) => set({shapeColor}, false,"setShapeColor"),
+      setBrushMode: (brushMode) => set({ brushMode }, false, "setBrushMode"),
 
       setCanvasSize: (canvasSize) => set({ canvasSize }, false, "setCanvasSize"),
       resizeCanvas: (width, height) => set({ canvasSize: { w: width, h: height } }, false, "resizeCanvas"),

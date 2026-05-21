@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Layers, History,
   ChevronRight, ChevronLeft,
@@ -7,7 +7,6 @@ import {
   Trash2, Copy,
   MoveUp, MoveDown,
 } from "lucide-react";
-import { useParams } from "react-router";
 import { useEditorStore, useSelectedLayer } from "../store/editorStore";
 
 export function RightPanel() {
@@ -17,34 +16,18 @@ export function RightPanel() {
   const historyIndex = useEditorStore((s) => s.historyIndex);
 
   const setSelectedLayerId = useEditorStore((s) => s.setSelectedLayerId);
-  const addLayer = useEditorStore((s) => s.addLayer);
   const deleteLayer = useEditorStore((s) => s.deleteLayer);
   const duplicateLayer = useEditorStore((s) => s.duplicateLayer);
   const updateLayer = useEditorStore((s) => s.updateLayer);
   const moveLayer = useEditorStore((s) => s.moveLayer);
-  const setLayers = useEditorStore((s) => s.setLayers);
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
 
   const selectedLayer = useSelectedLayer();
-  const { projectId } = useParams();
-
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState<"layers" | "history">("layers");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  useEffect(() => {
-    if (!projectId) return;
-
-    fetch("http://localhost:3000/projects/" + projectId + "/layers")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data) => {
-        if (!Array.isArray(data)) return;
-        setLayers(data);
-        if (data.length > 0) setSelectedLayerId(data[0].id);
-      })
-      .catch(console.error);
-  }, [projectId, setLayers, setSelectedLayerId]);
 
   // colapsed view
   if (collapsed) {

@@ -372,36 +372,6 @@ function ProjectThumb({ project }: { project: Project }) {
     }}>
       <div className="thumb-shimmer" />
 
-      {/* {isLogo ? (
-        // Logo placeholder
-        <div style={{ textAlign: "center" }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: "50%",
-            border: "1.5px solid rgba(255,255,255,0.25)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 8px",
-          }}>
-            <div style={{
-              width: 18, height: 18, borderRadius: "50%",
-              background: "linear-gradient(135deg, #7ec8e3, #b0e0f5)",
-            }} />
-          </div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            Logo
-          </div>
-        </div>
-      ) : (
-        <div style={{
-          width: 48, height: 48, borderRadius: "50%",
-          border: "1.5px solid #ccc",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <svg width="24" height="24" fill="none" stroke="#ccc" strokeWidth="1.5" viewBox="0 0 24 24">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </div>
-      )} */}
 
       {project.thumbnail ? (
         <img

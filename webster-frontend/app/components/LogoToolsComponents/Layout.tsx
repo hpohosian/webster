@@ -1,11 +1,17 @@
 import { useLogo } from './LogoProvider';
-
 export type LayoutVariant = "Icon-Left" | "Icon-Right" | "Icon-Top" | "Icon-Bottom";
+
+// interface LayoutPanelProps {
+//   layout: LayoutVariant;
+//   onChange: (layout: LayoutVariant) => void;
+// }
+
 const LAYOUTS: LayoutVariant[] = ["Icon-Left", "Icon-Right", "Icon-Top", "Icon-Bottom"];
+
+// ── Component 
 
 export function LayoutPanel() {
   const [logo, updateLogo] = useLogo();
-
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col">
       <div className="h-12 px-4 border-b border-border flex items-center">
@@ -20,11 +26,7 @@ export function LayoutPanel() {
           return (
             <button
               key={item}
-              onClick={() => {
-                updateLogo({
-                  layout: item,
-                });
-              }}
+              onClick={() => updateLogo(layout: item)}
               className={`
                 w-full p-3 rounded-lg border text-left transition-all duration-150
                 ${isSelected

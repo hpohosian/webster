@@ -2,6 +2,7 @@ import { Header } from "./../components/Header";
 import { Canvas } from "./../components/Canvas";
 import { LogoToolsPanel, type CanvasTool, type PanelCategory } from "./../components/LogoTools";
 import { IconsPanel } from "./../components/LogoToolsComponents/Icons";
+<<<<<<< HEAD
 import { TextPanel } from "./../components/LogoToolsComponents/Text";
 import { BoxPanel } from "./../components/LogoToolsComponents/LogoBox";
 import { LayoutPanel } from "./../components/LogoToolsComponents/Layout";
@@ -23,10 +24,57 @@ import { LogoPreview } from "./../components/LogoToolsComponents/Prewiew"
 //   backgroundColor: "var(--background)",
 //   layout: "Icon-Left",
 // };
+=======
+import { TextPanel, type FontWeight } from "./../components/LogoToolsComponents/Text";
+import { BoxPanel } from "./../components/LogoToolsComponents/LogoBox";
+import { LayoutPanel, type LayoutVariant } from "./../components/LogoToolsComponents/Layout";
+import { useState } from "react";
+
+interface LogoState {
+  // Text
+  text: string;
+  fontWeight: FontWeight;
+  fontSize: number;
+  letterSpacing: number;
+  color: string;
+  fontFamily: string;
+  // Icon
+  iconId: string | null;
+  iconSize: number;
+  iconColor: string;
+  iconSvg: string | null;
+  iconLabel: string | null;
+  // Box
+  padding: number;
+  gap: number;
+  backgroundColor: string;
+  // Layout
+  layout: LayoutVariant;
+}
+ 
+const DEFAULT_LOGO: LogoState = {
+  text: "",
+  fontWeight: "normal",
+  fontSize: 48,
+  letterSpacing: 0,
+  color: "#e5e5e7",
+  fontFamily: "Poppins",
+  iconId: null,
+  iconSize: 80,
+  iconColor: "#bdd6df",
+  iconSvg: null,
+  iconLabel: null,
+  padding: 40,
+  gap: 16,
+  backgroundColor: "var(--background)",
+  layout: "Icon-Left",
+};
+>>>>>>> forFront
 
 export default function LogoMakerPage() {
   const [activeTool, setActiveTool]   = useState<CanvasTool>("pointer");
   const [activePanel, setActivePanel] = useState<PanelCategory>(null);
+<<<<<<< HEAD
  
   return (
     <LogoProvider>
@@ -47,6 +95,28 @@ export default function LogoMakerPage() {
             {activePanel === "templates" && <LayoutPanel />}
         {/* Sliding panels */}
         {/* {activePanel === "text" && (
+=======
+  const [logo, setLogo] = useState<LogoState>(DEFAULT_LOGO);
+ 
+  const updateLogo = (patch: Partial<LogoState>) =>
+    setLogo((prev) => ({ ...prev, ...patch }));
+ 
+  return (
+    <div className="size-full flex flex-col dark">
+      <Header />
+ 
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left icon rail */}
+        <LogoToolsPanel
+          activeTool={activeTool}
+          activePanel={activePanel}
+          onToolSelect={setActiveTool}
+          onPanelSelect={setActivePanel}
+        />
+ 
+        {/* Sliding panels */}
+        {activePanel === "text" && (
+>>>>>>> forFront
           <TextPanel
             config={{
               text: logo.text,
@@ -66,6 +136,11 @@ export default function LogoMakerPage() {
               iconId: logo.iconId,
               iconSize: logo.iconSize,
               iconColor: logo.iconColor,
+<<<<<<< HEAD
+=======
+              iconSvg: logo.iconSvg,
+              iconLabel: logo.iconLabel,
+>>>>>>> forFront
             }}
             onChange={updateLogo}
           />
@@ -88,10 +163,15 @@ export default function LogoMakerPage() {
             onChange={(layout) => updateLogo({ layout })}
           />
         )}
+<<<<<<< HEAD
         */}
           
           <LogoPreview/>
         </div>
+=======
+ 
+        <Canvas />
+>>>>>>> forFront
       </div>
     </LogoProvider>
   );
