@@ -452,9 +452,9 @@ function TextContent() {
 // shapes
 function ShapesContent() {
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
-    // const setBrushColor = useEditorStore((s) => s.setBrushColor);
-  const shapeColor = useEditorStore((s) => s.shapeColor || "#000000"); 
+  const shapeColor = useEditorStore((s) => s.shapeColor); 
   const setShapeColor = useEditorStore((s) => s.setShapeColor);
+  const getShapeColor = () => useEditorStore.getState().shapeColor;
 
   const shapes: { label: string; shape: ShapeKind }[] = [
     { label: "Rectangle", shape: "rectangle" },
@@ -471,7 +471,7 @@ function ShapesContent() {
       {shapes.map((item) => (
         <button
           key={item.shape}
-          onClick={() => runCanvasCommand({ type: "add-shape", shape: item.shape, color: shapeColor })}
+          onClick={() => runCanvasCommand({ type: "add-shape", shape: item.shape, color: getShapeColor() })}
           style={panelBtnStyle}
           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sidebar-accent)")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "var(--secondary)")}
@@ -479,7 +479,7 @@ function ShapesContent() {
       ))}
       <div>
         <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 4 }}>Color</label>
-        <input type="color" value={shapeColor} 
+        <input type="color" value={(shapeColor)} 
         onChange={(e) => setShapeColor(e.target.value)}
         style={{ width: "100%", height: 34, borderRadius: "var(--radius)", cursor: "pointer" }} />
       </div>

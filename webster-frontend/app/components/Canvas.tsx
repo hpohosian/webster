@@ -39,6 +39,7 @@ export function Canvas() {
   const zoom = useEditorStore((s) => s.zoom);
   const offset = useEditorStore((s) => s.offset);
   const brushColor = useEditorStore((s) => s.brushColor);
+  const shapeColor = useEditorStore((s) => s.shapeColor); 
   const brushSize = useEditorStore((s) => s.brushSize);
   const brushOpacity = useEditorStore((s) => s.brushOpacity);
   const brushMode = useEditorStore((s) => s.brushMode);
@@ -336,7 +337,7 @@ export function Canvas() {
         break;
       }
       case "add-shape":
-        addObject(createShape(nextCommand.shape, brushColor) as EngineObject, "Add " + labelForShape(nextCommand.shape));
+        addObject(createShape(nextCommand.shape, shapeColor) as EngineObject, "Add " + labelForShape(nextCommand.shape));
         break;
       case "add-image": {
         try {
@@ -406,7 +407,7 @@ export function Canvas() {
         await restoreSnapshot(nextCommand.index);
         break;
     }
-  }, [addObject, brushColor, recordSnapshot, restoreSnapshot]);
+  }, [addObject, shapeColor, recordSnapshot, restoreSnapshot]);
 
   useEffect(() => {
     const canvas = fabricRef.current;

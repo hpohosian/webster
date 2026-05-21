@@ -164,12 +164,12 @@ export const useEditorStore = create<EditorStore>()(
 
       adjustments: { ...DEFAULT_ADJUSTMENTS },
 
-      brushColor: "#2088b5",
+      brushColor: "#689eb6",
       brushSize: 5,
       brushOpacity: 100,
       brushMode: "pencil",
 
-      shapeColor: "#2088b5",
+      shapeColor: "#d7b846",
       
       canvasSize: { w: 800, h: 600 },
       canvasCommand: null,
@@ -177,11 +177,6 @@ export const useEditorStore = create<EditorStore>()(
       canvasJSON: null,
       canvasBackgroundColor: "#ffffff",
       
-      fabricCanvas: null,
-
-      canvasJSON: null,
-      canvasBackgroundColor: "#e2e2e2",
-
       fabricCanvas: null,
 
       setActiveTool: (tool) => set({ activeTool: tool }, false, "setActiveTool"),
