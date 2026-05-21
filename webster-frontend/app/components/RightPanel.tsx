@@ -167,10 +167,10 @@ export function RightPanel() {
             </div>
 
             {/* add layer */}
-            <button
+            {/* <button
               onClick={addLayer}
               style={{ marginTop: 8, width: "100%", background: "var(--accent)", border: "none", color: "#fff", borderRadius: 6, padding: "7px", cursor: "pointer", fontSize: 12 }}
-            >Add Layer</button>
+            >Add Layer</button> */}
 
             {/* blend modes */}
             {selectedLayer && (

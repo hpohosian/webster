@@ -26,7 +26,7 @@ export function LayoutPanel() {
           return (
             <button
               key={item}
-              onClick={() => updateLogo(layout: item)}
+              onClick={() => updateLogo({layout: item})}
               className={`
                 w-full p-3 rounded-lg border text-left transition-all duration-150
                 ${isSelected

@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { Download } from 'lucide-react';
 import { useLogo } from './LogoProvider';
 import type { LayoutVariant } from './Layout';
-import * as icons from './material.json';
 
 // ── Layout helpers (replaces utils/layout) ───────────────────────────────────
 
