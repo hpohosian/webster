@@ -14,6 +14,6 @@ export default [
   ]),
   // route('logo-maker', "routes/LogoMaker/LogoMakerPage.tsx"),
   // route('edit-page', "routes/EditorPage/EditorPage.tsx"),
-  route('logo-maker', "routes/LogoMakerPage.tsx"),
+  route('logo-maker/:projectId', "routes/LogoMakerPage.tsx"),
   route('edit-page/:projectId', "routes/EditorPage.tsx"),
 ] satisfies RouteConfig;

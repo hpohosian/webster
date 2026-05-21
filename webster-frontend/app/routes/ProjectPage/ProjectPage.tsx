@@ -53,7 +53,11 @@ const createProject = async (type: "photo" | "logo") => {
 
     const project = await res.json();
 
-    window.location.href = `/edit-page/${project.id}`;
+    if (type === 'photo') {
+      window.location.href = `/edit-page/${project.id}`;
+    } else {
+      window.location.href = `/logo-maker/${project.id}`;
+    }
   } catch (err) {
     console.error(err);
   }
@@ -581,7 +585,7 @@ export default function MyProjectsPage() {
               </svg>
               New Photo Edit
             </button>
-            <button className="new-btn" style={{ background: "#5ab6d4" }}>
+            <button className="new-btn" style={{ background: "#5ab6d4" }} onClick={() => createProject("logo")}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
@@ -692,7 +696,11 @@ export default function MyProjectsPage() {
               {visible.map((project, i) => (
                 <Link
                   key={project.id}
-                  to={`/edit-page/${project.id}`}
+                  to={
+                    project.type === "photo"
+                      ? `/edit-page/${project.id}`
+                      : `/logo-maker/${project.id}`
+                  }
                   className="project-card fade-in"
                   style={{ animationDelay: `${i * 0.05}s`, display: "block" }}
                 >

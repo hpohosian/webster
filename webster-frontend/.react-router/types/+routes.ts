@@ -41,8 +41,10 @@ type Pages = {
       "userId": string;
     };
   };
-  "/logo-maker": {
-    params: {};
+  "/logo-maker/:projectId": {
+    params: {
+      "projectId": string;
+    };
   };
   "/edit-page/:projectId": {
     params: {
@@ -54,7 +56,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId/edit" | "/projects/:userId" | "/logo-maker" | "/edit-page/:projectId";
+    page: "/" | "/login" | "/register" | "/verify-email" | "/auth/callback" | "/password-reset/:token" | "/profile/:userId/edit" | "/projects/:userId" | "/logo-maker/:projectId" | "/edit-page/:projectId";
   };
   "routes/WelcomePage/WelcomePage.tsx": {
     id: "routes/WelcomePage/WelcomePage";
@@ -94,7 +96,7 @@ type RouteFiles = {
   };
   "routes/LogoMakerPage.tsx": {
     id: "routes/LogoMakerPage";
-    page: "/logo-maker";
+    page: "/logo-maker/:projectId";
   };
   "routes/EditorPage.tsx": {
     id: "routes/EditorPage";

@@ -1,4 +1,5 @@
 import { Canvas as FabricCanvas } from "fabric";
+import { toPng } from "html-to-image";
 
 export async function generateThumbnailFromProjectData(
   projectData: Record<string, any>
@@ -35,4 +36,13 @@ export async function generateThumbnailFromProjectData(
       resolve(dataUrl);
     });
   });
+}
+
+export async function generateLogoThumbnail(ref: HTMLElement) {
+  const dataUrl = await toPng(ref, {
+    pixelRatio: 0.8,
+    cacheBust: true,
+  });
+
+  return dataUrl;
 }

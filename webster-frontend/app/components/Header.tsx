@@ -3,6 +3,7 @@ import { useEditorStore } from "../store/editorStore";
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router";
 import jsPDF from "jspdf";
+import { toPng } from "html-to-image";
 
 const API = import.meta.env?.VITE_API;
 
@@ -13,6 +14,22 @@ export function Header() {
   const [exportFormat, setExportFormat] = useState("png");
   const { projectId } = useParams();
   const [saving, setSaving] = useState(false);
+  const [project, setProject] = useState(undefined);
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    fetch(`${API}/projects/${projectId}`, {
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setProject(data);
+      })
+      .catch(console.error);
+  }, [projectId]);
+
+  const isLogo = project?.type === "logo";
   
    useEffect(() => {
         fetch(`${API}/auth/me`, { credentials: "include" })
@@ -46,6 +63,30 @@ export function Header() {
   };
 
   async function handleExport() {
+    if (isLogo) {
+      const ref = useEditorStore.getState().logoRef;
+      if (!ref) return;
+
+      if (exportFormat !== "png" && exportFormat !== "jpeg") {
+        alert("This format is not supported for logos yet");
+        return;
+      }
+
+      const { toPng, toJpeg } = await import("html-to-image");
+
+      const dataUrl =
+        exportFormat === "png"
+          ? await toPng(ref, { pixelRatio: 2, cacheBust: true })
+          : await toJpeg(ref, { pixelRatio: 2, cacheBust: true });
+
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `logo.${exportFormat}`;
+      link.click();
+
+      return;
+    }
+    
     if (!canvas) return;
 
     // PNG / JPEG
@@ -114,6 +155,10 @@ export function Header() {
     }
   }
 
+  const availableFormats = isLogo
+    ? ["png", "jpeg"]
+    : ["png", "jpeg", "svg", "pdf"];
+
   return (
     <header style={{
       height: 48, background: "#0d0d12", borderBottom: "1px solid #1e1e2a",
@@ -153,10 +198,11 @@ export function Header() {
             fontSize: 12,
           }}
         >
-          <option value="png">PNG</option>
-          <option value="jpeg">JPEG</option>
-          <option value="pdf">PDF</option>
-          <option value="svg">SVG</option>
+          {availableFormats.map((f) => (
+            <option key={f} value={f}>
+              {f.toUpperCase()}
+            </option>
+          ))}
         </select>
 
         <button
@@ -171,19 +217,21 @@ export function Header() {
           <Download size={13} /> Export
         </button>
 
-        <button
-          onClick={saveAsTemplate}
-          disabled={saving}
-          style={{
-            ...btnStyle,
-            opacity: saving ? 0.6 : 1,
-            background: "var(--accent)",
-            color: "#fff",
-            border: "none",
-          }}
-        >
-          {saving ? "Saving..." : "Save as Template"}
-        </button>
+        {project?.type !== "logo" && (
+          <button
+            onClick={saveAsTemplate}
+            disabled={saving}
+            style={{
+              ...btnStyle,
+              opacity: saving ? 0.6 : 1,
+              background: "var(--accent)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            {saving ? "Saving..." : "Save as Template"}
+          </button>
+        )}
       </div>
     </header>
   );

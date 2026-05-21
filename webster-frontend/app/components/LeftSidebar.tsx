@@ -29,13 +29,18 @@ export default function LeftSidebar() {
     {
       label: "Logo",
       icon: <Logomaker/>,
-      action: () => navigate("/logo-maker")
+      action: async () => {
+        const projectId = await createProject('logo');
+        if (projectId) {
+          navigate(`/logo-maker/${projectId}`);
+        }
+      }
     },
     {
       label: "Editor",
       icon: <Editor/>,
       action: async () => {
-        const projectId = await createProject();
+        const projectId = await createProject('photo');
         if (projectId) {
           navigate(`/edit-page/${projectId}`);
         }
@@ -50,7 +55,7 @@ export default function LeftSidebar() {
     },
   ];
   
-  const createProject = async () => {
+  const createProject = async (type) => {
   try {
     // if (!userId) window.location.href = "/login";
 
@@ -65,6 +70,7 @@ export default function LeftSidebar() {
           height: 600,
           background: "#ffffff",
         },
+        type: type
       }),
     });
      const project = await res.json();

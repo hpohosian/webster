@@ -1,8 +1,10 @@
-import { useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Download } from 'lucide-react';
 import { useLogo } from './LogoProvider';
 import type { LayoutVariant } from './Layout';
-
+import { useEditorStore } from '../../store/editorStore';
+import { generateLogoThumbnail } from "../../routes/ProjectPage/generateThumbnail";
+import { useParams } from 'react-router';
 
 function getFlexDirection(layout: LayoutVariant): React.CSSProperties['flexDirection'] {
   switch (layout) {
@@ -28,11 +30,46 @@ function getFlexDirection(layout: LayoutVariant): React.CSSProperties['flexDirec
 //   }
 // }
 
+const API = import.meta.env?.VITE_API;
+
 export function LogoPreview() {
   const [logo] = useLogo();
   const ref = useRef<HTMLDivElement>(null);
+  const { setLogoRef } = useEditorStore();
+
+  useEffect(() => {
+    setLogoRef(ref.current);
+  }, [setLogoRef]);
 
   const flexDir = getFlexDirection(logo.layout as LayoutVariant);
+
+  const { projectId } = useParams();
+
+  const saveProject = useCallback(async () => {
+    if (!projectId) return;
+  
+    const thumbnail = await generateLogoThumbnail(ref.current);
+
+
+    await fetch(`${API}/projects/${projectId}/save`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        thumbnail,
+      }),
+    });
+  }, [ref]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      saveProject();
+    }, 800);
+
+    return () => clearTimeout(timeout);
+  }, [logo, saveProject]);
   
   return (
     <div className="flex flex-col items-center gap-6 p-8 flex-1 overflow-auto">
