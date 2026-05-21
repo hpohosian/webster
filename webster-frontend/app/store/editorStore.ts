@@ -84,6 +84,8 @@ export interface EditorStore {
 
   fabricCanvas: FabricCanvas | null;
 
+  logoRef: null,
+
   setFabricCanvas: (canvas: FabricCanvas | null) => void;
 
   resizeCanvas: (width: number, height: number) => void;
@@ -135,6 +137,8 @@ export interface EditorStore {
 
   setCanvasJSON: (json: any) => void;
   setCanvasBackgroundColor: (color: string) => void;
+
+  setLogoRef: (ref: any) => void;
 }
 
 const DEFAULT_ADJUSTMENTS: Adjustments = {
@@ -183,6 +187,8 @@ export const useEditorStore = create<EditorStore>()(
       canvasBackgroundColor: "#e2e2e2",
 
       fabricCanvas: null,
+
+      logoRef: null,
 
       setActiveTool: (tool) => set({ activeTool: tool }, false, "setActiveTool"),
       
@@ -278,6 +284,7 @@ export const useEditorStore = create<EditorStore>()(
         set({ fabricCanvas: canvas }, false, "setFabricCanvas"),
       setCanvasBackgroundColor: (color) =>
         set({ canvasBackgroundColor: color }, false, "setCanvasBackgroundColor"),
+      setLogoRef: (ref) => set({ logoRef: ref }),
     }),
     { name: "EditorStore" }
   )

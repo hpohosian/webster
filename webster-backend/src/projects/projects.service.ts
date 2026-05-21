@@ -49,6 +49,7 @@ export class ProjectsService {
       user: { id: userId } as User,
       isTemplate: false,
       isDefaultTemplate: false,
+      type: dto.type,
     });
 
     const savedProject = await this.projectRepo.save(project);
@@ -173,9 +174,14 @@ export class ProjectsService {
 
     const nextVersionNumber = lastVersion ? lastVersion.versionNumber + 1 : 1;
 
+    const safeState = projectState ?? {
+      canvas: null,
+      objects: [],
+    };
+
     const version = this.versionRepo.create({
       projectId,
-      data: projectState,
+      data: safeState,
       versionNumber: nextVersionNumber,
       isAutoSave,
     });
