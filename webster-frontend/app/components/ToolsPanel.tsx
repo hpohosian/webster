@@ -8,7 +8,7 @@ const TOOL_CATEGORIES = [
   { id: "upload", Icon: Upload, label: "Upload" },
   { id: "resize", Icon: Maximize, label: "Resize" },
   // { id: "adjustments", Icon: SlidersHorizontal, label: "Filters" },
-  { id: "filter", Icon: Wand2, label: "Adjustments" },
+  { id: "filter", Icon: SlidersHorizontal, label: "Adjustments" },
   { id: "text", Icon: Type, label: "Text" },
   { id: "draw", Icon: Pencil, label: "Draw" },
   { id: "shapes", Icon: Square, label: "Shapes" },
