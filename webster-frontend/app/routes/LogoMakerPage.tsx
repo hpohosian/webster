@@ -31,7 +31,7 @@ export default function LogoMakerPage() {
             {activePanel === "icons" && <IconsPanel />}
             {activePanel === "box" && <BoxPanel />}
             {activePanel === "templates" && <LayoutPanel />}
-          <div className="size-full m-5 flex items-center justify-center" style={{ height: "100vh", background: "#f8f8f8", justifyContent: "center"}}>
+          <div className="size-full m-5 flex items-center justify-center" style={{ height: "100vh", background: "#fdfdfd", justifyContent: "center"}}>
             <LogoPreview/>
           </div>
         </div>

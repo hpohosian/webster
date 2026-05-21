@@ -305,7 +305,7 @@ export function Canvas() {
       left: object.left ?? 120,
       top: object.top ?? 100,
       cornerColor: "#5de4fc",
-      borderColor: "#5de4fc",
+      borderColor: "#66e4fa",
       transparentCorners: false,
     });
 

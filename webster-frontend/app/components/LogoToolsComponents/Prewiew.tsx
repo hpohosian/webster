@@ -37,7 +37,7 @@ export function LogoPreview() {
   return (
     <div className="flex flex-col items-center gap-6 p-8 flex-1 overflow-auto">
 
-      {/* ── Logo box ── */}
+      {/* Logo box */}
       <div
         ref={ref}
         className="shadow-xl rounded-2xl"
