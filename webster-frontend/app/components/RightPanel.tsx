@@ -48,7 +48,7 @@ export function RightPanel() {
 
   return (
     <div style={{ width: 240, background: "var(--sidebar)", borderLeft: "1px solid var(--sidebar-border)", display: "flex", flexDirection: "column", flexShrink: 0 }}>
-      <div style={{ height: 44, borderBottom: "1px solid var(--sidebar-border)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px" }}>
+      <div style={{ height: 41, borderBottom: "1px solid var(--sidebar-border)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px" }}>
         <div style={{ display: "flex", gap: 4 }}>
           {([["layers", Layers], ["history", History]] as const).map(([id, Icon]) => (
             <button key={id} onClick={() => setTab(id)} style={{

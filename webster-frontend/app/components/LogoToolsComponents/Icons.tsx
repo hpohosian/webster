@@ -54,7 +54,7 @@ export function IconsPanel() {
   const filtered = useMemo(() => icons, [icons]);
 
   return (
-    <div className="w-64 bg-card border-r border-border flex flex-col">
+    <div className="w-80 bg-card border-r border-border flex flex-col">
       {/* Panel header */}
       <div className="h-12 px-4 border-b border-border flex items-center">
         <h3 className="font-semibold text-foreground text-sm">Icons</h3>

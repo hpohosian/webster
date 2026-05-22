@@ -158,7 +158,6 @@ export default function UserEditPage() {
 
               <div className="ep-avatar-email">{profile?.email}</div>
 
-              <div className="ep-divider" />
             </div>
 
             {/* Danger zone */}
@@ -173,6 +172,8 @@ export default function UserEditPage() {
 
           {/* Main */}
           <main className="ep-content">
+            {/* <div className="ep-section-card"> */}
+            
               <SectionCard title="Personal info" delay={0.04}>
                 <div className="ep-form-grid">
                   <Field label="Username" error={errors.username}>
@@ -217,6 +218,8 @@ export default function UserEditPage() {
                   </button>
                 </div>
               </SectionCard>
+            {/* </div> */}
+              
           </main>
         </div>
 

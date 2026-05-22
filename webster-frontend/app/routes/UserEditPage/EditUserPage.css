@@ -4,9 +4,9 @@
   --text: #2a2a2a;
   --text-h: #08060d;
   --bg: #323232;
-  --card-bg: #e5e5e5;
+  --card-bg: #f8f8f8;
   --bg-muted: #e3eaec;
-  --border: #e5e4e7;
+  --border: #e5e4e7;  
   --accent: #b0cbd5;
   --accent-bg: rgba(5, 36, 65, 0.08);
   --accent-border: rgba(9, 68, 124, 0.08);
@@ -76,7 +76,7 @@ a {
 .ep-body , .body{
   max-width: 1160px;
   margin: 0 auto;
-  padding: 40px 32px;
+  padding: 20px 32px;
   display: flex;
   gap: 32px;
   align-items: flex-start;
@@ -109,8 +109,8 @@ a {
 }
 
 .ep-avatar , .avatar {
-  width: 96px;
-  height: 96px;
+  width: 98px;
+  height: 98px;
   border-radius: 50%;
   background: linear-gradient(45grad,#78b3c8,var(--accent));
   display: flex;
@@ -255,15 +255,17 @@ a {
   display: flex;
   flex-direction: column;
   gap: 24px;
+ 
 }
 
 .ep-section-card {
   background: var(--card-bg);
   border-radius: 20px;
-  padding: 28px 32px 32px;
+  padding: 32px ;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   animation: fadeUp 0.45s ease both;
+  min-height: 300px;
 }
 
 .ep-section-header {
