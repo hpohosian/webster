@@ -28,6 +28,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [registered, setRegistered] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,10 +48,10 @@ export default function RegisterPage() {
         body: JSON.stringify({ username, email, password, passwordConfirmation: confirm }),
       });
       const data = await res.json();
-      if (data.error) {
+      if (!res.ok) {
         setError(data.message || "Registration failed.");
       } else {
-        navigate('/verify-email');
+        setRegistered(true); // показываем экран успеха
       }
     } catch {
       setError("Network error. Please try again.");
@@ -96,6 +97,69 @@ export default function RegisterPage() {
   //     <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" />
   //   </svg>
   // );
+
+  if (registered) {
+    return (
+      <div className="wraper-page">
+        <main className="auth-main">
+          <div style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "flex-start",
+            padding: "36px 36px 48px",
+            margin: '8%',
+            maxWidth: 520,
+          }}>
+            <div className="fade-in" style={{ width: "100%" }}>
+
+              <div className="spectrum-bar" style={{ width: 48, marginBottom: 24 }} />
+
+              {/* Icon */}
+              <div style={{
+                width: 48, height: 48, borderRadius: 12,
+                background: '#f0f9fc', border: '1px solid #d4eef5',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 20,
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7ec8e3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </div>
+
+              <h2 style={{ fontSize: 22, fontWeight: 600, color: "#1a1a1a", marginBottom: 6, letterSpacing: "-0.01em" }}>
+                Check your inbox
+              </h2>
+              <p style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>
+                We sent a confirmation link to <span style={{ color: '#1a1a1a', fontWeight: 500 }}>{email}</span>.
+                <br />Click the link in the email to activate your account.
+              </p>
+
+              <div style={{
+                marginTop: 24,
+                padding: '14px 16px',
+                background: '#f0f9fc',
+                border: '1px solid #d4eef5',
+                borderRadius: 10,
+                fontSize: 13,
+                color: '#1a5e73',
+                lineHeight: 1.55,
+              }}>
+                Didn't get the email? Check your spam folder or{' '}
+                <button
+                  onClick={() => setRegistered(false)}
+                  style={{ background: 'none', border: 'none', color: '#7ec8e3', fontWeight: 500, cursor: 'pointer', padding: 0, fontSize: 13 }}
+                >
+                  try again
+                </button>.
+              </div>
+
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="wraper-page">
