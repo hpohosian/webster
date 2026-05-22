@@ -73,7 +73,6 @@ export default function VerifyEmail() {
     }
   }
 
-
   async function handleResend() {
     if (resendTimer > 0) return;
 

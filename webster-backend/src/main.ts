@@ -25,7 +25,12 @@ async function bootstrap() {
       secret: process.env.SESSION_SECRET || 'supersecret', // ключ для подписи cookies
       resave: false, // не сохранять сессию, если она не изменилась
       saveUninitialized: false, // не сохранять пустые сессии
-      cookie: { maxAge: 1000 * 60 * 60 }, // 1 час
+      cookie: {
+        maxAge: 1000 * 60 * 60,
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+      }, // 1 час
     }),
   );
 
