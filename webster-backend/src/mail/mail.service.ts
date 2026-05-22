@@ -9,6 +9,7 @@ export class MailService {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
     secure: false,
+    family: 4,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
