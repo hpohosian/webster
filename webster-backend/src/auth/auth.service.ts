@@ -97,7 +97,7 @@ export class AuthService {
 
     await this.emailVerificationService.deleteByUserId(user.id);
 
-    return { message: 'Email successfully confirmed' };
+    return { message: 'Email successfully confirmed', userId: user.id };
   }
 
   async login(dto: LoginDto) {

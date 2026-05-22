@@ -53,14 +53,6 @@ export default function VerifyEmail() {
     if (code.length < 6) return;
 
     try {
-      const me = await fetch(`${API}/auth/me`, { credentials: 'include' });
-      const meData = await me.json();
-
-      if (!meData.user) {
-        window.location.href = '/login';
-        return;
-      }
-
       const res = await fetch(`${API}/auth/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,16 +62,17 @@ export default function VerifyEmail() {
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        setError(data.error || 'Verification failed');
+        setError(data.error || data.message || 'Verification failed');
         return;
       }
 
       setError('');
-      navigate(`/projects/${meData.user.id}`);
+      navigate(`/projects/${data.userId}`);
     } catch {
       setError('Network error. Please try again.');
     }
   }
+
 
   async function handleResend() {
     if (resendTimer > 0) return;
