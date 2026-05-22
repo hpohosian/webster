@@ -11,7 +11,6 @@ export default function LeftSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState<string | null>("profile");
   const [error, setError] = useState("");
-  // const [isLogged, setIsLogged] = useState(false);
   const [userId, setId] = useState(null);
   
   useEffect(() => {

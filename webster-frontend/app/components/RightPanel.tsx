@@ -130,7 +130,7 @@ export function RightPanel() {
                     ) : (
                       <span
                         onDoubleClick={(e) => { e.stopPropagation(); setEditingId(layer.id); setEditName(layer.name); }}
-                        style={{ flex: 1, fontSize: 12, color: isSelected ? "var(--sidebar-foreground)" : "var(--sidebar-accent)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        style={{ flex: 1, fontSize: 12, color: isSelected ? "var(--sidebar-foreground)" : "var(--sidebar-layer)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                       >
                         {layer.name}
                       </span>
@@ -165,12 +165,6 @@ export function RightPanel() {
                 );
               })}
             </div>
-
-            {/* add layer */}
-            {/* <button
-              onClick={addLayer}
-              style={{ marginTop: 8, width: "100%", background: "var(--accent)", border: "none", color: "#fff", borderRadius: 6, padding: "7px", cursor: "pointer", fontSize: 12 }}
-            >Add Layer</button> */}
 
             {/* blend modes */}
             {selectedLayer && (

@@ -6,13 +6,6 @@ interface BoxConfig {
   backgroundColor: string;
 }
 
-// interface BoxPanelProps {
-//   config: BoxConfig;
-//   onChange: (patch: Partial<BoxConfig>) => void;
-// }
-
-// ── Component 
-
 export function BoxPanel() {
    const [logo, updateLogo] = useLogo();
   return (
