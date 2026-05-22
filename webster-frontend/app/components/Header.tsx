@@ -8,7 +8,6 @@ const API = import.meta.env?.VITE_API;
 
 export function Header() {
   // const history     = useEditorStore((s) => s.history);
-  // const pushHistory = useEditorStore((s) => s.pushHistory);
   const [userId, setId] = useState(null);
   const [exportFormat, setExportFormat] = useState("png");
   const { projectId } = useParams();
@@ -29,19 +28,6 @@ export function Header() {
   }, [projectId]);
 
   const isLogo = project?.type === "logo";
-  
-  //  useEffect(() => {
-  //       fetch(`${API}/auth/me`, { credentials: "include" })
-  //         .then(r => r.json())
-  //         .then(data => {
-  //           if (data.user) {
-  //             // setIsLogged(true);
-  //             setId(data.user.id); 
-  //           }
-  //         })
-  //       .catch(console.error);
-  //     }, []);
-  // const canUndo = history.length > 1;
 
   const canvas = useEditorStore((s) => s.fabricCanvas);
 
@@ -171,16 +157,6 @@ export function Header() {
       </div>
 
        <div style={{ display: "flex", gap: 8 }}>
-        {/* <button
-          disabled={!canUndo}
-          style={{ ...btnStyle, opacity: canUndo ? 1 : 0.4 }}
-          onClick={() => pushHistory("Undo")}
-        >
-          <Undo2 size={13} /> Undo
-        </button>
-        <button style={btnStyle} onClick={() => pushHistory("Redo")}>
-          <Redo2 size={13} /> Redo
-        </button> */}
 
         <select
           value={exportFormat}

@@ -1,14 +1,7 @@
 import { useLogo } from './LogoProvider';
 export type LayoutVariant = "Icon-Left" | "Icon-Right" | "Icon-Top" | "Icon-Bottom";
 
-// interface LayoutPanelProps {
-//   layout: LayoutVariant;
-//   onChange: (layout: LayoutVariant) => void;
-// }
-
 const LAYOUTS: LayoutVariant[] = ["Icon-Left", "Icon-Right", "Icon-Top", "Icon-Bottom"];
-
-// ── Component 
 
 export function LayoutPanel() {
   const [logo, updateLogo] = useLogo();

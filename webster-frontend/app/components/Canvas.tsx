@@ -111,10 +111,13 @@ export function Canvas() {
       item.name = name;
       item.locked = locked;
 
+      const layerType = normalizeLayerType(object);
+      const textObject = object instanceof FabricText ? object : undefined;
+
       return {
         id,
         name,
-        type: normalizeLayerType(object),
+        type: layerType,
         visible: object.visible !== false,
         locked,
         opacity: Math.round((object.opacity ?? 1) * 100),
@@ -125,6 +128,9 @@ export function Canvas() {
         y: Math.round(object.top ?? 0),
         width: Math.round(object.getScaledWidth?.() ?? object.width ?? 0),
         height: Math.round(object.getScaledHeight?.() ?? object.height ?? 0),
+        text: textObject?.text,
+        fontSize: textObject?.fontSize ? Math.round(textObject.fontSize) : undefined,
+        color: typeof textObject?.fill === "string" ? textObject.fill : undefined,
       };
     });
 
@@ -229,7 +235,8 @@ export function Canvas() {
     const canvas = fabricRef.current;
     if (!canvas) return;
 
-    const markAndSync = () => {
+    const markAndSync = (event?: unknown) => {
+      normalizeTextScale((event as { target?: FabricObject } | undefined)?.target);
       if (!isRestoringRef.current) isDirtyRef.current = true;
       syncLayers();
     };
@@ -726,6 +733,32 @@ function normalizeLayerType(object: FabricObject): Layer["type"] {
   if (object.type === "i-text" || object.type === "text" || object.type === "textbox") return "text";
   if (object.type === "path") return "shape";
   return "shape";
+}
+
+function normalizeTextScale(object?: FabricObject) {
+  if (!(object instanceof FabricText)) return;
+
+  const scaleX = object.scaleX ?? 1;
+  const scaleY = object.scaleY ?? 1;
+  if (Math.abs(scaleX - 1) < 0.001 && Math.abs(scaleY - 1) < 0.001) return;
+
+  const textObject = object as FabricText & { fontSize?: number; width?: number };
+  const currentFontSize = Number(textObject.fontSize) || 16;
+  const fontScale = object.type === "textbox"
+    ? Math.abs(scaleY || 1)
+    : Math.max(Math.abs(scaleX || 1), Math.abs(scaleY || 1));
+  const nextFontSize = Math.max(1, Math.round(currentFontSize * fontScale));
+  const nextWidth = object.type === "textbox" && textObject.width
+    ? Math.max(1, textObject.width * Math.abs(scaleX || 1))
+    : textObject.width;
+
+  object.set({
+    fontSize: nextFontSize,
+    scaleX: 1,
+    scaleY: 1,
+    ...(nextWidth ? { width: nextWidth } : {}),
+  });
+  object.setCoords();
 }
 
 function blendModeToComposite(mode?: string) {

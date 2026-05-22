@@ -8,14 +8,6 @@ import { useLogo } from './LogoProvider';
 
 type IconItem = DemoIcon;
 
-// interface IconConfig {
-//   iconId: string | null;
-//   iconSize: number;
-//   iconColor: string;
-//   iconSvg?: string | null;
-//   iconLabel?: string | null;
-// }
-
 const DEFAULT_QUERY = "logo";
 
 export function IconsPanel() {
@@ -79,7 +71,7 @@ export function IconsPanel() {
           ))}
         </Tabs.List>
 
-        {/* ── Icons tab */}
+        {/* Icons tab */}
         <Tabs.Content value="icons" className="flex-1 flex flex-col overflow-hidden">
           {/* Search bar */}
           <div className="px-3 py-2 flex-shrink-0">

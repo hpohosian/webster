@@ -12,7 +12,6 @@ const TOOL_CATEGORIES = [
   { id: "text", Icon: Type, label: "Text" },
   { id: "draw", Icon: Pencil, label: "Draw" },
   { id: "shapes", Icon: Square, label: "Shapes" },
-  // { id: "templates", Icon: LayoutTemplate, label: "Templates" },
 ] as const;
 
 export function ToolsPanel() {

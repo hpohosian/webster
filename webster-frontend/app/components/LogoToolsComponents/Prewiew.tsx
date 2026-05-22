@@ -15,21 +15,6 @@ function getFlexDirection(layout: LayoutVariant): React.CSSProperties['flexDirec
   }
 }
 
-// Download helper
-// async function downloadImage(el: HTMLElement) {
-//   try {
-//     // @ts-ignore — optional peer dep
-//     const { toPng } = await import('html-to-image');
-//     const dataUrl = await toPng(el, { pixelRatio: 2 });
-//     const link = document.createElement('a');
-//     link.download = 'logo.png';
-//     link.href = dataUrl;
-//     link.click();
-//   } catch {
-//     console.warn('html-to-image not installed; download skipped.');
-//   }
-// }
-
 const API = import.meta.env?.VITE_API;
 
 export function LogoPreview() {
@@ -117,22 +102,6 @@ export function LogoPreview() {
         {logo.text}
       </span>
     </div>
-
-      {/* ── Download button ──
-      <button
-        onClick={() => ref.current && downloadImage(ref.current)}
-        className="
-          inline-flex items-center gap-2
-          px-5 py-2.5 rounded-lg text-sm font-medium
-          bg-primary text-primary-foreground
-          hover:bg-primary/90 active:scale-95
-          transition-all duration-150
-          shadow-md
-        "
-      >
-        <Download className="w-4 h-4" />
-        Download
-      </button> */}
     </div>
   );
 }
