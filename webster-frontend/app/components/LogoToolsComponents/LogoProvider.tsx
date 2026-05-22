@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import storage from './storage';
 import type { LayoutVariant } from './Layout';
 import type { FontWeight } from './Text';
+import { useParams } from "react-router";
 
 interface LogoState {
   color: string;
@@ -45,20 +46,35 @@ const initLogo: LogoState = {
 
 export const LogoProvider = ({ children }: { children: React.ReactNode }) => {
   const [logo, setLogo] = useState<LogoState>(initLogo);
+  const { projectId } = useParams();
 
   const updateLogo = (patch: Partial<LogoState>) => {
     const data = { ...logo, ...patch };
+
     setLogo(data);
-    storage.set(data);
+
+    if (projectId) {
+      localStorage.setItem(
+        `logo-${projectId}`,
+        JSON.stringify(data)
+      );
+    }
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo<LogoContextType>(() => [logo, updateLogo], [logo]);
 
   useEffect(() => {
-    const saved = storage.get();
-    if (saved) setLogo(saved);
-  }, []);
+    if (!projectId) return;
+
+    const saved = localStorage.getItem(`logo-${projectId}`);
+
+    if (saved) {
+      setLogo(JSON.parse(saved));
+    } else {
+      setLogo(initLogo);
+    }
+  }, [projectId]);
 
   return <LogoContext.Provider value={value}>{children}</LogoContext.Provider>;
 };
