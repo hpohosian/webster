@@ -95,6 +95,9 @@ export class AuthService {
     user.isEmailConfirmed = true;
     await this.userService.save(user);
 
+    console.log('user.isEmailConfirmed', user.isEmailConfirmed);
+    
+
     await this.emailVerificationService.deleteByUserId(user.id);
 
     return { message: 'Email successfully confirmed' };
