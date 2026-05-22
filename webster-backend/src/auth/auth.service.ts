@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
-import { VerifyEmailServiceDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { EmailVerificationsService } from '../email-verifications/email-verifications.service';
@@ -76,7 +75,7 @@ export class AuthService {
     return savedUser;
   }
 
-  async verifyEmail(dto: VerifyEmailServiceDto) {
+  async verifyEmail(dto: VerifyEmailDto) {
     const { email, code } = dto;
 
     const user = await this.userService.findOne({ where: { email } });
