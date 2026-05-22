@@ -19,7 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
+import { VerifyEmailServiceDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/login.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
@@ -69,7 +69,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 200, description: 'Email verified successfully.' })
   @ApiResponse({ status: 400, description: 'Invalid code or missing session.' })
-  async verifyEmail(@Body() dto: VerifyEmailDto, @Req() req: Request) {
+  async verifyEmail(@Body() dto: VerifyEmailServiceDto, @Req() req: Request) {
     if (!req.session.user?.email) {
       throw new BadRequestException(
         'Email not found in session. Please register first.',
