@@ -68,7 +68,7 @@ export class AuthService {
 
     await this.emailVerificationService.create(savedUser.id, token, expiresAt);
 
-    const verifyLink = `${process.env.PORT}/verify-email?token=${token}`;
+    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
     await this.mailService.sendVerification(savedUser.email, verifyLink);
 
     return savedUser;
@@ -171,7 +171,7 @@ export class AuthService {
 
     await this.passwordResetsService.create(user, tokenHash, expiresAt);
 
-    const resetLink = `${process.env.PORT}/password-reset/${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/password-reset/${token}`;
 
     await this.mailService.sendPasswordReset(user.email, resetLink);
 
