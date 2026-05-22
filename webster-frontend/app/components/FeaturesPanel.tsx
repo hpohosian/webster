@@ -34,7 +34,7 @@ export function FeaturesPanel() {
       flexShrink: 0,
     }}>
       <div style={{
-        padding: "12px 16px",
+        padding: "8px 16px",
         borderBottom: "1px solid var(--sidebar-border)",
         display: "flex",
         justifyContent: "space-between",
@@ -50,7 +50,7 @@ export function FeaturesPanel() {
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
-        {activePanel === "adjustments" && <AdjustmentsContent />}
+        {/* {activePanel === "adjustments" && <AdjustmentsContent />} */}
         {activePanel === "filter" && <FilterContent />}
         {activePanel === "draw" && <DrawContent />}
         {activePanel === "text" && <TextContent />}
@@ -63,53 +63,52 @@ export function FeaturesPanel() {
   );
 }
 // basic adjustments
-function AdjustmentsContent() {
-  const adjustments = useEditorStore((s) => s.adjustments);
-  const setAdjustment = useEditorStore((s) => s.setAdjustment);
-  const resetAdjustments = useEditorStore((s) => s.resetAdjustments);
-  const pushHistory = useEditorStore((s) => s.pushHistory);
+// function AdjustmentsContent() {
+//   const adjustments = useEditorStore((s) => s.adjustments);
+//   const setAdjustment = useEditorStore((s) => s.setAdjustment);
+//   const resetAdjustments = useEditorStore((s) => s.resetAdjustments);
+//   const pushHistory = useEditorStore((s) => s.pushHistory);
 
-  const fields: { key: keyof Adjustments; Icon: any; label: string }[] = [
-    { key: "highlights", Icon: Sun, label: "Highlights" },
-    { key: "contrast", Icon: Contrast, label: "Contrast" },
-    { key: "colorBalance", Icon: Palette, label: "Color Balance" },
-    { key: "light", Icon: Lightbulb, label: "Light" },
-    { key: "shadow", Icon: CloudRain, label: "Shadow" },
-    { key: "Blur", Icon: CloudRain, label: "Blur" },
-    { key: "Scharpen", Icon: Triangle, label: "Shadow" },
-  ];
+//   const fields: { key: keyof Adjustments; Icon: any; label: string }[] = [
+//     { key: "highlights", Icon: Sun, label: "Highlights" },
+//     { key: "contrast", Icon: Contrast, label: "Contrast" },
+//     { key: "colorBalance", Icon: Palette, label: "Color Balance" },
+//     { key: "light", Icon: Lightbulb, label: "Light" },
+//     { key: "shadow", Icon: CloudRain, label: "Shadow" },
+//   ];
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {fields.map(({ key, Icon, label }) => (
-        <div key={key}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-            <Icon size={13} color="var(--muted-foreground)" />
-            <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{label}</span>
-            <span style={{ fontSize: 11, color: "var(--muted-foreground)", marginLeft: "auto", opacity: 0.6 }}>
-              {adjustments[key]}
-            </span>
-          </div>
-          <input
-            type="range"
-            min={-100}
-            max={100}
-            value={adjustments[key]}
-            onChange={(e) => {
-              setAdjustment(key, Number(e.target.value));
-              pushHistory("Adjust " + label);
-            }}
-            style={{ width: "100%", accentColor: "var(--accent)" }}
-          />
-        </div>
-      ))}
-      <button
-        onClick={() => { resetAdjustments(); pushHistory("Reset Adjustments"); }}
-        style={{ background: "var(--secondary)", color: "var(--muted-foreground)", borderRadius: "var(--radius)", padding: "6px", fontSize: 12, cursor: "pointer" }}
-      >Reset All</button>
-    </div>
-  );
-}
+//   return (
+//     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+//       {fields.map(({ key, Icon, label }) => (
+//         <div key={key}>
+//           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+//             <Icon size={13} color="var(--muted-foreground)" />
+//             <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{label}</span>
+//             <span style={{ fontSize: 11, color: "var(--muted-foreground)", marginLeft: "auto", opacity: 0.6 }}>
+//               {adjustments[key]}
+//             </span>
+//           </div>
+//           <input
+//             type="range"
+//             min={-100}
+//             max={100}
+//             value={adjustments[key]}
+//             onChange={(e) => {
+//               setAdjustment(key, Number(e.target.value));
+//               pushHistory("Adjust " + label);
+//             }}
+//             style={{ width: "100%", accentColor: "var(--accent)" }}
+//           />
+//         </div>
+//       ))}
+//       <button
+//         onClick={() => { resetAdjustments(); pushHistory("Reset Adjustments"); }}
+//         style={{ background: "var(--secondary)", color: "var(--muted-foreground)", borderRadius: "var(--radius)", padding: "6px", fontSize: 12, cursor: "pointer" }}
+//       >Reset All</button>
+//     </div>
+//   );
+// }
+
 // draw 
 function DrawContent() {
   const brushColor = useEditorStore((s) => s.brushColor);

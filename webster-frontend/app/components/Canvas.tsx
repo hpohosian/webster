@@ -607,11 +607,11 @@ export function Canvas() {
 
   const cursor = activeTool === "hand" ? (isPanning ? "grabbing" : "grab") : activeTool === "draw" ? "crosshair" : "default";
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerId);
-
+// render
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--background)", overflow: "hidden", position: "relative" }}>
       <div style={{
-        height: 44,
+        height: 41,
         background: "var(--accent-forground)",
         borderBottom: "1px solid var(--border)",
         display: "flex",

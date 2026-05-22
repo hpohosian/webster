@@ -49,7 +49,7 @@ export function TextPanel() {
   const fontList = fonts.length > 0 ? fonts : FALLBACK_FONTS;
 
   return (
-    <div className="w-64 bg-card border-r border-border flex flex-col overflow-hidden">
+    <div className="w-80 bg-card border-r border-border flex flex-col overflow-hidden">
       <div className="h-12 px-4 border-b border-border flex items-center flex-shrink-0">
         <h3 className="font-semibold text-foreground text-sm">Text</h3>
       </div>

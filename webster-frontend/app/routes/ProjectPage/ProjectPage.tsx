@@ -641,7 +641,7 @@ export default function MyProjectsPage() {
             </div>
 
             {/* Sort */}
-            <div style={{ position: "relative" }}>
+            {/* <div style={{ position: "relative" }}>
               <select
                 className="sort-select"
                 value={sort}
@@ -655,7 +655,7 @@ export default function MyProjectsPage() {
                 style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
                 <path d="M6 9l6 6 6-6"/>
               </svg>
-            </div>
+            </div> */}
 
             {/* View toggle */}
             <button
