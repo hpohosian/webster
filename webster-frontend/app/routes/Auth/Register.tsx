@@ -50,6 +50,7 @@ export default function RegisterPage() {
       if (data.error) {
         setError(data.message || "Registration failed.");
       } else {
+        localStorage.setItem('pendingEmail', email);
         navigate('/verify-email');
       }
     } catch {

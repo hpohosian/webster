@@ -76,10 +76,7 @@ export class AuthController {
       );
     }
 
-    const email = req.session.user.email;
-    const code = dto.code;
-
-    return this.authService.verifyEmail({ email, code });
+    return this.authService.verifyEmail({ email: dto.email, code: dto.code });
   }
 
   @Post('login')

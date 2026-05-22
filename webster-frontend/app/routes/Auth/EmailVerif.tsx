@@ -53,11 +53,13 @@ export default function VerifyEmail() {
     if (code.length < 6) return;
 
     try {
+      const email = localStorage.getItem('pendingEmail');
+
       const res = await fetch(`${API}/auth/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ email, code }),
       });
       const data = await res.json();
 
@@ -67,6 +69,7 @@ export default function VerifyEmail() {
       }
 
       setError('');
+      localStorage.removeItem('pendingEmail');
       navigate(`/projects/${data.userId}`);
     } catch {
       setError('Network error. Please try again.');
