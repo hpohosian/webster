@@ -21,11 +21,11 @@ export class MailService {
     }
   }
 
-  async sendVerification(email: string, code: string) {
+  async sendVerification(email: string, verifyLink: string) {
     await this.send(
       email,
       'Email confirmation',
-      `<h2>Your verification code: ${code}</h2>`,
+      `<h2>Your verification link: ${verifyLink}</h2>`,
     );
   }
 

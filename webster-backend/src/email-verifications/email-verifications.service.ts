@@ -29,4 +29,10 @@ export class EmailVerificationsService {
   async deleteByUserId(userId: string) {
     return this.verificationRepository.delete({ userId });
   }
+
+  async findByCode(code: string) {
+    return this.verificationRepository.findOne({
+      where: { code },
+    });
+  }
 }

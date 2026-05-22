@@ -63,40 +63,30 @@ export class AuthService {
 
     const savedUser = await this.userService.save(user);
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // тут будет сохранение verification кода
-    await this.emailVerificationService.create(savedUser.id, code, expiresAt);
+    await this.emailVerificationService.create(savedUser.id, token, expiresAt);
 
-    // отправка email будет отдельным сервисом
-    await this.mailService.sendVerification(savedUser.email, code);
+    const verifyLink = `${this.configService.get('FRONTEND_URL')}/verify-email?token=${token}`;
+    await this.mailService.sendVerification(savedUser.email, verifyLink);
 
     return savedUser;
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
-    const { email, code } = dto;
+  async verifyEmail(token: string) {
+    const verification = await this.emailVerificationService.findByCode(token);
+    if (!verification) throw new BadRequestException('Invalid token');
+    if (verification.expiresAt < new Date()) throw new BadRequestException('Token expired');
 
-    const user = await this.userService.findOne({ where: { email } });
-    if (!user) throw new BadRequestException('User not found');
-
-    const verification = await this.emailVerificationService.findByUserId(user.id);
-    if (!verification)
-      throw new BadRequestException('Verification code not found');
-
-    if (verification.code !== code)
-      throw new BadRequestException('Invalid verification code');
-
-    if (verification.expiresAt < new Date())
-      throw new BadRequestException('Verification code expired');
+    const user = await this.userService.findOne({ where: { id: verification.userId } });
+    if (!user) throw new BadRequestException('User not found'); // фикс null
 
     user.isEmailConfirmed = true;
     await this.userService.save(user);
-
     await this.emailVerificationService.deleteByUserId(user.id);
 
-    return { message: 'Email successfully confirmed', userId: user.id };
+    return { message: 'Email confirmed', userId: user.id };
   }
 
   async login(dto: LoginDto) {

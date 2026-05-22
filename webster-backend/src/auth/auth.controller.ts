@@ -9,6 +9,7 @@ import {
   HttpStatus,
   UnauthorizedException,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -61,22 +62,27 @@ export class AuthController {
     };
   }
 
-  @Post('verify-email')
-  @ApiOperation({
-    summary: 'Verify email address',
-    description:
-      'Requires an active session. Verifies the user using the code sent to email.',
-  })
-  @ApiResponse({ status: 200, description: 'Email verified successfully.' })
-  @ApiResponse({ status: 400, description: 'Invalid code or missing session.' })
-  async verifyEmail(@Body() dto: VerifyEmailDto, @Req() req: Request) {
-    if (!req.session.user?.email) {
-      throw new BadRequestException(
-        'Email not found in session. Please register first.',
-      );
-    }
+  // @Post('verify-email')
+  // @ApiOperation({
+  //   summary: 'Verify email address',
+  //   description:
+  //     'Requires an active session. Verifies the user using the code sent to email.',
+  // })
+  // @ApiResponse({ status: 200, description: 'Email verified successfully.' })
+  // @ApiResponse({ status: 400, description: 'Invalid code or missing session.' })
+  // async verifyEmail(@Body() dto: VerifyEmailDto, @Req() req: Request) {
+  //   if (!req.session.user?.email) {
+  //     throw new BadRequestException(
+  //       'Email not found in session. Please register first.',
+  //     );
+  //   }
 
-    return this.authService.verifyEmail({ email: dto.email, code: dto.code });
+  //   return this.authService.verifyEmail({ email: dto.email, code: dto.code });
+  // }
+
+  @Get('verify-email')
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
   }
 
   @Post('login')
