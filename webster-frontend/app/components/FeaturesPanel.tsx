@@ -248,6 +248,7 @@ function FilterContent() {
 function TextContent() {
   const canvas = useEditorStore((s) => s.fabricCanvas);
   const selectedLayerId = useEditorStore((s) => s.selectedLayerId);
+  const selectedLayer = useEditorStore((s) => s.layers.find((layer) => layer.id === s.selectedLayerId));
   const runCanvasCommand = useEditorStore((s) => s.runCanvasCommand);
   const pushHistory = useEditorStore((s) => s.pushHistory);
   const brushColor = useEditorStore((s) => s.brushColor);
@@ -287,7 +288,7 @@ function TextContent() {
     setIsBold(active.fontWeight === "bold" || Number(active.fontWeight) >= 600);
     setIsItalic(active.fontStyle === "italic");
     setIsUnderline(Boolean(active.underline));
-  }, [brushColor, canvas, selectedLayerId]);
+  }, [brushColor, canvas, selectedLayer?.color, selectedLayer?.fontSize, selectedLayer?.text, selectedLayerId]);
 
   const fontOptions = fonts.length > 0
     ? fonts
