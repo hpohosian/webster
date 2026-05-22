@@ -70,10 +70,6 @@ export class AuthService {
     // тут будет сохранение verification кода
     await this.emailVerificationService.create(savedUser.id, code, expiresAt);
 
-    console.log('RESEND KEY:', process.env.RESEND_API_KEY);
-
-    console.log('TRY SEND EMAIL');
-
     // отправка email будет отдельным сервисом
     await this.mailService.sendVerification(savedUser.email, code);
 
