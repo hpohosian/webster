@@ -29,7 +29,7 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false);
   const [error, setError] = useState("");
 
-  const navigate = (path: string) => { window.location.href = path; };
+  const navigate = useNavigate();
 
   // ── submit login 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,7 +47,7 @@ export default function LoginPage() {
       if (data.error) {
         setError(data.message || "Login failed.");
       } else {
-        navigate(`projects/${data.user.id}`);
+        navigate(`/projects/${data.user.id}`);
       }
     } catch {
       setError("Network error. Please try again.");

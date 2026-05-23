@@ -48,7 +48,7 @@ export class AuthController {
     status: 400,
     description: 'Bad Request. Validation failed or email/username taken.',
   })
-  async register(@Body() dto: RegisterDto, @Req() req: Request) {
+  async register(@Body() dto: RegisterDto, @Req() req: Request, @Res() res: Response) {
     const user = await this.authService.register(dto);
 
     req.session.user = {
@@ -56,10 +56,15 @@ export class AuthController {
       email: user.email,
     };
 
-    return {
-      message: 'Please confirm your email using the 6-digit code sent to you.',
-      user: { email: user.email, id: user.id },
-    };
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Session save failed' });
+      }
+      return res.json({
+        message: 'Logged in successfully',
+        user: user,
+      });
+    });
   }
 
   // @Post('verify-email')
@@ -95,7 +100,7 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized. Invalid credentials.',
   })
-  async login(@Body() dto: LoginDto, @Req() req: Request) {
+  async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response) {
     const user = await this.authService.login(dto);
 
     req.session.user = {
@@ -103,10 +108,15 @@ export class AuthController {
       email: user.email,
     };
 
-    return {
-      message: 'Logged in successfully',
-      user: user,
-    };
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Session save failed' });
+      }
+      return res.json({
+        message: 'Logged in successfully',
+        user: user,
+      });
+    });
   }
   // -- for google auth
   @Post('google-callback')

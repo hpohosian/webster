@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
-import cors from "cors";
+import cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,8 +28,8 @@ async function bootstrap() {
       cookie: {
         maxAge: 1000 * 60 * 60,
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production', // secure только в продакшне
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       }, // 1 час
     }),
   );
@@ -40,7 +40,6 @@ async function bootstrap() {
         'http://localhost:5173',
         'https://webster-nine.vercel.app',
         'webster-git-main-herman-notts-projects.vercel.app',
-        'webster-1mqntkdia-herman-notts-projects.vercel.app',
       ],
       credentials: true,
     }),
