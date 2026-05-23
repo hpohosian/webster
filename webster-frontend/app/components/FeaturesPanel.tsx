@@ -453,7 +453,7 @@ function ResizeContent() {
   };
 
   async function saveProject(id: string, projectState: any) {
-    const res = await fetch("http://localhost:3000/projects/" + id + "/save", {
+    const res = await fetch(`${import.meta.env.VITE_API}/projects/` + id + "/save", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -528,7 +528,7 @@ function UploadContent() {
   const { projectId } = useParams<{ projectId: string }>();
 
   const createLayer = async (layer: any, id: string) => {
-    const res = await fetch("http://localhost:3000/projects/" + id + "/layers", {
+    const res = await fetch(`${import.meta.env.VITE_API}/projects/` + id + "/layers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(layer),
@@ -543,7 +543,7 @@ function UploadContent() {
     formData.append("file", file);
     if (id) formData.append("projectId", id);
 
-    const res = await fetch("http://localhost:3000/files/upload", { method: "POST", body: formData });
+    const res = await fetch(`${import.meta.env.VITE_API}/files/upload`, { method: "POST", body: formData });
     if (!res.ok) throw new Error("Upload failed");
     return res.json();
   };
@@ -561,7 +561,7 @@ function UploadContent() {
         locked: false,
         opacity: 100,
         blendMode: "normal",
-        src: "http://localhost:3000" + uploaded.url,
+        src: `${import.meta.env.VITE_API}` + uploaded.url,
         fileId: uploaded.id,
         x: 100,
         y: 100,

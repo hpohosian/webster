@@ -4,10 +4,6 @@ import { IconUser} from "../../assets/Icons"
 import before from '../../assets/before.png';
 import after from '../../assets/after.png';
 
-export async function loader() {
-  return null;
-}
-
 export default function HomePage() {
   const [sliderPos, setSliderPos] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -19,7 +15,7 @@ export default function HomePage() {
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100);
 
-    fetch("http://localhost:3000/auth/me", { credentials: "include" })
+    fetch(`${import.meta.env.VITE_API}/auth/me`, { credentials: "include" })
       .then(r => r.json())
       .then(data => {
         if (data.user) {
@@ -49,7 +45,7 @@ export default function HomePage() {
 
   const createProject = async () => {
     try {
-      const res = await fetch("http://localhost:3000/projects", {
+      const res = await fetch(`${import.meta.env.VITE_API}/projects`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

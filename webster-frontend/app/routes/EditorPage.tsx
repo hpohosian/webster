@@ -20,7 +20,7 @@ export default function EditorPage() {
     async function loadProject() {
       if (!projectId ) return;
 
-      const res = await fetch(`http://localhost:3000/projects/${projectId }`, {
+      const res = await fetch(`${import.meta.env.VITE_API}/projects/${projectId }`, {
         credentials: "include",
       });
 
