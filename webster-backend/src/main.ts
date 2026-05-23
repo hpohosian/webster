@@ -8,6 +8,8 @@ import cors from 'cors';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.getHttpAdapter().getInstance().set('trust proxy', true);
+
   const config = new DocumentBuilder()
     .setTitle('UEvent API')
     .setDescription('API for UEvent')
