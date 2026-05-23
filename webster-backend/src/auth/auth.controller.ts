@@ -108,6 +108,10 @@ export class AuthController {
       email: user.email,
     };
 
+    console.log('Session ID:', req.session.id);
+    console.log('Session user:', req.session.user);
+    console.log('Cookie settings:', req.session.cookie);
+
     req.session.save((err) => {
       if (err) {
         return res.status(500).json({ error: 'Session save failed' });
