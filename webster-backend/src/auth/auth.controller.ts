@@ -114,8 +114,11 @@ export class AuthController {
 
     req.session.save((err) => {
       if (err) {
+        console.log('Session save error:', err);
         return res.status(500).json({ error: 'Session save failed' });
       }
+      console.log('Session saved, sending response with cookie');
+      console.log('Response headers before send:', res.getHeaders());
       return res.json({
         message: 'Logged in successfully',
         user: user,
