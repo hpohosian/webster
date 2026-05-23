@@ -36,7 +36,12 @@ async function bootstrap() {
 
   app.use(
     cors({
-      origin: ['http://localhost:5173', 'https://webster-nine.vercel.app'],
+      origin: [
+        'http://localhost:5173',
+        'https://webster-nine.vercel.app',
+        'webster-git-main-herman-notts-projects.vercel.app',
+        'webster-1mqntkdia-herman-notts-projects.vercel.app',
+      ],
       credentials: true,
     }),
   );
