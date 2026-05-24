@@ -1,18 +1,150 @@
-import { Download } from "lucide-react";
+import { Download, Share2 } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router";
 import jsPDF from "jspdf";
 
 const API = import.meta.env?.VITE_API;
-
 export function Header() {
   // const history     = useEditorStore((s) => s.history);
   const [userId, setId] = useState(null);
   const [exportFormat, setExportFormat] = useState("png");
-  const { projectId } = useParams();
   const [saving, setSaving] = useState(false);
   const [project, setProject] = useState(undefined);
+  const { projectId } = useParams();
+  const isLogo = project?.type === "logo";
+  const canvas = useEditorStore((s) => s.fabricCanvas);
+  
+  async function handleShare(imageName = 'shared-image.png') {
+    try {
+      let file: File | null = null;
+      // logo case
+      if (isLogo) {
+        const ref = useEditorStore.getState().logoRef;
+        if (!ref) return;
+        
+        if (exportFormat !== "png" && exportFormat !== "jpeg") {
+          alert("This format is not supported for logos yet");
+          return;
+        }
+      
+        const { toPng, toJpeg } = await import("html-to-image");
+        const dataUrl =
+        exportFormat === "png"
+        ? await toPng(ref, { pixelRatio: 2, cacheBust: true })
+        : await toJpeg(ref, { pixelRatio: 2, cacheBust: true });
+        
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        
+        file = new File([blob], imageName, { type: blob.type });
+      }
+      // edit case
+      
+      else {
+        if (!canvas) return;
+
+        // PNG / JPEG
+        if (exportFormat === "png" || exportFormat === "jpeg") {
+          const dataUrl = canvas.toDataURL({
+            format: exportFormat,
+            quality: 1,
+            multiplier: 2,
+          });
+
+        const response = await fetch(dataUrl);
+            const blob = await response.blob();
+
+          file = new File(
+              [blob],
+              `${imageName}.${exportFormat}`,
+              {
+                type: blob.type,
+              }
+            );
+          }
+
+        // SVG
+        if (exportFormat === "svg") {
+          const svg = canvas.toSVG();
+
+          const blob = new Blob([svg], {
+            type: "image/svg+xml",
+          });
+
+          file = new File(
+              [blob],
+              `${imageName}.svg`,
+              {
+                type: "image/svg+xml",
+              }
+            );
+          }
+
+          // PDF
+          if (exportFormat === "pdf") {
+            const dataURL = canvas.toDataURL({
+              format: "png",
+              quality: 1,
+              multiplier: 2,
+            });
+
+            const pdf = new jsPDF({
+              orientation: "landscape",
+              unit: "px",
+              format: [
+                canvas.getWidth(),
+                canvas.getHeight(),
+              ],
+            });
+
+            pdf.addImage(
+              dataURL,
+              "PNG",
+              0,
+              0,
+              canvas.getWidth(),
+              canvas.getHeight()
+            );
+
+          const blob = pdf.output("blob");
+
+          file = new File(
+            [blob],
+            `${imageName}.pdf`,
+            {
+              type: "application/pdf",
+            }
+          );
+        }
+      }
+        if (!file) return;
+
+        // Verif if the browser's share system accepts this specific file type
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        
+        // native share menu
+        await navigator.share({
+          files: [file],
+          title: 'Check out this image!',
+          text: 'Sent from my app.',
+        });
+        console.log('Shared successfully!');
+        
+      } else {
+        const url = URL.createObjectURL(file);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.name;
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+    } catch (error) {
+      console.error('Sharing failed:', error);
+    }
+  }
 
   useEffect(() => {
     if (!projectId) return;
@@ -27,9 +159,7 @@ export function Header() {
       .catch(console.error);
   }, [projectId]);
 
-  const isLogo = project?.type === "logo";
 
-  const canvas = useEditorStore((s) => s.fabricCanvas);
 
   const saveAsTemplate = async () => {
     if (!projectId) return;
@@ -144,6 +274,7 @@ export function Header() {
     ? ["png", "jpeg"]
     : ["png", "jpeg", "svg", "pdf"];
 
+    // render
   return (
     <header style={{
       height: 45, background: "#0d0d12", borderBottom: "1px solid #1e1e2a",
@@ -176,12 +307,26 @@ export function Header() {
             </option>
           ))}
         </select>
+           
+        <button
+          onClick={() => handleShare()}
+          style={{
+            ...btnStyle,
+            background: "var(--accent)",
+            border: "none",
+            color: "#fff"
+          }}
+        >
+          {project?.type === "logo" ? ( <Share2 size={16} /> ): (<Share2 size={13} /> )}
+
+          Share
+        </button>
 
         <button
           onClick={() => handleExport()}
           style={{
             ...btnStyle,
-            background: "var(--accent)",
+            background: "#a5c3c5",
             border: "none",
             color: "#fff"
           }}
