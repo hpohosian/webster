@@ -12,6 +12,17 @@ FROM node:20-alpine AS build-env
 COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
+# Принимаем переменные как build args
+ARG VITE_API
+ARG VITE_REDIRECT_URI
+ARG GOOGLE_FONTS_API_KEY
+ARG UNSPLASH_ACCESS_KEY
+ARG COLOR_API_BASE_URL
+# Делаем их доступными для npm run build
+ENV VITE_API=$VITE_API
+ENV GOOGLE_FONTS_API_KEY=$GOOGLE_FONTS_API_KEY
+ENV UNSPLASH_ACCESS_KEY=$UNSPLASH_ACCESS_KEY
+ENV COLOR_API_BASE_URL=$COLOR_API_BASE_URL
 RUN npm run build
 
 FROM node:20-alpine
