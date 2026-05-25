@@ -4,7 +4,7 @@ import { PrismatLogo } from "./../assets/Logo";
 import { IconUser, Editor, Logomaker } from "./../assets/Icons"
 import "./LeftSidebar.css";
 
-const API = import.meta.env?.VITE_API;
+const API = import.meta.env.VITE_API;
 
 export default function LeftSidebar() {    
   const navigate = useNavigate();

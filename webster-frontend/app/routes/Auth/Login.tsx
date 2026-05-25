@@ -4,7 +4,9 @@ import {GoogleIcon} from '../../assets/Icons'
 import "./Login.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env?.VITE_GOOGLE_CLIENT_ID;
-const API = import.meta.env?.VITE_API;
+const API = import.meta.env.VITE_API;
+
+console.log("API =", import.meta.env.VITE_API);
 
 function signInWithGoogle() {
   const params = new URLSearchParams({
@@ -36,6 +38,8 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    console.log(`${API}/auth/login`);
+    
     try {
       const res = await fetch(`${API}/auth/login`, {
         method: "POST",

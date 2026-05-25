@@ -25,7 +25,7 @@ type Snapshot = { label: string; size: { w: number; h: number }; json: Record<st
 
 const FABRIC_PROPS = ["id", "name", "fileId", "imageUrl", "locked", "globalCompositeOperation"];
 
-const API = import.meta.env?.VITE_API;
+const API = import.meta.env.VITE_API;
 
 export function Canvas() {
   const canvasElementRef = useRef<HTMLCanvasElement>(null);

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router";
 import jsPDF from "jspdf";
 
-const API = import.meta.env?.VITE_API;
+const API = import.meta.env.VITE_API;
 export function Header() {
   // const history     = useEditorStore((s) => s.history);
   const [userId, setId] = useState(null);

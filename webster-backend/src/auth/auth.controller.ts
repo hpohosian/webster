@@ -61,8 +61,8 @@ export class AuthController {
         return res.status(500).json({ error: 'Session save failed' });
       }
       return res.json({
-        message: 'Logged in successfully',
-        user: user,
+        message: 'Please confirm your email using the 6-digit code sent to you.',
+        user: { email: user.email, id: user.id },
       });
     });
   }

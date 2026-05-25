@@ -4,7 +4,7 @@ import { GoogleIcon, IconEye, ClosedIconEye } from '../../assets/Icons';
 import "./Login.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env?.VITE_GOOGLE_CLIENT_ID;
-const API = import.meta.env?.VITE_API;
+const API = import.meta.env.VITE_API;
 
 function signUpWithGoogle() {
   const params = new URLSearchParams({
