@@ -15,7 +15,7 @@ function getFlexDirection(layout: LayoutVariant): React.CSSProperties['flexDirec
   }
 }
 
-const API = import.meta.env?.VITE_API;
+const API = import.meta.env.VITE_API;
 
 export function LogoPreview() {
   const [logo] = useLogo();

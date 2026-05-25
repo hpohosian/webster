@@ -7,7 +7,7 @@ import { userProfile, useProjects,
 import { Pencil, Trash2 } from "lucide-react";
 import { generateThumbnailFromProjectData } from "./generateThumbnail";
 
-const API = import.meta.env?.VITE_API;
+const API = import.meta.env.VITE_API;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
