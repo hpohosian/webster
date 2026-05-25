@@ -10,7 +10,7 @@ export class MailService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'api-key': process.env.BREVO_API_KEY,
+          'api-key': process.env.BREVO_API_KEY!,
         },
         body: JSON.stringify({
           sender: { email: process.env.FROM_EMAIL, name: 'Webster' },
