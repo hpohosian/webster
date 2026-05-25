@@ -117,7 +117,7 @@ export class AuthService {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI, // e.g. http://localhost:5173/auth/callback
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
         grant_type: 'authorization_code',
       }),
     });
@@ -132,7 +132,7 @@ export class AuthService {
         headers: { Authorization: `Bearer ${access_token}` },
       });
 
-    const { email, given_name, family_name } = await profileRes.json();
+    const { email } = await profileRes.json();
 
     let user = await this.userService.findOne({ where: { email } });
 
