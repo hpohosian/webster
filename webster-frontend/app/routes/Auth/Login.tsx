@@ -31,8 +31,8 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
 
-  // ── submit login 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // submit login 
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -56,8 +56,8 @@ export default function LoginPage() {
     }
   };
 
-  // ── password reset 
-  const resetPasswordReq = async (e: React.FormEvent) => {
+  // password reset 
+  const resetPasswordReq = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError("");
     if (!email) { setError("Please enter your email"); return; }
