@@ -10,17 +10,16 @@ async function bootstrap() {
 
   app.getHttpAdapter().getInstance().set('trust proxy', true);
 
-  const config = new DocumentBuilder()
-    .setTitle('UEvent API')
-    .setDescription('API for UEvent')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
-
-  app.useGlobalPipes(new ValidationPipe());
+  app.use(
+    cors({
+      origin: [
+        'http://localhost:5173',
+        'https://webster-nine.vercel.app',
+        'https://webster-frontend-production.up.railway.app',
+      ],
+      credentials: true,
+    }),
+  );
 
   app.use(
     session({
@@ -36,16 +35,17 @@ async function bootstrap() {
     }),
   );
 
-  app.use(
-    cors({
-      origin: [
-        'http://localhost:5173',
-        'https://webster-nine.vercel.app',
-        'https://webster-frontend-production.up.railway.app',
-      ],
-      credentials: true,
-    }),
-  );
+  const config = new DocumentBuilder()
+    .setTitle('UEvent API')
+    .setDescription('API for UEvent')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(process.env.PORT ?? 3000);
 }
