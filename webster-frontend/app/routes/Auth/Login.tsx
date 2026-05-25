@@ -6,6 +6,8 @@ import "./Login.css";
 const GOOGLE_CLIENT_ID = import.meta.env?.VITE_GOOGLE_CLIENT_ID;
 const API = import.meta.env?.VITE_API;
 
+console.log("API =", import.meta.env.VITE_API);
+
 function signInWithGoogle() {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
