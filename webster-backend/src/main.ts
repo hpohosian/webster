@@ -41,7 +41,7 @@ async function bootstrap() {
       origin: [
         'http://localhost:5173',
         'https://webster-nine.vercel.app',
-        'webster-git-main-herman-notts-projects.vercel.app',
+        'https://webster-frontend-production.up.railway.app',
       ],
       credentials: true,
     }),

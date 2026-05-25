@@ -36,6 +36,8 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    console.log(`${API}/auth/login`);
+    
     try {
       const res = await fetch(`${API}/auth/login`, {
         method: "POST",
