@@ -133,7 +133,7 @@ export class AuthService {
         headers: { Authorization: `Bearer ${access_token}` },
       });
 
-    const { email } = await profileRes.json();
+    const { email, given_name } = await profileRes.json();
 
     let user = await this.userService.findOne({ where: { email } });
 
@@ -144,7 +144,7 @@ export class AuthService {
         isEmailConfirmed: true, // match your actual entity field name
         passwordHash: '',
         // profilePicture: 'uploads/avatars/default.png',
-        profilePicture: `https://ui-avatars.com/api/?name=${username ?? email}&background=random&color=fff`,
+        profilePicture: `https://ui-avatars.com/api/?name=${given_name ?? email}&background=random&color=fff`,
       });
       user = await this.userService.save(user);
     }

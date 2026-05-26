@@ -17,7 +17,7 @@ export class CloudinaryService {
       const upload = cloudinary.uploader.upload_stream(
         { folder: 'avatars' },
         (error, result) => {
-          if (error) return reject(error);
+          if (error || !result) return reject(error);
           resolve(result.secure_url);
         },
       );
