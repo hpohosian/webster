@@ -530,10 +530,10 @@ export default function MyProjectsPage() {
               background: "#e4e4e4",
               border: "1.5px solid #d0d0d0",
               display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0, overflow: "hidden"
+              flexShrink: 0, overflow: "hidden" 
             }}>
               { profile?.profilePicture && !profile.profilePicture.includes('default.png') ? 
-              ( <img src={`${API}/${profile.profilePicture}`} alt="avatar" />)
+              ( <img src={`${API}/${profile.profilePicture}`} alt="avatar" style={{width: "100%", height: "100%", objectFit: "cover"}} />)
               :(
               <svg width="22" height="22" fill="none" stroke="#bbb" strokeWidth="1.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19"/>
@@ -550,14 +550,7 @@ export default function MyProjectsPage() {
               }}>
                 {profile?.username}
               </h1>
-              <h2 style={{
-                fontSize: 20, fontWeight: 600,
-                color: "#1a1a1a", letterSpacing: "-0.02em",
-                lineHeight: 1,
-              }}>
-                My Projects
-              </h2>
-              <p style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>
+              <p style={{ fontSize: 14, color: "#7d7d7d", marginTop: 2 }}>
                 {projects.length} projects
               </p>
             </div>

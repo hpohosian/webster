@@ -1,8 +1,9 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState, useEffect, useRef } from "react";
-import { IconUser} from "../../assets/Icons"
+import { IconUser } from "../../assets/Icons"
 import before from '../../assets/before.png';
 import after from '../../assets/after.png';
+const API = import.meta.env.VITE_API;
 
 export default function HomePage() {
   const [sliderPos, setSliderPos] = useState(50);
@@ -11,6 +12,7 @@ export default function HomePage() {
   const [isLogged, setIsLogged] = useState(false);
   const [userId, setId] = useState(null);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 100);
@@ -20,10 +22,10 @@ export default function HomePage() {
       .then(data => {
         if (data.user) {
           setIsLogged(true);
-          setId(data.user.id); 
+          setId(data.user.id);
         }
       })
-    .catch(console.error);
+      .catch(console.error);
   }, []);
 
   const handleMouseDown = () => setIsDragging(true);
@@ -43,9 +45,11 @@ export default function HomePage() {
     setSliderPos((x / rect.width) * 100);
   };
 
-  const createProject = async () => {
+  const createProject = async (type: string) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API}/projects`, {
+      if (!userId) window.location.href = "/login";
+
+      const res = await fetch(`${API}/projects`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -56,12 +60,22 @@ export default function HomePage() {
             height: 600,
             background: "#ffffff",
           },
+          type: type
         }),
       });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
       const project = await res.json();
 
-      window.location.href = `/edit-page/${project.id}`;
+      if (!project.id) throw new Error("No project ID returned");
+
+      // 4. Navigate based on type, same routes as the working sidebar
+      if (type === "logo") {
+        navigate(`/logo-maker/${project.id}`);
+      } else {
+        navigate(`/edit-page/${project.id}`);
+      }
+
     } catch (err) {
       console.error(err);
     }
@@ -106,20 +120,26 @@ export default function HomePage() {
       {/* Nav */}
       <nav className={`fixed top-0 left-0 right-0 z-40 px-8 py-5 flex items-center justify-between bg-[#f0f0f0] border-b border-[#e0e0e0] fade-up ${heroVisible ? "visible" : ""}`}>
         <div className="flex items-center gap-2.5">
-          <div className="prismat-logo-dot w-2.5 h-2.5 rounded-full" />
+          <div style={{
+        width: 34, height: 34, borderRadius: "50%",
+        border: "1.5px solid rgba(93, 167, 151, 0.49)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+          <div className="prismat-logo-dot w-4.5 h-4.5 rounded-full" />
+      </div>
           <span className="text-[15px] font-semibold tracking-[0.12em] uppercase text-[#1a1a1a]">Prismat</span>
         </div>
         <div className="flex items-center gap-8 text-[13px] text-[#888] tracking-wide">
           <Link to="#" className="hover:text-[#1a1a1a] transition-colors">Features</Link>
           <Link to="#" className="hover:text-[#1a1a1a] transition-colors">Pricing</Link>
           <Link to="#" className="hover:text-[#1a1a1a] transition-colors">About</Link>
-          
+
           {isLogged ? (
             <Link to={`/projects/${userId}`} className="px-4 py-1.5 border flex border-[#ccc] rounded-full text-[#1a1a1a] hover:border-[#7ec8e3] hover:text-[#7ec8e3] transition-all text-[13px]">
-               <IconUser/>
-                User Page
+              <IconUser />
+              User Page
             </Link>
-          ):(
+          ) : (
             <Link to="/login" className="px-4 py-1.5 border border-[#ccc] rounded-full text-[#1a1a1a] hover:border-[#7ec8e3] hover:text-[#7ec8e3] transition-all text-[13px]">
               Sign in
             </Link>
@@ -142,9 +162,9 @@ export default function HomePage() {
             >
               Transform your
               <br />
-              <span className="font-semibold" style={{ color: "#7ec8e3" }}>images</span>
+              <span className="font-semibold" style={{ color: "#72bdd8" }}>images</span>
               <br />
-              effortlessly.
+              effortlessly
             </h1>
 
             <p
@@ -155,17 +175,17 @@ export default function HomePage() {
 
             {/* CTA Buttons */}
             <div className={`fade-up ${heroVisible ? "visible" : ""} delay-3 flex flex-wrap gap-4`}>
-              <button onClick={createProject}  className="btn-primary px-7 py-3.5 rounded-full bg-[#5ab6d4] text-white text-[15px] font-medium tracking-wide">
+              <button onClick={() => createProject('photo')} className="btn-primary px-7 py-3.5 rounded-full bg-[#5ab6d4] text-white text-[15px] font-medium tracking-wide">
                 Open Photo Editor
               </button>
-              <Link to="logo-maker"  className="btn-secondary px-7 py-3.5 rounded-full border border-[#ccc] bg-white text-[#1a1a1a] text-[15px] font-medium tracking-wide hover:border-[#7ec8e3] transition-all">
+              <button onClick={() => createProject('logo')} className="btn-secondary px-7 py-3.5 rounded-full border border-[#ccc] bg-white text-[#1a1a1a] text-[15px] font-medium tracking-wide hover:border-[#7ec8e3] transition-all">
                 Open Logo Creator
-              </Link>
+              </button>
             </div>
 
             {/* Stats row */}
             <div className={`fade-up ${heroVisible ? "visible" : ""} delay-4 flex gap-8 mt-12`}>
-              {[ ["99%", "Quality preserved"], ["2 tools", "One platform"]].map(([val, label]) => (
+              {[["99%", "Quality preserved"], ["2 tools", "One platform"]].map(([val, label]) => (
                 <div key={label}>
                   <div className="text-[22px] font-semibold text-[#1a1a1a] tracking-tight">{val}</div>
                   <div className="text-[12px] text-[#999] tracking-wide mt-0.5">{label}</div>
@@ -191,7 +211,7 @@ export default function HomePage() {
                 className="relative w-full aspect-square"
                 onMouseDown={handleMouseDown}
                 onTouchMove={handleTouchMove}
-                onTouchStart={() => {}}
+                onTouchStart={() => { }}
                 style={{ cursor: "ew-resize" }}
               >
                 {/* After image (full) */}
@@ -241,7 +261,7 @@ export default function HomePage() {
       <section className="px-8 max-w-6xl mx-auto pb-24">
         <div className="border-t border-[#e0e0e0] pt-12">
           <div className="flex flex-wrap gap-3">
-            {["Non-destructive editing", "Prismatic color grading", "Batch processing", "Vector logo tools", "Export to SVG, PNG, PDF"].map((feat) => (
+            {["Non-destructive editing", "Vector logo tools", "Export to SVG, PNG, PDF"].map((feat) => (
               <span
                 key={feat}
                 className="px-4 py-2 bg-white border border-[#e8e8e8] rounded-full text-[13px] text-[#666] font-light tracking-wide"

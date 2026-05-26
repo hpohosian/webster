@@ -15,7 +15,7 @@ export function PrismatLogo({ collapsed, onToggle }: { collapsed: boolean; onTog
     <Link to='/' style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{
         width: 34, height: 34, borderRadius: "50%",
-        border: "1.5px solid rgba(255,255,255,0.3)",
+        border: "1.5px solid rgba(255, 255, 255, 0.39)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         <div style={{
