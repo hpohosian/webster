@@ -36,7 +36,11 @@ export default function UserEditPage() {
       });
 
       if (profile.profilePicture) {
-        setAvatarPreview(`${API}/${profile.profilePicture}`);
+        setAvatarPreview(
+          profile.profilePicture?.startsWith('http')
+            ? profile.profilePicture
+            : `${API}/${profile.profilePicture}`
+        );
       }
     }
   }, [profile]);

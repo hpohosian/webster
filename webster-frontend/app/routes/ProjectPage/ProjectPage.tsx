@@ -533,7 +533,7 @@ export default function MyProjectsPage() {
               flexShrink: 0, overflow: "hidden" 
             }}>
               { profile?.profilePicture && !profile.profilePicture.includes('default.png') ? 
-              ( <img src={`${API}/${profile.profilePicture}`} alt="avatar" style={{width: "100%", height: "100%", objectFit: "cover"}} />)
+              ( <img src={profile.profilePicture?.startsWith('http') ? profile.profilePicture : `${API}/${profile.profilePicture}`} alt="avatar" style={{width: "100%", height: "100%", objectFit: "cover"}} />)
               :(
               <svg width="22" height="22" fill="none" stroke="#bbb" strokeWidth="1.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19"/>
