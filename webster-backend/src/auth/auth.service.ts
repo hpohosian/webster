@@ -57,7 +57,8 @@ export class AuthService {
       username,
       email,
       passwordHash: hash,
-      profilePicture: 'uploads/avatars/default.png',
+      // profilePicture: 'uploads/avatars/default.png',
+      profilePicture: `https://ui-avatars.com/api/?name=${username ?? email}&background=random&color=fff`,
       isEmailConfirmed: false,
     });
 
@@ -142,7 +143,8 @@ export class AuthService {
         username: email.split('@')[0],
         isEmailConfirmed: true, // match your actual entity field name
         passwordHash: '',
-        profilePicture: 'uploads/avatars/default.png',
+        // profilePicture: 'uploads/avatars/default.png',
+        profilePicture: `https://ui-avatars.com/api/?name=${username ?? email}&background=random&color=fff`,
       });
       user = await this.userService.save(user);
     }

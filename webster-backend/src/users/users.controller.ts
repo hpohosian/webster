@@ -33,24 +33,23 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { User } from './entities/user.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { memoryStorage } from 'multer';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @UseGuards(SessionAuthGuard)
   @ApiBearerAuth()
   @Patch('me')
   @UseInterceptors(
     FileInterceptor('profilePicture', {
-      storage: diskStorage({
-        destination: './uploads/avatars',
-        filename: (req, file, callback) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          callback(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
+      storage: memoryStorage(), // в память, не на диск
     }),
   )
   @ApiConsumes('multipart/form-data')
@@ -67,7 +66,8 @@ export class UsersController {
     };
 
     if (file) {
-      updateUserDto.profilePicture = `uploads/avatars/${file.filename}`;
+      // загружаем в Cloudinary, получаем URL
+      updateUserDto.profilePicture = await this.cloudinaryService.uploadAvatar(file);
     }
 
     return this.usersService.updateUser(userId, updateUserDto);
